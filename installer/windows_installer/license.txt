@@ -1,204 +1,25 @@
+AGNITY Public End-User License Agreement
 
-BETA TRIAL SOFTWARE LICENSE AGREEMENT
+NOTE: A SOURCE CODE VERSION OF THE AGNITY SOFTWARE LICENSED HEREUNDER THAT YOU MAY COPY, MODIFY, COMPILE, EXECUTE, AND DISTRIBUTE IS AVAILABLE TO YOU FREE-OF-CHARGE FROM WWW.AGNITY.COM UNDER THE AGNITY PUBLIC LICENSE (“APL”), and other open source software licenses.
 
+The accompanying executable code version of AGNITY SOFTWARE (the “Product”) is made available to you under the terms of this AGNITY PUBLIC END-USER LICENSE AGREEMENT (THE “AGREEMENT’). BY CLICKING THE “ACCEPT” BUTTON, OR BY INSTALLING OR USING THE PRODUCT, YOU ARE CONSENTING TO BE BOUND BY THE AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT, DO NOT CLICK THE “ACCEPT” BUTTON, AND DO NOT INSTALL OR USE ANY PART OF THE PRODUCT.
 
-1.	PURPOSE/LICENSE/TERM
+DURING THE INSTALLATION PROCESS, OR IN CONNECTION WITH ANY UPGRADE AS DESCRIBED IN SECTION 1 BELOW, YOU MAY BE GIVEN THE OPTION OF INSTALLING ADDITIONAL COMPONENTS FROM THIRD-PARTY SOFTWARE PROVIDERS. THE INSTALLATION AND USE OF ANY SUCH THIRD-PARTY COMPONENTS SHALL BE SUBJECT TO AND GOVERNED BY THE RESPECTIVE LICENSES FOR SUCH THIRD PARTY COMPONENTS, which can be found at http://sipper.agnity.com/licenses.php.
 
-This Beta Trial License Agreement is entered into for the sole purpose of allowing Licensee to evaluate Licensor’s 
-software product – Sipper™ (the "Licensor Software") and accompanying 
-Documentation (collectively, the "Trial System"). Licensor hereby grants to 
-Licensee a non-exclusive, non-transferable, revocable license to use the Trial 
-System, including any modified or enhanced versions thereof provided to Licensee 
-by Licensor, at no cost, for a 45-day trial period beginning on January 22, 2008 
-and ending on March 10, 2008 (the "Trial Period").
+1.	COPYRIGHT LICENSE -- USE. AGNITY, Inc. (“AGNITY”) grants you, under any and all of its copyright interest in and to the Product, a royalty-free, non exclusive license to copy and execute the executable code version of the Product. This Agreement will also govern any software upgrades provided by AGNITY that replace and/or supplement the original Product, unless such upgrades are accompanied by a separate license, in which case the terms of that license will govern. For avoidance of doubt, AGNITY is not obligated to provide you with any support, bug fixes, upgrades, or updates to the Product. 
 
+2.	COPYRIGHT LICENSE -- DISTRIBUTION. AGNITY hereby grants you, under any and all of its copyright interest in and to the Product, a royalty-free, non-exclusive license to copy and distribute unmodified copies of the Product, provided that: (a) you ensure that each copy is provided using a technical means (such as an installation program) that requires each recipient to agree to the terms of this Agreement prior to receiving or installing such copy; (b) you include a complete copy of this Agreement with each copy; (c) in any copy of the Product you make, you must retain and reproduce any and all copyright, patent, trademark, and attribution notices that are included in the Product in the same form as they appear in the Product, including without limitation the preservation of attribution notices in the form of trademarks or logos that exist within a user interface of the Product; and (d) you do not make any representations or warranties on behalf of AGNITY or its suppliers or licensors. For avoidance of doubt, the license granted to you in Paragraph 1 is not sublicenseable; any recipient of a copy of the Product provided by you under this Paragraph 2 receives a license directly from AGNITY as described in Paragraph 1. 
 
-2.	RETURN OF TRIAL SYSTEM
+3.	PROPRIETARY RIGHTS. Portions of the Product are available in source code form under the terms of APL or other open source licenses (collectively, “Open Source Licenses”) at www.AGNITY.com. Nothing in this Agreement will be construed to limit any rights granted under the Open Source Licenses. Except for the licenses expressly granted under copyright in Paragraphs 1 and 2, no rights, licenses or forbearances are granted or may arise in relation to this Agreement whether expressly, by implication, exhaustion, estoppel or otherwise. All rights, including all intellectual property rights, that are not expressly granted under this Agreement are hereby reserved. You may not remove or alter any trademark, logo, copyright or other proprietary notice in or on the Product. You may not modify, alter or tamper in any way with the Product (if you desire to make modifications to the Product, please instead use the source code version under the appropriate Open Source Licenses). This Agreement does not grant you any right to use the trademarks, service marks or logos of AGNITY or its licensors, except as necessary to fulfill the conditions of Paragraph 2.
 
-Within five business days of the end of Trial Period Licensee shall return to 
-Licensor all Licensor Software and Documentation included in the Trial System 
-(or, at Licensor 's sole discretion, destroy all such Software and Documentation 
-and certify in writing to Licensor that said Licensor Software and Documentation 
-have been destroyed).
+4.	TERMINATION. If you breach this Agreement, the licenses granted to you under this Agreement will terminate immediately and without notice, but all provisions of this Agreement except the license grants in Paragraphs 1 and 2 will survive termination and continue in effect. Upon termination, you must destroy all copies of the Product in your possession or control. 
 
+5.	DISCLAIMER OF WARRANTY. THE PRODUCT IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND. AGNITY MAKES NO WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY REGARDING OR RELATING TO THE PRODUCT. SPECIFICALLY, AGNITY DOES NOT WARRANT THAT THE PRODUCT WILL BE ERROR FREE OR WILL PERFORM IN AN UNINTERRUPTED MANNER. TO THE GREATEST EXTENT ALLOWED BY LAW, AGNITY SPECIFICALLY DISCLAIMS ALL IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE (EVEN IF AGNITY HAD BEEN INFORMED OF SUCH PURPOSE), AND NONINFRINGEMENT WITH RESPECT TO THE PRODUCTS AND WITH RESPECT TO THE USE THEREOF.
 
-3.	LIMITED WARRANTY
+6.	LIMITATION OF LIABILITY. IN NO EVENT WILL AGNITY BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES OF ANY KIND (INCLUDING WITHOUT LIMITATION LOSS OF PROFITS, LOSS OF USE, BUSINESS INTERRUPTION, LOSS OF DATA, COST OF COVER) IN CONNECTION WITH OR ARISING OUT OF OR RELATING TO THE FURNISHING, PERFORMANCE OR USE OF THE PRODUCT OR ANY OTHER RIGHTS GRANTED HEREUNDER, WHETHER ALLEGED AS A BREACH OF CONTRACT OR TORTIOUS CONDUCT, INCLUDING NEGLIGENCE, EVEN IF AGNITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. IN ANY EVENT, AGNITY’S LIABILITY UNDER THIS AGREEMENT WILL NOT EXCEED THE GREATER OF ONE HUNDRED DOLLARS ($100). THE PARTIES AGREE THAT THE FOREGOING REPRESENTS A FAIR ALLOCATION OF RISK HEREUNDER. THE ALLOCATION OF RISK IS MATERIAL TO THIS AGREEMENT, AND AGNITY IS WILLING TO ENTER INTO THIS AGREEMENT ONLY SUBJECT TO THESE LIMITATIONS ON LIABILITY. 
 
-Licensor warrants that it has the right to grant temporary use by Licensee of the 
-Trial System. Licensor makes no other warranties, express or implied, including 
-but not limited to implied warranties of merchantability and fitness for a particular purpose.
+7.	EXPORT CONTROLS. This license is subject to all applicable export restrictions. You must comply with all export and import laws and restrictions and regulations of any United States or foreign agency or authority relating to the Product and its use. 
 
-Licensor will have no liability for damages arising out of or in connection with 
-this Beta Trial License Agreement, the performance of the trial system, or Licensor’s 
-performance of services regard to whether a claim is based on contract or tort, 
-including negligence in no event shall Licensor or its suppliers be liable for any 
-indirect, special, incidental or consequential damages, including, without limitation, 
-damages resulting from loss of profits, data or business arising out of or in connection 
-with this Beta Trial License Agreement, even if Licensor has been advised of the 
-possibility of such damages.
-
-
-4.	PROPRIETARY RIGHTS
-
-Licensee acknowledges that Licensor retains all right, title, and interest in the 
-Trial System and in all copies thereof, and no title to the Trial System, or any 
-intellectual property or other rights therein, are transferred to Licensee by 
-virtue of this Beta Trial License Agreement other than as specified herein.
-Licensee shall not without the express prior written consent of Licensor duplicate, 
-copy or reproduce the Trial System except for use on a single computer. In the 
-event Licensor authorizes Licensee to make copies of the Trial System, Licensee 
-shall reproduce Licensor 's copyright and other proprietary rights notices or 
-legends on all copies thereof. Licensee agrees not to cause or permit the 
-reverse engineering, reverse assembly or reverse compilation of the Licensor 
-Software, or otherwise attempt to derive source code from the Licensor Software.
-
-
-5.	CONFIDENTIALITY
-
-5.1 Licensee Confidential Information
-Licensee acknowledges that the Trial System is unpublished and contains 
-proprietary and confidential information of Licensor, which Licensor 
-considers to constitute valuable trade secrets. In addition, Licensee 
-may also be provided with or be exposed to confidential information 
-of third parties with which Licensor conducts business. The confidential 
-information of Licensor and third parties is called collectively "Confidential Information." 
-In recognition of the foregoing, Licensee covenants and agrees:
-
-a.	That Licensee will keep and maintain all Confidential Information in strict confidence, 
-using such degree of care as is appropriate to avoid unauthorized use or disclosure;
-
-b.	That Licensee will not, directly or indirectly, disclose any Confidential 
-Information to any third party, except with Licensor 's prior written consent;
-
-c.	That Licensee will not make use of any Confidential Information for its 
-own purposes, such as creation of a competitive product; or for the benefit 
-of anyone or any other entity other than Licensor;
-
-d.	That (i) on termination of discussions with Licensor, or (ii) if Licensor 
-is engaged to perform services for Licensee, upon completion of the engagement, or (iii) at any time Licensor may so request, Licensee will deliver promptly to Licensor or, at Licensor 's option, will destroy all memoranda, notes, records, reports, media and other documents and materials (and all copies thereof) regarding or including any Confidential Information which Licensee may then possess or have under its control; and
-
-e.	That Licensee will take no action with respect to the Confidential 
-Information that is inconsistent with its confidential and proprietary nature.
-
-Licensee shall be permitted to disclose the Confidential Information only as follows: 
-
-a.	To its employees and agents ("Employees") having a need to know such 
-information in connection with this Beta Trial License Agreement (and in 
-any event Licensee shall be responsible for all Employees' compliance with 
-the terms of this Beta Trial License Agreement); and 
-
-b.	If disclosure is required by law, but in such event Licensee shall notify 
-Licensor in writing in advance of such disclosure, and provide Licensor with 
-copies of any related information so that Licensor may take appropriate 
-action to protect the Confidential Information.
-
-5.2 Licensor Confidential Information
-For purposes of this Beta Trial License Agreement, Confidential Information 
-shall include, but not be limited to, all business information of Licensor, 
-including the following:
-
-a.	All information and data related to the Software and Documentation;
-
-b.	All information relating to Licensor 's planned or existing computer 
-systems and systems architecture, including computer hardware, computer 
-software, source code, object code, documentation, methods of processing 
-and operational methods;
-
-c.	All information regarding Licensor 's product strategies, customer 
-lists, sales, profits, organizational restructuring, new business 
-initiatives and financial information; and
-
-d.	Confidential information of third parties with whom Licensor 
-conducts business. Notwithstanding the foregoing, Confidential Information 
-shall not include information that (i) is or becomes generally known to the 
-public not as a result of a disclosure by Licensee, (ii) is rightfully in the 
-possession of Licensee prior to disclosure by Licensor or (iii) is received 
-by Licensee in good faith and without restriction from a third party not 
-under a confidentiality obligation to Licensor and having the right to 
-make such disclosure. Licensee acknowledges that the disclosure of Confidential Information may cause irreparable injury to Licensor and damages which may be difficult to ascertain. Licensor shall, therefore, be entitled to injunctive relief upon a disclosure or threatened disclosure of any Confidential Information, without a requirement that Licensor prove irreparable harm, in addition to such other remedies as may be available at law or in equity. Without limitation of the foregoing, Licensee shall advise Licensor immediately in the event that it learns or has reason to believe that any person or entity which has had access to Confidential Information has violated or intends to violate the terms of this Beta Trial License Agreement.
-
-In addition, Licensee shall not release the results of any evaluation or 
-benchmark of the Trial System to any third party without the express prior 
-written consent of Licensor.
-
-
-6.	INDEMNIFICATION
-
-Licensor agrees to defend Licensee from and against any claim or action based 
-on any alleged infringement of any US patent, copyright, trade secret or 
-other proprietary right as a result of the use of the Trial System according 
-to the terms and conditions of this Beta Trial License Agreement, and 
-Licensor agrees to indemnify Licensee from any costs and/or damages awarded 
-against Licensee in any such infringement claim or action or settlement 
-thereof; provided that: (i) Licensor is promptly notified in writing of 
-such claim, (ii) Licensee grants Licensor sole control of the defense 
-and any related settlement negotiations, and (iii) Licensee cooperates 
-with Licensor in defense of such claim. 
-
-Notwithstanding the foregoing, Licensor shall have no liability to 
-Licensee if the infringement results from: 
-
-a.	Use of the Trial System in combination with software not provided by Licensor
-
-b.	Modifications to the Trial System not made by Licensor, or 
-
-c.	Use of other than a current release of the Trial System, if such infringement 
-would have been avoided by use of a current Licensor release. The foregoing states 
-the entire liability of Licensor with respect to infringement of any patents, 
-copyrights, trade secrets or other proprietary rights by the Trial System or any part thereof.
-
-
-
-7.	TERMINATION
-
-Licensor may terminate this Beta Trial License Agreement at any time with or 
-without cause by giving written notice of termination to Licensee, effective 
-on Licensee's receipt thereof. Anything to the contrary herein notwithstanding, 
-immediately upon such termination Licensee shall return to Licensor the Trial 
-System, including all related documentation and all copies thereof.
-
-8.	WAIVER
-
-The waiver or failure of Licensor to exercise any right provided for herein 
-shall not be deemed a waiver of any further right hereunder. The rights and 
-remedies of Licensor set forth in this Agreement are in addition to any 
-rights or remedies Licensor may otherwise have at law or in equity. 
-If any provision of this Beta Trial License Agreement shall be held to be 
-invalid, illegal or unenforceable, the validity, legality and enforceability 
-of the remaining provisions shall in no way be affected or impaired thereby.
-
-
-9.	ASSIGNMENT
-
-Neither party may assign its rights, duties or obligations under this 
-Agreement without the prior written consent of the other party.
-
-
-10.	GOVERNING LAW AND JURISDICTION
-
-This Beta Trial License Agreement and performance hereunder shall be 
-governed by the laws of the State of California without regard to 
-conflicts of laws. Licensee and Licensor hereby agree that the sole 
-jurisdiction and venue for any litigation arising from or relating 
-to this Beta Trial License Agreement shall be an appropriate federal 
-or state court located in California.
-
-
-11.	SURVIVAL
-
-All provisions hereof relating to proprietary rights, confidentiality 
-and non-disclosure, indemnification and limitation of liability shall 
-survive the completion of the Services or any earlier termination of 
-this Beta Trial License Agreement.
-
-
-12.	ENTIRE AGREEMENT
-
-This Beta Trial License Agreement constitutes the entire agreement and 
-understanding of the parties and supersedes and merges any and all prior 
-proposals, understandings and agreements, oral and written, between 
-the parties concerning the subject matter hereof. 
-
-IN WITNESS WHEREOF, the parties have executed this Agreement on the 
-dates set forth first above, with full knowledge of its content and 
-significance and intending to be legally bound by the terms hereof.
+8.	U.S. GOVERNMENT END-USERS. This Product is a “commercial item,” as that term is defined in 48 C.F.R. 2.101, consisting of “commercial computer software” and “commercial computer software documentation,” as such terms are used in 48 C.F.R. 12.212 (Sept. 1995) and 48 C.F.R. 227.7202 (June 1995). Consistent with 48 C.F.R. 12.212, 48 C.F.R. 27.405(b)(2) (June 1998) and 48 C.F.R. 227.7202, all U.S. Government End Users acquire the Product with only those rights as set forth therein.
+ 
+9.	MISCELLANEOUS. (a) This Agreement constitutes the entire agreement between AGNITY and you concerning the subject matter hereof, and it may only be modified by a written amendment signed by an authorized executive of AGNITY. (b) Except to the extent applicable law, if any, provides otherwise, this Agreement will be governed by the laws of the state of California, U.S.A., excluding its conflict of law provisions. (c) This Agreement will not be governed by the United Nations Convention on Contracts for the International Sale of Goods. (d) If any part of this Agreement is held invalid or unenforceable, that part will be construed to reflect the parties’ original intent, and the remaining portions will remain in full force and effect. (e) A waiver by either party of any term or condition of this Agreement or any breach thereof, in any one instance, will not waive such term or condition or any subsequent breach thereof. (f) Except as required by law, the controlling language of this Agreement is English. (g) You may not assign your rights under this Agreement to any party without the prior written consent of AGNITY; AGNITY may assign its rights under this Agreement without condition. (h) This Agreement will be binding upon and inure to the benefit of the parties, their successors and permitted assigns.

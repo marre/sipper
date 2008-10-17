@@ -6,5 +6,5 @@ Call gem install facets-1.8.54.gem --no-rdoc --no-ri -l
 Call gem install flexmock-0.7.1.gem --no-rdoc --no-ri -l
 Call gem install log4r-1.0.5.gem --no-rdoc --no-ri -l
 Call gem install rake-0.7.2.gem --no-rdoc --no-ri -l
-Call gem install Sipper-1.1.0.gem --no-rdoc --no-ri -l
+Call gem install Sipper-1.1.3.gem --no-rdoc --no-ri -l
 Call i.rb

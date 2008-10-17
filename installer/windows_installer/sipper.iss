@@ -5,7 +5,7 @@
 
 [Setup]
 AppName=Sipper
-AppVerName=Sipper 1.1.0
+AppVerName=Sipper 1.1.3
 DefaultDirName={pf}\Sipper
 DefaultGroupName=Sipper
 Compression=lzma
@@ -19,7 +19,7 @@ Source: "C:\sipper_installer\facets-1.8.54.gem"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\flexmock-0.7.1.gem"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\log4r-1.0.5.gem"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\rake-0.7.2.gem"; DestDir: "{tmp}"
-Source: "C:\sipper_installer\Sipper-1.1.0.gem"; DestDir: "{tmp}"
+Source: "C:\sipper_installer\Sipper-1.1.3.gem"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\i.rb"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\c.cmd"; DestDir: "{tmp}"
 Source: "C:\sipper_installer\README.txt"; DestDir: "{app}"; Flags: isreadme
@@ -27,8 +27,6 @@ Source: "C:\sipper_installer\sgen.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\srun.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\sproj.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\ssmoke.cmd"; DestDir: "{app}\bin";
-Source: "C:\sipper_installer\Cygwin1.dll"; DestDir: "{app}\bin";
-Source: "C:\sipper_installer\SipperMedia.exe"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\license.txt"; DestDir: "{app}";
 
 
@@ -52,6 +50,7 @@ var
 begin
   if Exec(ExpandConstant('{tmp}\c.cmd'), '', '', SW_SHOWMINIMIZED,
      ewWaitUntilTerminated, ResultCode) then
+
   begin
     LoadStringFromFile(ExpandConstant('{tmp}\sh.txt'), S)
     

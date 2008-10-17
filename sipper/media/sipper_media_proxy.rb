@@ -21,7 +21,7 @@ module Media
         end
       end
       Thread.new do
-        x = system(File.join(SipperConfigurator[:SipperBasePath], "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
+        x = system(File.join(SipperConfigurator[:SipperBasePath], "sipper", "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
       end
       loop do
         sleep 2
