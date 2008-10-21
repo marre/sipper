@@ -288,6 +288,20 @@ Cseq: 1 INVITE}
     assert_equal(str2, m.vias[1].to_s)
   end
   
+  def test_popnilout
+    m = Message.new
+    m.via = "SIP/2.0/UDP pc21@biloxi.com;branch=z9hG4bK-2352-1-0"
+    assert_not_nil(m.via)
+    m.pop_via()
+    assert_nil(m.via)
+  end
+  
+  def test_blank_value
+    m = Message.new
+    m.via = ''
+    assert_not_nil(m.via)
+  end
+  
   def test_multivalued
     msg = Message.new
     msg.route = "sip:r@oute1, sip:r@oute2, sip:r@oute3"

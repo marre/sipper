@@ -133,7 +133,7 @@ class Message
       
         define_method(m_name.to_sym) do  # accessor
           if @headers[m_name.to_sym]
-           val = @headers[m_name.to_sym][0]
+           val = @headers[m_name.to_sym][0] || ''
           else
             nil
           end
@@ -170,7 +170,7 @@ class Message
             else
               a = arg.split(",").map { |y| y.strip }
             end
-            unless m_name == "content"
+            unless (m_name == "content")
               b = a.map do |z| 
                 _find_parser_and_parse(s_name, z, true)
               end                                    # map
@@ -183,7 +183,11 @@ class Message
         
         define_method(("pop_"+m_name).to_sym) do  #pop top
           if @headers[m_name.to_sym]
-            @headers[m_name.to_sym].shift 
+            p = @headers[m_name.to_sym].shift 
+            if @headers[m_name.to_sym].length == 0
+              @headers[m_name.to_sym] = nil    
+            end
+            return p
           else
             nil
           end
@@ -403,7 +407,7 @@ class Message
     ordered_headers.each do |k|
       next if k == :content
       v = @headers[k]
-      next if v.nil? || v.length==0 # nil valued headers are hidden and popped headers leave [] 
+      next if v.nil?  # nil valued headers are hidden and popped headers leave [] 
       if @separate_mv_hdrs && @separate_mv_hdrs.include?(k)
         v.each {|val| smsg << _header_name(k) << ":" << " " << val.to_s << "\r\n" }
       else
