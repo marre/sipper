@@ -13,11 +13,9 @@ typedef SipperMediaControllerMap::iterator SipperMediaControllerMapIt;
 class SipperMediaListener
 {
 public:
-   SipperMediaListener()
-   {
-   }
+   SipperMediaListener();
    
-   void startListener(unsigned short portnum);
+   int startListener(unsigned short portnum);
    void shutdown();
 
    static void setNonBlocking(int fd);
@@ -35,6 +33,7 @@ private:
    SipperMediaControllerMap _controllerMap;
    SipperMediaMutex _mutex;
    bool _shutdownFlag;
+   struct timeval _lastActivityTime;
 
    void _handleAcceptedController(int accSock);
 

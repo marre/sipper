@@ -23,21 +23,33 @@ LOG("Listener");
 
 int main(int argc, char**argv)
 {
-   LogMgr::instance().init("SipperMediaLog.lcfg");
    std::string configFile("SipperMedia.cfg");
-
+   std::string logFile("SipperMediaLog.lcfg");
    unsigned short port = 0;
    
-   if(argc >= 3)
+   for(int idx = 1; (idx + 1) < argc; idx += 2)
    {
-      if(strcmp(argv[1], "-c") == 0) {
-        configFile = argv[2];
+      std::string option = argv[idx];
+      std::string value = argv[idx + 1];
+
+      //printf("Processing CommandLine [%s] [%s]\n", 
+      //       option.c_str(), value.c_str());
+
+      if(option == "-c")
+      {
+        configFile = value;
       }  
-      else if (strcmp(argv[1], "-p") == 0) { 
-        port = atoi(argv[2]);
+      else if(option == "-p") 
+      { 
+        port = atoi(value.c_str());
+      }  
+      else if(option == "-l") 
+      { 
+        logFile = value;
       }  
    }
 
+   LogMgr::instance().init(logFile.c_str());
    SipperMediaConfig &config = SipperMediaConfig::getInstance();
    config.loadConfigFile(configFile);
 
@@ -46,11 +58,11 @@ int main(int argc, char**argv)
      port = atoi(config.getConfig("Global", "ListenPort", "4680").c_str());
    }
    logger.logMsg(ALWAYS_FLAG, 0, "Using port [%d]\n", port);
-   listener.startListener(port);
+   int ret = listener.startListener(port);
 
    logger.logMsg(ALWAYS_FLAG, 0, "SipperMedia program ended.\n");
 
-   return 0;
+   return ret;
 }
 
 struct SipperMediaListenerThreadData
@@ -59,7 +71,13 @@ struct SipperMediaListenerThreadData
    SipperMediaListener *listener;
 };
 
-void SipperMediaListener::startListener(unsigned short port)
+SipperMediaListener::SipperMediaListener()
+{
+   _shutdownFlag = false;
+   SipperMediaPortable::getTimeOfDay(&_lastActivityTime);              
+}
+
+int SipperMediaListener::startListener(unsigned short port)
 {
 #ifndef __UNIX__
    WSADATA wsaData;
@@ -72,6 +90,15 @@ void SipperMediaListener::startListener(unsigned short port)
       exit(1);
    }
 #endif
+
+   SipperMediaConfig &config = SipperMediaConfig::getInstance();
+   int inActiveDuration = atoi(config.getConfig("Global", "InActiveDuration", "300").c_str());
+
+   if(inActiveDuration < 0)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "InActiveTimer is -ve. Using default Value\n");
+      inActiveDuration = 300;
+   }
 
    _shutdownFlag = false;
    int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -94,16 +121,16 @@ void SipperMediaListener::startListener(unsigned short port)
    {
       logger.logMsg(ERROR_FLAG, 0, "Unable to bind to Port[%d] Error[%s].\n",
              port, SipperMediaListener::errorString().c_str());
-     SipperMediaListener::disconnectSocket(sock);
-      throw ("Bind issue.");
+      SipperMediaListener::disconnectSocket(sock);
+      return -1;
    }
 
    if(listen(sock, 5) == -1)
    {
       logger.logMsg(ERROR_FLAG, 0, "Listen call failed for Port[%d] Error[%s].\n",
         port, SipperMediaListener::errorString().c_str());
-     SipperMediaListener::disconnectSocket(sock);
-      throw ("Listen issue.");
+      SipperMediaListener::disconnectSocket(sock);
+      return -2;
    }
 
    SipperMediaListener::setNonBlocking(sock);
@@ -116,25 +143,42 @@ void SipperMediaListener::startListener(unsigned short port)
       FD_ZERO(&read_fds);
       FD_SET(sock, &read_fds);
 
-     struct timeval time_out;
-     time_out.tv_sec = 1;
-     time_out.tv_usec = 0;
+      if(inActiveDuration > 0)
+      {
+         MutexGuard(&_mutex);
+         struct timeval currtime;
+         SipperMediaPortable::getTimeOfDay(&currtime);
 
-     if(select(sock + 1, &read_fds, NULL, NULL, &time_out) == -1)
-     {
-        std::string errMsg = SipperMediaListener::errorString();
-        logger.logMsg(ERROR_FLAG, 0, "Error getting socket status. [%s]\n",
-             errMsg.c_str());
-        continue;
-     }
+         if(currtime.tv_sec > (_lastActivityTime.tv_sec + inActiveDuration))
+         {
+            if(_controllerMap.size() == 0)
+            {
+               logger.logMsg(ALWAYS_FLAG, 0, "Shutdown on inActivity.");
+               _shutdownFlag = true;
+               break;
+            }
+         }
+      }
 
-     if(_shutdownFlag)
-     {
-        break;
-     }
+      struct timeval time_out;
+      time_out.tv_sec = 1;
+      time_out.tv_usec = 0;
 
-     if(FD_ISSET(sock, &read_fds))
-     {
+      if(select(sock + 1, &read_fds, NULL, NULL, &time_out) == -1)
+      {
+         std::string errMsg = SipperMediaListener::errorString();
+         logger.logMsg(ERROR_FLAG, 0, "Error getting socket status. [%s]\n",
+                       errMsg.c_str());
+         continue;
+      }
+
+      if(_shutdownFlag)
+      {
+         break;
+      }
+
+      if(FD_ISSET(sock, &read_fds))
+      {
          struct sockaddr_in cliAddr;
          memset(&cliAddr, 0, sizeof(cliAddr));
 
@@ -156,18 +200,25 @@ void SipperMediaListener::startListener(unsigned short port)
                 accSock, inet_ntoa(cliAddr.sin_addr), 
                 ntohs(cliAddr.sin_port));
 
-        SipperMediaListener::setNonBlocking(accSock);
+         SipperMediaListener::setNonBlocking(accSock);
          SipperMediaListener::setTcpNoDelay(accSock);
 
-       pthread_t currthread;
+         {
+            MutexGuard(&_mutex);
+            SipperMediaPortable::getTimeOfDay(&_lastActivityTime);              
+         }
 
-       SipperMediaListenerThreadData *thrData = new SipperMediaListenerThreadData;
-       thrData->listener = this;
-       thrData->socket = accSock;
+         pthread_t currthread;
 
-       pthread_create(&currthread, NULL, SipperMediaListener::_startControllerThread, (void *)thrData);
-     }
+         SipperMediaListenerThreadData *thrData = new SipperMediaListenerThreadData;
+         thrData->listener = this;
+         thrData->socket = accSock;
+
+         pthread_create(&currthread, NULL, SipperMediaListener::_startControllerThread, (void *)thrData);
+      }
    }
+
+   SipperMediaListener::disconnectSocket(sock);
 
    this->shutdown();
 
@@ -186,6 +237,7 @@ void SipperMediaListener::startListener(unsigned short port)
    sleep(1);
 #endif
    logger.logMsg(ALWAYS_FLAG, 0, "Listener ended.\n");
+   return 0;
 }
 
 void * SipperMediaListener::_startControllerThread(void *inData)
@@ -208,6 +260,7 @@ void SipperMediaListener::addController(int accSock, SipperMediaController *cont
 {
    MutexGuard(&_mutex);
    _controllerMap[accSock] = controller;
+   SipperMediaPortable::getTimeOfDay(&_lastActivityTime);              
 }
 
 void SipperMediaListener::removeController(int accSock)
@@ -215,6 +268,7 @@ void SipperMediaListener::removeController(int accSock)
    MutexGuard(&_mutex);
    _controllerMap.erase(accSock);
    MutexSignal();
+   SipperMediaPortable::getTimeOfDay(&_lastActivityTime);              
 }
 
 void SipperMediaListener::shutdown()

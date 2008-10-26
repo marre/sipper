@@ -14,6 +14,7 @@
 #endif
 
 #include <string>
+#include <ctype.h>
 
 void SipperMediaPortable::toUpper(std::string &input)
 {
