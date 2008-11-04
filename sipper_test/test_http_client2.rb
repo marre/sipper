@@ -31,7 +31,6 @@ class TestHttpClient2 < DrivenSipTestCase
           res = session.create_response(200)
           res.set_body session.ihttp_response.body.split(/\r|\n\r|\n/), 'text/xml' 
           session.send res
-          logd("Received INVITE sent a 200 from "+name)
         end
         
         def on_ack(session)

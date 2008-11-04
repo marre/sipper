@@ -1327,12 +1327,16 @@ class Session
     SIP::Locator[:Sth].schedule_for(self, tid, block, :session, duration)
   end
   
-  def send_http_post_to(url, params)
-    SIP::Locator[:HttpRequestDispatcher].request_post(url, self, params)  
+  def send_http_post_to(url, params, user=nil, passwd=nil, hdr_arr=nil, body=nil)
+    SIP::Locator[:HttpRequestDispatcher].request_post(url, self, params, user, passwd, hdr_arr, body)  
   end
   
-  def send_http_get_to(url)
-    SIP::Locator[:HttpRequestDispatcher].request_get(url, self)
+  def send_http_get_to(url, user=nil, passwd=nil, hdr_arr=nil, body=nil)
+    SIP::Locator[:HttpRequestDispatcher].request_get(url, self, user, passwd, hdr_arr, body)
+  end
+  
+  def send_http_put_to(url, user=nil, passwd=nil, hdr_arr=nil, body=nil)
+    SIP::Locator[:HttpRequestDispatcher].request_put(url, self, user, passwd, hdr_arr, body)
   end
   
   # Invoked when the HTTP response is ready to be consumed
