@@ -56,7 +56,7 @@ class SipperHttpRequestDispatcher
             end
           end           
           req.set_form_data( url_context.params, '&') if url_context.params
-          req.body = body if url_context.body
+          req.body = url_context.body if url_context.body
           res = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }                   
           
           sipper_res = SipperHttp::SipperHttpResponse.new(res, url_context.session)
