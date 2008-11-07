@@ -41,6 +41,14 @@ class SipperOfferAnswer
       end
    end
 
+   def set_media_keepalive(keepalive = 30)
+      @client.each do |currclient|
+         if currclient
+            currclient.set_media_keepalive(keepalive) 
+         end
+      end
+   end
+
    def make_new_offer(codecs = nil, status = "sendrecv")
       return if @state == 2 || @state == 3
       codecs = SipperMediaClient::get_supported_codecs unless codecs

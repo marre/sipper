@@ -42,6 +42,9 @@ module Media
 
      def set_dtmf_command(cmd)
      end
+
+     def set_media_keepalive(cmd)
+     end
   end
 
   class SipperMediaClient
@@ -124,6 +127,10 @@ module Media
 
     def set_dtmf_command(cmd)
       _send_command("COMMAND=SEND DTMF;MEDIAID=#{@media_id};DTMFCOMMAND=#{cmd}")
+    end
+
+    def set_media_keepalive(cmd)
+      _send_command("COMMAND=MEDIA PROPERTY;MEDIAID=#{@media_id};KEEPALIVE=#{cmd}")
     end
 
     def set_status(status)
