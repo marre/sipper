@@ -457,6 +457,24 @@ std::string SipperMediaController::executeCommand(std::string &command)
               id, commandstr.c_str());
       return result;
    }
+   else if(commandstr == "MEDIA PROPERTY")
+   {
+      int id = atoi(commandParams["MEDIAID"].c_str());
+      SipperMediaMapIt it = _mediaMap.find(id);
+      if(it != _mediaMap.end())
+      {
+         SipperMedia *currMedia = it->second;
+         sprintf(result, "TYPE=Result;MEDIAID=%d;COMMAND=%s;%s", 
+                 id, commandstr.c_str(), currMedia->setProperty(commandParams).c_str());
+      }
+      else
+      {
+         sprintf(result, "TYPE=Result;MEDIAID=%d;COMMAND=%s;RESULT=Error;REASON=Media not found", 
+                 id, commandstr.c_str());
+      }
+
+      return result;
+   }
    else if(commandstr == "SEND INFO")
    {
       //Set Send info.

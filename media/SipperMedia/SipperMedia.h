@@ -27,6 +27,7 @@ typedef SipperMediaCodecMap::iterator SipperMediaCodecMapIt;
 typedef std::set<std::string> StrSet;
 typedef StrSet::const_iterator StrSetCIt;
 typedef std::map<std::string, std::string> ParamMap;
+typedef ParamMap::const_iterator ParamMapCIt;
 
 class SipperMediaController;
 class SipperMedia
@@ -57,6 +58,7 @@ public:
    virtual void handleTimer(struct timeval &currtime) = 0;
 
    virtual std::string setSendInfo(ParamMap &params) = 0;
+   virtual std::string setProperty(ParamMap &params) = 0;
    virtual std::string setMediaStatus(const std::string &status) = 0;
    virtual std::string getRecvInfo() = 0;
 
@@ -69,6 +71,8 @@ class SipperRTPMedia : public SipperMedia
 {
    unsigned short _sendPort;
    unsigned int _sendIP;
+   unsigned int _keepAliveIntervalInSec;
+   struct timeval _lastKeepAliveSentTime;
    
    bool _portFromMgrFlag;
    int _recvSocket;
@@ -90,6 +94,7 @@ public:
    virtual void handleTimer(struct timeval &currtime);
 
    virtual std::string setSendInfo(ParamMap &params);
+   virtual std::string setProperty(ParamMap &params);
    virtual std::string setMediaStatus(const std::string &status);
    virtual std::string getRecvInfo();
 

@@ -56,8 +56,11 @@ SipperRTPMedia::SipperRTPMedia(unsigned int ip, unsigned short recvport)
 {
    _sendPort = 0;
    _sendIP = 0;
+   _keepAliveIntervalInSec = 0;
    _portFromMgrFlag = false;
    lastDtmfTimestamp = 0;
+   _lastKeepAliveSentTime.tv_sec = 0;
+   _lastKeepAliveSentTime.tv_usec = 0;
 
    if((_recvSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
    {
@@ -298,6 +301,28 @@ void SipperRTPMedia::sendRTPPacket(SipperMediaRTPHeader &header, char *dataptr, 
 
 void SipperRTPMedia::handleTimer(struct timeval &currtime)
 {
+   if((_keepAliveIntervalInSec > 0) && 
+      ((_mediaStatus == INACTIVE) || (_mediaStatus == RECVONLY)))
+   {
+      if(_lastKeepAliveSentTime.tv_sec + _keepAliveIntervalInSec <= currtime.tv_sec)
+      {
+         _lastKeepAliveSentTime = currtime;
+         struct sockaddr_in cli_addr;
+         memset(&cli_addr, 0, sizeof(sockaddr_in));
+
+         cli_addr.sin_family = AF_INET;
+         cli_addr.sin_addr.s_addr = _sendIP;
+         cli_addr.sin_port = htons(_sendPort);
+
+         if(_sendIP != 0 && _sendPort != 0)
+         {
+            int data = 0;
+            sendto(_recvSocket, &data, sizeof(int), 0, 
+                   (struct sockaddr *) &cli_addr, sizeof(sockaddr_in));
+         }
+      }
+   }
+
    if(_mediaStatus == INACTIVE)
    {
       return;
@@ -322,6 +347,20 @@ void SipperRTPMedia::handleTimer(struct timeval &currtime)
          currcodec->checkActivity(currtime);
       }
    }
+}
+
+std::string SipperRTPMedia::setProperty(ParamMap &params)
+{
+   ParamMapCIt it = params.find("KEEPALIVE");
+
+   if(it != params.end())
+   {
+      _keepAliveIntervalInSec = atoi(it->second.c_str());
+
+      if(_keepAliveIntervalInSec > 300) _keepAliveIntervalInSec = 300;
+   }
+
+   return "RESULT=Success";
 }
 
 std::string SipperRTPMedia::setSendInfo(ParamMap &params)
