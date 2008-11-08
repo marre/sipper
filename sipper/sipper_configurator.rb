@@ -257,7 +257,12 @@ class SipperConfigurator
   #     the default value of this port is 4681. Used only if the release is a Goblet
   #     release.
   #
-  # :HttpClientThreads
+  # :BehindNAT:
+  #     If set to true Sipper tries to discover the NAT bindings and makes sure that
+  #     it updates the Contact header according to the public IP and port for the UA
+  #     It also sends keep alives to maintain the NAT binding during the call
+  #
+  # :HttpClientThreads:
   #     Number of HTTP Client threads that will be used for asynchronous
   #     http request sending and response processing.
   #

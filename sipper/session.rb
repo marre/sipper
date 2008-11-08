@@ -47,7 +47,7 @@ class Session
   :use_nict, :use_ist, :use_nist, :session_timer, :session_limit, :tmr_hash,
   :use_2xx_retrans, :use_1xx_retrans, :t2xx_retrans_timers, :t1xx_retrans_timers, 
   :dialog_routes, :force_update_session_map, :reliable_1xx_status, :ihttp_response, 
-  :subscriptionMap, :name, :offer_answer, :registrations
+  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat
   
   class SubscriptionData
     attr_accessor :key, :timer, :source, :event, :event_id, :state, :method
@@ -116,6 +116,7 @@ class Session
     @user_defined_state = false
     _schedule_timer_for_session(:session_limit, @session_limit)
     @offer_answer = Media::SipperOfferAnswer.new(self) 
+    @behind_nat = SipperConfigurator[:BehindNAT] || false
   end
   
   def get_state_array
@@ -129,6 +130,11 @@ class Session
   def set_state(state)
     @state = [state]
     @user_defined_state = true
+  end
+  
+  
+  def set_behind_nat(bh)
+    @behind_nat = bh if bh  
   end
   
   def remote_target
@@ -512,6 +518,23 @@ class Session
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_initial(method, rrt[0], *rest)
     r = _add_route_headers_if_present(r, rrt)
+    r.via.rport = '' if @behind_nat
+    return r
+  end
+  
+  # A helper method to create the right REGISTER request, though you can create
+  # the REGISTER like any other request, this just simplifies the process.
+  # Note that for 3rd party registration you may have to change the From 
+  # header in REGISTER. 
+  # The arguments are the URI of the REGISTRAR, AOR which is being registered
+  # and an array of Contact addresses. 
+  def create_register_request(uri, aor, contacts)
+    if (initial_state?)
+      r = create_initial_request('REGISTER', uri, :from=>aor, :to=>aor)
+    else
+      r = create_subsequent_request('REGISTER', uri, :from=>aor, :to=>aor)
+    end
+    r.contact = contacts
     return r
   end
   
@@ -1597,6 +1620,12 @@ class Session
   end
   
   def _update_dialog_state_on_response(response)
+    if @behind_nat && response.via[:rport]
+      contact_hdr = SipHeaders::Contact.new.assign(@our_contact)
+      contact_hdr.uri.host = response.via.received.to_s
+      contact_hdr.uri.port = response.via.rport.to_s
+      @our_contact = contact_hdr.to_s
+    end
     @dialog_routes.response_received(response)
     _on_common_sip(response)
     @imessage = @iresponse = response

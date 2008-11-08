@@ -29,6 +29,7 @@ module SIP
     @pre_existing_rs = nil
     @compact_headers = nil
     @session_record = nil
+    @behind_nat = false
      
     def self.start_on_load(val)
       @sol = SipperUtil.boolify(val)  
@@ -38,6 +39,14 @@ module SIP
       @sol
     end
 
+    def self.behind_nat(val)
+      @behind_nat = val
+    end
+    
+    def self.get_behind_nat
+      @behind_nat
+    end
+    
     # The transaction usage hash setting is like a modifier in the 
     # controller. The setting is exactly same as the configuration setting
     # eg transaction_usage :use_transactions=>true, :use_ict=>false, :use_nict=>true
@@ -372,6 +381,7 @@ module SIP
       s.set_header_order(self.class.get_header_order)
       s.set_compact_headers(self.class.get_compact_headers)
       s.set_session_record(self.class.get_session_record)
+      s.set_behind_nat(self.class.get_behind_nat)
       return s
     end
     
