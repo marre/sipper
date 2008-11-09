@@ -5,7 +5,7 @@ class Registration
   include SipLogger
   
   class RegistrationData
-    attr_accessor :contact_uri, :expires, :q, :timestamp, :contact
+    attr_accessor :contact_uri, :expires, :q, :timestamp, :contact, :path
     def initialize(contact)
       @contact = contact  
     end
@@ -22,6 +22,7 @@ class Registration
     
     reg_data.q = contact[:q] ? contact.q : 0
     reg_data.timestamp = Time.now
+    reg_data.path = request[:path]? request.path : nil
     return reg_data
   end
   
@@ -36,6 +37,7 @@ class Registration
         end
         registration.q = contact[:q] ? contact.q : 0
         registration.timestamp = Time.now
+        registration.path = request[:path]? request.path : nil
         if registration.expires.to_i == 0
           reg_list.delete_at(index)
         else  

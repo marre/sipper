@@ -653,7 +653,8 @@ class Session
       @prack_seq = @prack_seq + 1
     end
     
-    if req.method == "REGISTER" && @registrations
+    if req.method == "REGISTER" && @registrations && (code >= 200) && (code < 300)
+      r.copy_from(req, :path) 
       r.contact = nil
       @registrations.each do |data|
         r.add_contact(data.contact_uri)
@@ -1915,7 +1916,7 @@ class Session
       log_and_raise  "Invalid registration", ArgumentError
     end
     
-    key = sprintf("|%s", aor)
+    key = sprintf("%s", aor)
     reg_list = SIP::Locator[:RegistrationStore].get(key) if persist
     unless reg_list 
       logd("Creating new registration object.")

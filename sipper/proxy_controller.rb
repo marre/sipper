@@ -17,6 +17,13 @@ module SIP
       @record_route
     end
     
+    def self.record_path(val)
+      @record_path = val
+    end
+    
+    def self.get_record_path
+      @record_path
+    end
     # Creates the proxy request based on the original request. Also creates the 
     # peer session if it does not already exist. 
     def create_proxy_request(session, orig_request=session.irequest, rip=SipperConfigurator[:DefaultRIP], 
@@ -24,9 +31,16 @@ module SIP
       peer_session = get_or_create_peer_session(session, rip, rp)
       if peer_session.initial_state?
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
-        if self.class.get_record_route
-          r.record_route = "<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>"  
+        if self.class.get_record_route && orig_request.method != 'REGISTER'
+          r.push_record_route = "<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>"  
         end
+        if self.class.get_record_path && orig_request.method == 'REGISTER'
+          if SipperConfigurator[:ProtocolCompliance] != 'strict' || orig_request[:supported].to_s.include?('path')
+            r.push_path("<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>")  
+          end    
+        end
+
+        
       else
         if(orig_request.method == "CANCEL")
           r = peer_session.create_cancel
@@ -54,7 +68,7 @@ module SIP
       end
       if  r[:route]
         rt = r.route
-        if rt.uri.host = SipperConfigurator[:LocalSipperIP] && 
+        if rt.uri.host == SipperConfigurator[:LocalSipperIP] && 
           rt.uri.port == SipperConfigurator[:LocalSipperPort].to_s
           r.pop_route  
         end 

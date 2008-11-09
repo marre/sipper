@@ -371,6 +371,19 @@ module SipHeaders
     
   end
   
+  class Path < AddressHeader
+    def initialize
+      @name = "Path"
+      super
+    end
+  end
+  
+  class ServiceRoute < AddressHeader
+    def initialize
+      @name = "Service-Route"
+      super
+    end
+  end  
   # From RFC 2617
   # challenge = "Digest" digest-challenge
   # digest-challenge = 1#( realm | [ domain ] | nonce |
