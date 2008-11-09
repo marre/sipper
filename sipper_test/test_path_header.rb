@@ -1,6 +1,11 @@
 require 'driven_sip_test_case'
 require 'proxy_controller'
 
+#Msg sequence for REGISTER
+# UA1 -----P1 ------REGISTRAR
+#Msg sequence for INVITE
+# UA2 -----REGISTRAR -----P1-----UA1
+
 # UAC runs on 5066
 # UAS runs on 5067
 # Proxy runs on 5069
