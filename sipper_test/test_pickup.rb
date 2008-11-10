@@ -252,7 +252,7 @@ class TestPickup < DrivenSipTestCase
     self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK", "> BYE", "< 200"]
     verify_call_flow(:in, 2)
   end
-  
+
 end
 
 

@@ -49,7 +49,7 @@ class SessionRecorder
       if io
         sr = new(nil, io, level) 
       else
-        sr = new(SessionRecorder.get_new_count.to_s+"_"+msg.call_id.to_s+"_"+direction , nil, level) 
+        sr = new(SessionRecorder.get_new_count.to_s+"-"+msg.call_id.to_s+"_"+direction , nil, level) 
       end 
     end
     sr.record(direction, msg, msg_s) if sr
