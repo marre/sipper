@@ -45,10 +45,7 @@ class TestInviteReplace < DrivenSipTestCase
           bob_session2 = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           bob_session2.name = "bob_session2"
           r = bob_session2.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
-          r.replaces = bob_session1.call_id
-          r.replaces["from-tag"] = bob_session1.local_tag
-          r.replaces["to-tag"] = bob_session1.remote_tag
-          r.replaces["early-only"] = ''      
+          r.replaces = bob_session1.create_replaces_header
           bob_session2.send(r)
           logd("Sent a new Invite with replaces from " + name)  
         end
@@ -88,11 +85,7 @@ class TestInviteReplace < DrivenSipTestCase
         def on_invite(alice_session2)
           alice_session2.name = "alice_session2"
           if alice_session2.irequest[:replaces] != nil
-             r = alice_session2.irequest
-             callid = r.replaces.header_value
-             localtag = r.replaces["to-tag"]
-             remotetag = r.replaces["from-tag"]
-             alice_session1 = SessionManager.find_session(callid, localtag, remotetag)
+             alice_session1 = alice_session2.find_session_from_replaces
              alice_session1.post_custom_message(CustomMessage.new)
           end  
           alice_session2.respond_with(200)
