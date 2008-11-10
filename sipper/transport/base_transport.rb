@@ -1,4 +1,7 @@
 require 'sipper_configurator'
+require 'socket'
+
+Socket.do_not_reverse_lookup
 
 module Transport
 

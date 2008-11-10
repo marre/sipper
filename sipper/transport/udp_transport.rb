@@ -1,4 +1,3 @@
-require 'socket'
 require 'thread'
 require 'monitor'
 require 'util/message_fill'
@@ -81,7 +80,7 @@ module Transport
               mesg.each_with_index {|x,i| logd(" > mesg[#{i}]=#{x}")}    
             end
             if mesg[0]
-              mesg << [@ip, @port]
+              mesg << [@ip, @port, @tid]
               @queue << mesg
               #logi("Message recvd on transport and enqueued on #{@queue}")
             else
@@ -132,7 +131,7 @@ module Transport
         smesg = out_filter.do_filter(smesg)
         break unless smesg
       end
-      logsip("O", ipport[0], ipport[1], @ip, @port, smesg)
+      logsip("O", ipport[0], ipport[1], @ip, @port, @tid, smesg)
       if smesg
         @sock.send(smesg, flags, *ipport)
       else

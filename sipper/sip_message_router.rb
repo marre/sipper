@@ -43,7 +43,7 @@ class SipMessageRouter
               case r
               when Request
                 logd("REQUEST RECEIVED #{r}")
-                logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1], r.rcvd_at_info[0], r.rcvd_at_info[1], r)
+                logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1], r.rcvd_at_info[0], r.rcvd_at_info[1], r.rcvd_at_info[2], r)
                 if r.to_tag && !r.attributes[:_sipper_initial]
                   # call_id, local, remote
                   s = SessionManager.find_session(r.call_id, r.to_tag, r.from_tag)  
@@ -113,7 +113,7 @@ class SipMessageRouter
                             next        
                           end        
                         end
-                        if(r.rcvd_from_info[0] == "AF_INET") # todo need to identify the transport 
+                        if(r.rcvd_at_info[2] == "UDP") # todo need to identify the transport 
                           s = c.create_udp_session(r.rcvd_from_info[3], r.rcvd_from_info[1])
                         end
                         s.pre_set_dialog_id(r)  # to facilitate addition in session manager 
@@ -161,7 +161,7 @@ class SipMessageRouter
   
               when Response
                 logd("RESPONSE RECEIVED #{r}")
-                logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1],  r.rcvd_at_info[0], r.rcvd_at_info[1], r)
+                logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1],  r.rcvd_at_info[0], r.rcvd_at_info[1], r.rcvd_at_info[2], r)
                 # call_id, local, remote
                 s = SessionManager.find_session(r.call_id, r.from_tag, r.to_tag, (SipperUtil::SUCC_RANGE.include?r.code))
                 if s
