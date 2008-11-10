@@ -1594,6 +1594,15 @@ class Session
     @local_uri = @irequest.to.to_s
     @remote_uri = @irequest.from.to_s
     
+    # RFC 3891 section 3 testing for more than one Replaces header field in an INVITE, 
+    # Replaces header field in a request other than INVITE and Replaces header field and
+    # another header field with contradictory semantics      
+    if SipperConfigurator[:ProtocolCompliance]=='strict' && request[:replaces] 
+      if (request.method != "INVITE" || request[:join] || request[:replaces].length > 1)
+        request.attributes[:_sipper_rejection_response] = rejection_response_with(400, @irequest)
+      end  
+      return false
+    end
     # 3261 12.2.2 testing for < because a retransmission will have same sequence, as will be 
     # ACK and CANCEL
     if SipperConfigurator[:ProtocolCompliance]=='strict' && 
@@ -1976,7 +1985,23 @@ class Session
     @offer_answer = val
   end
   
+  def create_replaces_header
+    replaces = call_id.to_s + ";from-tag=" + local_tag.to_s + ";to-tag=" + remote_tag.to_s
+    if irequest.method == "INVITE"
+      replaces = replaces.to_s + ";early-only"
+    else
+      replaces = replaces.to_s + ";confirmed"
+   end  
+    return replaces
+  end
   
+  def find_session_from_replaces
+    callid = irequest.replaces.header_value
+    localtag = irequest.replaces["to-tag"]
+    remotetag = irequest.replaces["from-tag"]
+    session = SessionManager.find_session(callid, localtag, remotetag)
+    return session
+  end 
   protected :_get_sq_lock, :_get_recorder, :_remove_recorder
   private :_on_request, :_on_response,  :_on_common_sip, :_do_record_sip, :_check_cancel_state, 
   :_check_for_pending_cancel, :_fixed_local_tag, :_send_common, 
