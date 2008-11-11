@@ -61,7 +61,7 @@ module SIP
       peer_session = get_or_create_peer_session(session, rip, rp)
       if peer_session.initial_state?
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
-        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path)
+        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path, :service_route)
         r.from.tag = "3"
       else
         if(orig_request.method == "CANCEL")
@@ -83,7 +83,7 @@ module SIP
       peer_session = get_peer_session(session)
       if peer_session
         r = peer_session.create_response(orig_response.code)
-        r.copy_from(orig_response,  :content, :content_type, :path)
+        r.copy_from(orig_response,  :content, :content_type, :path, :service_route)
         return r
       else
         logw("No peer session found, cannot create the response")

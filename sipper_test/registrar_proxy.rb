@@ -9,7 +9,7 @@ class RegistrarProxyController < SIP::ProxyController
         def on_register(session)
           logd("Received REGISTER in "+name)
           r = session.create_response(200, "OK") 
-          r.service_route ="sip:p2.home.example.com;lr"
+          r.service_route ="sip:"+SipperConfigurator[:LocalSipperIP]+":5069;lr"
           session.send(r)
           session.invalidate(true)
         end
