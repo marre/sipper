@@ -61,6 +61,7 @@ module Transport
       #end
       t = Thread.new do
         Thread.current[:name] = "UDPThread-"+@ip.to_s+"-"+@port.to_s
+        UDPSocket.do_not_reverse_lookup = true
         @sock = UDPSocket.new
         @sock.bind(@ip, @port)
         logd "binded ..#{@port}"
