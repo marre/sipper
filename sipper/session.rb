@@ -618,6 +618,7 @@ class Session
     new_req.via = sprintf("SIP/2.0/%s %s:%s;branch=z9hG4bK-%s-%s-%s", 
     @transport.tid, @transport.ip, @transport.port.to_s, 
     @local_cseq, @remote_cseq, SipperUtil::Counter.instance.next.to_s)
+    new_req.contact = @our_contact
     if proxy_challenge
       new_req.proxy_authorization = (@da.nil? ? @da = SipperUtil::DigestAuthorizer.new : @da).create_authorization_header(challenge, proxy_challenge, user, passwd, lsr)
     else
