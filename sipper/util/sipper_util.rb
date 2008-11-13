@@ -69,7 +69,10 @@ module SipperUtil
       end 
     end
     hdr = arr.join('-')
-    hdr = "Call-ID" if hdr == "Call-Id"  
+    hdr = "Call-ID" if hdr == "Call-Id"
+    # Handling of new headers of rfc 3903
+    hdr = "SIP-ETag" if hdr == "Sip-Etag"
+    hdr = "SIP-If-Match" if hdr == "Sip-If-Match"
     hdr
   end
   
