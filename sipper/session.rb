@@ -528,13 +528,13 @@ class Session
   # header in REGISTER. 
   # The arguments are the URI of the REGISTRAR, AOR which is being registered
   # and an array of Contact addresses. 
-  def create_register_request(uri, aor, contacts)
+  def create_register_request(uri, aor, contacts=nil)
     if (initial_state?)
       r = create_initial_request('REGISTER', uri, :from=>aor, :to=>aor)
     else
       r = create_subsequent_request('REGISTER', uri, :from=>aor, :to=>aor)
     end
-    r.contact = contacts
+    r.contact = contacts if contacts
     return r
   end
   
