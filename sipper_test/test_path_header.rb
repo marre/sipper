@@ -12,7 +12,7 @@ require 'proxy_controller'
 #Registrar runs on 5070
 
   # To run this test in windows, in a separate shell execute the proxy 
-  # "srun -p 5069 -o 5067 -c path_r_proxy.rb"
+  # "srun -p 5069 -o 5070 -c path_r_proxy.rb"
   # and set an env var 
   # "set SIPPER_TEST_PROXY_EXTERNAL=true"
   # Do similar thing for registrar with a higher port in a second shell
