@@ -32,6 +32,7 @@
   </logger>
 
   <logger name="siplog::transport_udptransport" level="DEBUG" additive="true" trace="true"/>
+  <logger name="siplog::transport_tcptransport" level="DEBUG" additive="true" trace="true"/>
   <logger name="siplog::request" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::message" level="DEBUG" additive="true" trace="true"/>
   <logger name="siplog::response" level="DEBUG" additive="true" trace="true"/>

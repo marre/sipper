@@ -12,6 +12,7 @@ require 'ruby_ext/string'
 require 'sip_logger'
 require 'transport/base_transport'
 require 'transport/udp_transport'
+require 'transport/tcp_transport'
 require 'sip_message_router'
 require 'transport_manager'
 require 'controller_selector'
@@ -113,6 +114,25 @@ module SIP
         end
       end
       
+      if config[:Transports]
+        transports = config[:Transports]
+      else
+        SipperConfigurator[:LocalSipperTransports] = "udp" unless SipperConfigurator[:LocalSipperTransports]
+        if SipperConfigurator[:LocalSipperTransports].class == Array
+          transports = SipperConfigurator[:LocalSipperTransports]
+        else
+          transports = [SipperConfigurator[:LocalSipperTransports]]
+        end
+      end
+      
+      # check for asymmetrical config 
+      diff = ips.length - transports.length
+      
+      if diff > 0
+        diff.times do 
+          transports << "udp"  
+        end
+      end
       
       SipperConfigurator[:ControllerPath] ||= config[:ControllerPath]
       
@@ -126,7 +146,16 @@ module SIP
       
       # Each transport uses the same queue
       ports.length.times do |i|
-        SIP::Locator[:Tm].add_transport(::Transport::UdpTransport.instance(ips[i]?ips[i]:ips[0], ports[i], @q))
+        transports[i].split("_").each do |tp|
+          case tp.downcase
+          when "udp"
+            SIP::Locator[:Tm].add_transport(::Transport::UdpTransport.instance(ips[i]?ips[i]:ips[0], ports[i], @q))
+          when "tcp"
+            SIP::Locator[:Tm].add_transport(::Transport::TcpTransport.instance(ips[i]?ips[i]:ips[0], ports[i], @q))
+          else
+            log_and_raise "The transport #{tp} is not yet supported"
+          end
+        end
         #logi("Created the transport #{ips[i]?ips[i]:ips[0]}, #{ports[i]}")
       end
       logi("Added #{ports.length} transports to transport manager")
@@ -239,7 +268,7 @@ module SIP
           exit
         end
       end
-     
+      
       return t
     end
     

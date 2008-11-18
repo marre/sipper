@@ -36,11 +36,19 @@ class SipperConfigurator
   #     also be used by the local run of tests. Of 
   #     course you can start the Sipper instance on any 
   #     other IP by providing that IP in the Sipper 
-  #     initialization.
+  #     initialization. Can be an array if multihomed.
   #
   # :LocalSipperPort:
   #     Port where default Sipper instance will listen
-  #     for incoming messages.
+  #     for incoming messages. Can be an array if multihomed.
+  #
+  # :LocalSipperTransports
+  #     Transport types corresponding to the LocalSipper listen
+  #     points. Can be array of strings ["udp", "tcp", "tls"] or even "udp_tcp"
+  #     if both UDP and TCP are required to be running for the 
+  #     coresponding listen point. The order is not important in this
+  #     string. You can have "tls_tcp_udp" to have UDP/TCP and TLS 
+  #     transports running. 
   # 
   # :LocalTestPort:  
   #     Port where the Sipper that is running the SipTestCase, 
@@ -379,3 +387,4 @@ SipperConfigurator[:GobletConfigPort] = 4681 if SipperConfigurator[:GobletReleas
 SipperConfigurator[:CommandlineBitmask] = 0
 SipperConfigurator[:HttpClientThreads] = 5
 SipperConfigurator[:ShowSessionIdInMessages] = true
+SipperConfigurator[:TcpRequestTimeout] = 50000

@@ -1,3 +1,4 @@
+=begin
 $:.unshift File.join(File.dirname(__FILE__),"..")
 
 require 'sipper'
@@ -54,3 +55,4 @@ EOF
 s.load_controller( str )
 s.start_controller( "MyControllers::SimpleController")
 t.join
+=end

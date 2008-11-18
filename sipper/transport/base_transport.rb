@@ -1,7 +1,7 @@
 require 'sipper_configurator'
 require 'socket'
 
-Socket.do_not_reverse_lookup
+Socket.do_not_reverse_lookup = true
 
 module Transport
 

@@ -7,7 +7,7 @@ require 'transport/rel_unrel'
 require 'transport/base_transport'
 require 'message'
 
-# todo have a base transport class and also have module Transport
+
 module Transport
   class UdpTransport < BaseTransport
   
@@ -134,7 +134,7 @@ module Transport
       end
       logsip("O", ipport[0], ipport[1], @ip, @port, @tid, smesg)
       if smesg
-        @sock.send(smesg, flags, *ipport)
+        @sock.send(smesg, flags, ipport[0], ipport[1])
       else
         logi("Not sending the message as it has probably been nilled out by a filter")
       end

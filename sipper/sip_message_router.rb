@@ -6,6 +6,7 @@ require 'request'
 require 'response'
 require 'session'
 require 'udp_session'
+require 'tcp_session'
 require 'util/timer/timer_task'
 require 'stray_message_manager'
 require 'sipper_http/sipper_http_response'
@@ -113,8 +114,10 @@ class SipMessageRouter
                             next        
                           end        
                         end
-                        if(r.rcvd_at_info[2] == "UDP") # todo need to identify the transport 
+                        if(r.rcvd_at_info[2] == "UDP")  
                           s = c.create_udp_session(r.rcvd_from_info[3], r.rcvd_from_info[1])
+                        elsif (r.rcvd_at_info[2] == "TCP")  
+                          s = c.create_tcp_session(r.rcvd_from_info[3], r.rcvd_from_info[1])
                         end
                         s.pre_set_dialog_id(r)  # to facilitate addition in session manager 
                         SessionManager.add_session(s, false)

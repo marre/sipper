@@ -420,7 +420,12 @@ class Session
       elsif msg.is_response?  
         rd = get_response_destination(msg)
       end
-      m_s = transport.send(msg, @tp_flags, rd[1], rd[2])
+      if self.respond_to?(:sock)
+        sock = self.sock
+      else
+        sock = nil
+      end
+      m_s = transport.send(msg, @tp_flags, rd[1], rd[2], sock)
       logd("Now record the outgoing message from session")
       _do_record_sip("out", msg, m_s)
     end
@@ -1704,7 +1709,7 @@ class Session
       if (@controller && (cstp=@controller.specified_transport))
         msg.attributes[:_sipper_controller_specified_transport] =  cstp   
       end
-      rv = Transport::TransportAndRouteResolver.ascertain_transport_and_destination(msg)
+      rv = Transport::TransportAndRouteResolver.ascertain_transport_and_destination(msg, self.class)
       @transport = rv[0]||@transport
       @rip = rv[1] || @rip
       @rp = rv[2] || @rp

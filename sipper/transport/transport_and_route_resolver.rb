@@ -19,11 +19,18 @@ module Transport
     
     IP = /^(\d{1,3}\.){3}\d{1,3}$/.freeze
     
-    def self.ascertain_transport_and_destination(msg)
+    def self.ascertain_transport_and_destination(msg, session_class=nil)
     
-      # if controller preference set then we chose the transport directly 
+      # if controller preference set then we chose the transport directly
+      session_class = UdpSession unless session_class
       if stp = msg.attributes[:_sipper_controller_specified_transport]
-        tp = SIP::Locator[:Tm].get_udp_transport_with(stp[0], stp[1])  
+        if session_class == UdpSession || session_class == DetachedSession 
+          tp = SIP::Locator[:Tm].get_udp_transport_with(stp[0], stp[1])
+        elsif session_class == TcpSession
+          tp = SIP::Locator[:Tm].get_tcp_transport_with(stp[0], stp[1])
+        else 
+          raise "Invalid session type #{session_class}, cannot relate to transport"
+        end
       end
       
       dest_uri = nil
@@ -53,11 +60,17 @@ module Transport
       port = Integer((x=dest_uri.port) ? x : 5060)
      
       
-      # todo look for right transport, for now use udp
+      # todo look for right transport, for now use udp for detached
       
       # here we check if tp is already set as a result of controller specification
       unless tp
-        tp = SIP::Locator[:Tm].get_udp_transport_for(ip, port) if ip && port
+        if session_class == UdpSession || session_class == DetachedSession
+          tp = SIP::Locator[:Tm].get_udp_transport_for(ip, port) if ip && port
+        elsif session_class == TcpSession
+          tp = SIP::Locator[:Tm].get_tcp_transport_for(ip, port) if ip && port
+        else
+          raise "Invalid session type, cannot relate to transport"  
+        end  
       end  
       [tp, ip, port]
     end
