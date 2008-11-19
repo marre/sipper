@@ -17,6 +17,18 @@ module SipperHttp
       @session.on_http_response(self)  
     end
     
+    def code
+      @wrapped_http_res.code.to_i  
+    end
+    
+    def [](hdr)
+      @wrapped_http_res[hdr.to_s]    
+    end
+    
+    def []=(hdr, val)
+      @wrapped_http_res[hdr.to_s] = val    
+    end
+    
     def short_to_s
       self.inspect  
     end
