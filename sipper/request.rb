@@ -60,6 +60,7 @@ class Request < Message
     r.incoming = false
     r.create_system_headers
     r.define_from_hash(args[2]) if args[2]
+    r.supported = SipperConfigurator[:Supported]
     return r
   end
   

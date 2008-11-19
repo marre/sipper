@@ -256,6 +256,11 @@ class SipperConfigurator
   #     Platform independent recording separator. Can be CR+LF for windows
   #     while only LF  for Linux. It is set automatically in sipper.rb.
   #
+  # :Supported:
+  #     list(array) of options tags to be present in the Supported header of outgoing
+  #     request. The controllers can always change them if required or users can 
+  #     remove config key in which case Supported header is not added
+  #
   # :GobletRelease: 
   #     Set to true only if this release is a Goblet release, which is the enhanced 
   #     platform with a number of supporting libraries.
@@ -378,6 +383,7 @@ SipperConfigurator[:T2xxUsage] = false  # todo make it true
 SipperConfigurator[:TimerGranularity] = 70  # in milliseconds, default is 50 if not defined
 SipperConfigurator[:TargetRefreshMethods] = ['INVITE', 'SUBSCRIBE', 'UPDATE', 'NOTIFY', 'REFER']
 SipperConfigurator[:DialogCreatingMethods] = ['INVITE', 'SUBSCRIBE', 'NOTIFY', 'REFER']
+SipperConfigurator[:Supported] = ['100rel', 'path']
 SipperConfigurator[:PrintHeapOnExit] = false
 SipperConfigurator[:SipperMedia] = false
 SipperConfigurator[:SipperMediaDefaultControlPort] = 4680
