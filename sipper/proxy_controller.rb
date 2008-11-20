@@ -30,6 +30,7 @@ module SIP
                              rp=SipperConfigurator[:DefaultRP])
       peer_session = get_or_create_peer_session(session, rip, rp)
       if peer_session.initial_state?
+        Thread.current[:proxy_initiated] = true
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
         if self.class.get_record_route && orig_request.method != 'REGISTER'
           r.push_record_route = "<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>"  
@@ -39,7 +40,6 @@ module SIP
             r.push_path("<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>")  
           end    
         end
-
         
       else
         if(orig_request.method == "CANCEL")

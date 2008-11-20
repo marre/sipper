@@ -56,7 +56,7 @@ class TestPathHeader1 < DrivenSipTestCase
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort][1]+3)
           r = u.create_initial_request("invite","sip:nasir@#{SipperConfigurator[:LocalSipperIP]}:#{SipperConfigurator[:LocalTestPort][0]}")
           r.to = "sip:bob@sipper.com"
-          
+          r.supported = nil
           u.send(r)
           logd("Sent a new INVITE from "+name)
         end
@@ -104,8 +104,11 @@ class TestPathHeader1 < DrivenSipTestCase
         end
         
         def on_invite(session)
-           if session.irequest[:via].length == 3
+          if session.irequest[:via].length == 3
             session.do_record("triple_via")
+          end
+          unless session.irequest[:supported]
+            session.do_record("no_supported")
           end
           session.respond_with(200)
         end
@@ -140,7 +143,7 @@ class TestPathHeader1 < DrivenSipTestCase
     
     self.expected_flow = ["> INVITE", "< 100 {0,}","< 200","> ACK", "< BYE","> 200"]
     verify_call_flow(:out,1)
-    self.expected_flow = ["< INVITE","! triple_via", "> 100 {0,}","> 200","< ACK", "> BYE","< 200"]
+    self.expected_flow = ["< INVITE","! triple_via", "! no_supported", "> 100 {0,}","> 200","< ACK", "> BYE","< 200"]
     verify_call_flow(:in)
     
   end
@@ -148,7 +151,6 @@ class TestPathHeader1 < DrivenSipTestCase
   def teardown
     SipperConfigurator[:SessionRecord] = @sr
     SipperConfigurator[:LocalTestPort] = @tp
-    
     super
   end
 
