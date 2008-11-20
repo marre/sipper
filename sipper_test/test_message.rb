@@ -241,7 +241,7 @@ Cseq: 1 INVITE}
     assert(@m.respond_to?(:each))
     n = 0
     @m.each {|k,v|  n+=1}
-    assert_equal(8, n) # 3 addnl system headers
+    assert_equal(9, n) # 3 addnl system headers
   end
   
   def test_copy_from

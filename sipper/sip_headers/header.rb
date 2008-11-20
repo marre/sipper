@@ -245,7 +245,7 @@ module SipHeaders
     attr_accessor :only_addr_spec
     protected :only_addr_spec
     
-    DISPLAY_NAME_REGX = /^[\w ]*?</
+    DISPLAY_NAME_REGX = /[[:print:]]*?</
     URI_EXTRACT_REGX  = /<.+?>/
     
     def dup
