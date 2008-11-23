@@ -393,4 +393,4 @@ SipperConfigurator[:GobletConfigPort] = 4681 if SipperConfigurator[:GobletReleas
 SipperConfigurator[:CommandlineBitmask] = 0
 SipperConfigurator[:HttpClientThreads] = 5
 SipperConfigurator[:ShowSessionIdInMessages] = true
-SipperConfigurator[:TcpRequestTimeout] = 50000
+SipperConfigurator[:TcpRequestTimeout] = 32000

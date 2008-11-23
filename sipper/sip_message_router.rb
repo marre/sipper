@@ -114,10 +114,13 @@ class SipMessageRouter
                             next        
                           end        
                         end
+    
                         if(r.rcvd_at_info[2] == "UDP")  
                           s = c.create_udp_session(r.rcvd_from_info[3], r.rcvd_from_info[1])
-                        elsif (r.rcvd_at_info[2] == "TCP")  
-                          s = c.create_tcp_session(r.rcvd_from_info[3], r.rcvd_from_info[1])
+                        elsif (r.rcvd_at_info[2] == "TCP")
+                          s = c.create_tcp_session(r.rcvd_from_info[3], r.rcvd_from_info[1], nil, r.rcvd_at_info[3])
+                        else
+                          loge("Unknown type of transport #{r.rcvd_at_info[2]} cannot create session")
                         end
                         s.pre_set_dialog_id(r)  # to facilitate addition in session manager 
                         SessionManager.add_session(s, false)

@@ -42,6 +42,7 @@
   <logger name="siplog::sessionmanager" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::sip_sipper" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::udpsession" level="DEBUG" additive="true" trace="false"/>
+  <logger name="siplog::tcpsession" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::detachedsession" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::udpsessionwrapper" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::sip_basecontroller" level="DEBUG" additive="true" trace="false"/>

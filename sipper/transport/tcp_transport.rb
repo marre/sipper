@@ -14,6 +14,7 @@ module Transport
   class TcpTransport < BaseTransport
     
     include SipLogger
+    include SipperUtil
     include SIP::Transport::ReliableTransport 
     
     private_class_method :new
@@ -126,20 +127,25 @@ module Transport
           end
           raw_mesg_arr = Array.new
           while line = self.rd_line(sock)
-            break if /\A(#{CRLF}|#{LF})\z/om =~ line
-            raw_mesg_arr << line
+            if /\A(#{CRLF}|#{LF})\z/om =~ line
+              break if raw_mesg_arr.length > 0  # ignore leading CRLF
+            end
+            raw_mesg_arr << line.strip
             if line =~ /content-length/i
               l = line.strip
               st = l =~ /\d/
               en = l =~ /\d$/ if st
               cl = line[st..en] if st && en
             end  
-          end 
+          end
+          return if raw_mesg_arr.length == 0
           log_and_raise "No Content-Length." unless cl
           body = ""
-          block = Proc.new{|chunk| body << chunk }
+          block = Proc.new{|chunk| body << chunk << "\n"}
           
           remaining_size = cl.to_i
+          cl = nil
+          logd("Reading TCP message content, length is #{remaining_size}")
           while remaining_size > 0 
             sz = MAX_RECV_BUFFER < remaining_size ? MAX_RECV_BUFFER : remaining_size
             break unless buf = read_data(sock, sz)
@@ -149,7 +155,9 @@ module Transport
           if remaining_size > 0 && sock.eof?
             log_and_raise "invalid body size."
           end
-          msg = raw_mesg_arr.join(LF)
+          msg = raw_mesg_arr.join("\n")
+          msg << CRLF 
+          msg << CRLF
           msg << body
           # [msg, ["AF_INET", 49361, "ashirs-PC", "127.0.0.1"]]
           mesg = [msg, sock.peeraddr]  
@@ -215,7 +223,7 @@ module Transport
       else
         smesg = mesg
       end 
-      logi("Sending message #{smesg} using #{self} to ip=#{ipport[0]} and port=#{ipport[1]}")
+      logi("Sending message #{smesg} using #{self} to ip=#{rip} and port=#{rp}")
       if smesg =~ /_PH_/
         logd("Now filling in message of class #{smesg.class}")
         SipperUtil::MessageFill.sub(smesg, :trans=>@tid, :lip=>@ip, :lp=>@port.to_s) 
@@ -230,11 +238,11 @@ module Transport
       end
       logsip("O", rip, rp, @ip, @port, @tid, smesg)
       if smesg  
-        unless sock  
+        unless sock || sock.closed?
           sock = TCPSocket.new(rip, rp, @ip, @port)
           start_sock_thread(sock) # start listening as well
         end
-        sock.send(smesg)
+        sock.send(smesg, flags)
       else
         logi("Not sending the message as it has probably been nilled out by a filter")
       end

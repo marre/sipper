@@ -62,7 +62,7 @@ class Message
       raise ArgumentError, "Not a SIP message"
     end
     r.rcvd_from_info = msg[1] #["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]
-    r.rcvd_at_info = msg[2] #[ip, port]
+    r.rcvd_at_info = msg[2] #[ip, port, tid, sock (in case of TCP)]
     return r
   end
   

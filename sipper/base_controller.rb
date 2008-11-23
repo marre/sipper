@@ -356,7 +356,8 @@ module SIP
       _create_session(UdpSession, rip, rp, rs)
     end
     
-    def create_tcp_session(rip, rp)
+    def create_tcp_session(rip=nil, rp=nil, rs=nil, sock=nil)
+      _create_session(TcpSession, rip, rp, rs, sock)
     end
     
     def create_tls_session(rip, rp)
@@ -365,9 +366,9 @@ module SIP
     def create_sctp_session
     end
     
-    def _create_session(type, rip, rp, rs)
+    def _create_session(type, rip, rp, rs, sock=nil)
       rs ||= self.class.get_pre_existing_route_set
-      s = type.new(rip, rp, rs, self.class.get_session_limit, self.specified_transport)
+      s = type.new(rip, rp, rs, self.class.get_session_limit, self.specified_transport, sock)
       s.controller = self
       s.set_transaction_usage self.class.get_transaction_usage           #set controller wide usage
       s.set_transaction_timers(:Base, self.class.get_transaction_timers)  #set controller wide timers

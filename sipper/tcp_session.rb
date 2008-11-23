@@ -7,7 +7,7 @@ class TcpSession < Session
   
   attr_reader :sock
   
-  def initialize(rip, rp, rs, sock, session_limit=nil, specified_transport = nil)
+  def initialize(rip, rp, rs, session_limit=nil, specified_transport = nil, sock = nil)
     if specified_transport
       tp = SIP::Locator[:Tm].get_tcp_transport_with(specified_transport[0], specified_transport[1])
     else
