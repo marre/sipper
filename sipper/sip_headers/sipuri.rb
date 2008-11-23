@@ -194,6 +194,7 @@ module URI
     
     #  sip:user:password@host:port;uri-parameters?headers
     def assign(val_str, parse=true)
+      return nil unless val_str
       if (!parse || val_str=="*")
         cache_and_clear(val_str, [:@proto, :@user, :@password, :@host, :@port])
       else

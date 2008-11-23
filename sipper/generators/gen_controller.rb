@@ -72,7 +72,11 @@ module SIP
           if e.direction == @d_in  # have a new method defined for each incoming and repeat outgoing
             @current_method = []
             e.messages.each do |m| 
-              k = m.sub(/^\d../, m[0,1]+"xx")
+              if m =~ /100/
+                k = m
+              else
+                k = m.sub(/^\d../, m[0,1]+"xx")
+              end
               _get_message(k); 
               @current_method << k  
             end
