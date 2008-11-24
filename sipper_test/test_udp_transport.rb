@@ -80,10 +80,6 @@ class TestUdpTransport < Test::Unit::TestCase
   def test_send
     test_running
     _send "hello_nasir", "hello_nasir"
-    # todo: add these tests at session sending
-    #_send "nina@_PH_LIP_", "nina@#{@ip}"
-    #_send "nina@_PH_LIP_:_PH_LP_", "nina@#{@ip}:#{@port}"
-    #_send "neena@_PH_RIP_:_PH_RP_", "neena@#{@ip}:#{@port+1}"
   end
   
   def test_one_start

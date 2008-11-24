@@ -158,7 +158,7 @@ module SIP
         end
         #logi("Created the transport #{ips[i]?ips[i]:ips[0]}, #{ports[i]}")
       end
-      logi("Added #{ports.length} transports to transport manager")
+      logi("Added #{ports.length} ports to transport manager")
       SipperConfigurator[:NumThreads] ||=  config[:NumThreads] || 5
       @smr = SipMessageRouter.new(@q, SipperConfigurator[:NumThreads])
       @running = false
