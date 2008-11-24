@@ -238,8 +238,8 @@ module Transport
       end
       logsip("O", rip, rp, @ip, @port, @tid, smesg)
       if smesg  
-        unless sock || sock.closed?
-          sock = TCPSocket.new(rip, rp, @ip, @port)
+        if sock.nil? || sock.closed?
+          sock = TCPSocket.new(rip, rp)
           start_sock_thread(sock) # start listening as well
         end
         sock.send(smesg, flags)
