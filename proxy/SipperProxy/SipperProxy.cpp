@@ -388,9 +388,27 @@ int SipperProxyMsg::_setTargetFromFirstVia()
 
    while(*viaValStart == ' ') viaValStart++;
 
-   while(*viaValStart != ' ' && *viaValStart != '\0') viaValStart++;
+   while(*viaValStart != ' ' && *viaValStart != '\0' &&
+         *viaValStart != ',' && *viaValStart != '\r') viaValStart++;
+
+   if(*viaValStart != ' ') return -1;
 
    while(*viaValStart == ' ') viaValStart++;
 
-   //Get the host and port.
+   char *hostStart = viaValStart;
+   char *portStart = viaValStart;
+
+   while(*portStart != ':' && *portStart != '\r' && *portStart != ',' && *portStart != '\0')
+   {
+      portStart++;
+   }
+
+   unsigned short port = 5060;
+
+   if(*portStart == ':')
+   {
+      port = atoi(portStart + 1);
+   }
+
+   //Continue here.
 }
