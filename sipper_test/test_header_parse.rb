@@ -138,4 +138,14 @@ class TestHeaderParse < BaseTestCase
     assert_equal("bar", @rq.foo.to_s)
   end
   
+  def test_parse_reason
+    reason_hdr = "SIP;cause=200;text=\"Call completed elsewhere\""
+    pa = SipHeaders::Reason.new.assign(reason_hdr)
+    pa.name = SipperUtil.headerize("Reason")
+    assert_equal("Reason", pa.name)
+    assert_equal("SIP", pa.protocol)
+    assert_equal("200", pa.cause)
+    assert_equal('"Call completed elsewhere"', pa.text)
+  end
+  
 end

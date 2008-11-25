@@ -384,6 +384,65 @@ module SipHeaders
       super
     end
   end  
+  
+  
+  # From RFC 3326
+  #Reason = "Reason" HCOLON reason-value *(COMMA reason-value)
+  #reason-value = protocol *(SEMI reason-params)
+  #protocol = "SIP" / "Q.850" / token
+  #reason-params = protocol-cause / reason-text / reason-extension
+  #protocol-cause = "cause" EQUAL cause
+  #cause = 1*DIGIT
+  #reason-text = "text" EQUAL quoted-string
+  #reason-extension = generic-param
+  #  
+  #Examples:
+  #Reason: SIP ;cause=200 ;text="Call completed elsewhere"
+  #Reason: Q.850 ;cause=16 ;text="Terminated"
+  #Reason: SIP ;cause=600 ;text="Busy Everywhere"
+  #Reason: SIP ;cause=580 ;text="Precondition Failure"
+
+  class Reason < Header
+    attr_accessor :protocol, :cause, :text
+    
+    def initialize
+      @name = "Reason"
+      super
+    end
+
+    def dup
+      obj = super
+      obj.protocol = self.protocol.dup
+      obj.cause  = self.cause.dup
+      obj.text = self.text.dup
+      obj
+    end
+    
+    def header_value
+      return nil unless self.protocol
+      str = sprintf("%s", self.protocol)
+      str << ";cause=" << self.cause if self.cause
+      str << ";text=" <<  self.text if self.text
+      str
+    end
+    
+    def assign(val_str, parse=true)
+      unless parse
+        cache_and_clear(val_str, 
+                        [:@protocol, :@cause, :@text])
+      else
+        @frozen_str = nil
+        @protocol, remainder = val_str.split(";", 2)
+        remainder.split(";").each do |x|
+          k, v = x.split("=", 2)   
+          self.send((k.strip+"=").to_sym, v.strip)
+        end
+      end  
+      self 
+    end    # assign method
+          
+  end #class  
+  
   # From RFC 2617
   # challenge = "Digest" digest-challenge
   # digest-challenge = 1#( realm | [ domain ] | nonce |
