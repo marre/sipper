@@ -66,6 +66,9 @@ class SipperProxyMsg
 
       void _processResponse();
       void _processRequest();
+
+      int _removeFirstVia();
+      int _setTargetFromFirstVia();
 };
 
 #endif

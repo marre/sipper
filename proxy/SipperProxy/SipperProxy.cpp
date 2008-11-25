@@ -229,7 +229,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 
    buffer[bufferLen] = '\0';
 
-   logger.logMsg(DEBUG_FLAG, 0, "ReceivedMessage From[%s:%d]\n---\n[%s]\n---",
+   logger.logMsg(TRACE_FLAG, 0, "ReceivedMessage From[%s:%d]\n---\n[%s]\n---",
                  inet_ntoa(recvSource.sin_addr), ntohs(recvSource.sin_port),
                  buffer);
 
@@ -248,7 +248,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       
       end -= 7;
 
-      if((end > start) && (strncmp(end, "SIP/2.0") == 0))
+      if((end > buffer) && (strncmp(end, "SIP/2.0", 7) == 0))
       {
          hdrStart = end + 9;
          _processRequest();
@@ -280,6 +280,117 @@ void SipperProxyMsg::_processResponse()
           sizeof(sockaddr_in));
 }
 
-void SipperProxyMsg::_removeFirstVia()
+int SipperProxyMsg::_getFirstVia(char *&viaStart, char *&viaValStart)
 {
+   char *fullForm = strstr(hdrStart - 2, "\r\nVia:");
+   char *shortForm = NULL;
+
+   if(fullForm != NULL)
+   {
+      char locTmp = *fullForm;
+      *fullForm = '\0';
+      shortForm = strstr(hdrStart - 2, "\r\nv:");
+      *fullForm = locTmp;
+   }
+   else
+   {
+      shortForm = strstr(hdrStart - 2, "\r\nv:");
+   }
+
+   char *viaToUse = fullForm;
+
+   if(viaToUse == NULL) 
+   {
+      viaToUse = shortForm;
+   }
+   else 
+   {
+      if((shortForm != NULL) && (shortForm < fullForm))
+      {
+         viaToUse = shortForm;
+      }
+   }
+
+   if(viaToUse == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Via found. \n");
+      return -1;
+   }
+
+   char *viaStart = NULL;
+   char *viaValStart = NULL;
+
+   if(viaToUse == fullForm) 
+   {
+      viaStart = fullForm + 2;
+      viaValStart = fullForm + 6;
+   }
+   else
+   {
+      viaStart = shortForm + 2;
+      viaValStart = shortForm + 4;
+   }
+
+   return 0;
+}
+
+void SipperProxyMsg::_removeData(char *from, char *to)
+{
+   if(to < from) return;
+
+   memmove(from, to, (buffer + bufferLen) - to);
+   bufferLen -= (to - from);
+}
+int SipperProxyMsg::_removeFirstVia()
+{
+   char *viaStart = NULL;
+   char *viaValStart = NULL;
+
+   if(_getFirstVia(viaStart, viaValStart) == -1)
+   {
+      return -1;
+   }
+
+   char *viaEnd = strstr(viaValStart, "\r\n");
+
+   if(viaEnd == NULL) 
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Via End found.\n");
+      return -1;
+   }
+
+   char tmpData = *viaEnd;
+   *viaEnd = '\0';
+   char *viaValEnd = strstr(viaValStart, ",");
+   *viaEnd = tmpData;
+
+   if((viaValEnd == NULL) || (viaEnd < viaValEnd))
+   {
+      //RemoveFullHeader
+      _removedata(viaStart, viaEnd + 2);
+   }
+   else
+   {
+      //Comma separated value. Remove till ,.
+      _removedata(viaValStart, viaValEnd + 1);
+   }
+}
+
+int SipperProxyMsg::_setTargetFromFirstVia()
+{
+   char *viaStart = NULL;
+   char *viaValStart = NULL;
+
+   if(_getFirstVia(viaStart, viaValStart) == -1)
+   {
+      return -1;
+   }
+
+   while(*viaValStart == ' ') viaValStart++;
+
+   while(*viaValStart != ' ' && *viaValStart != '\0') viaValStart++;
+
+   while(*viaValStart == ' ') viaValStart++;
+
+   //Get the host and port.
 }
