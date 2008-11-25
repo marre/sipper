@@ -13,6 +13,50 @@
 #include <arpa/inet.h>
 #endif
 
+#include <map>
+#include <string>
+
+struct DnsEntry
+{
+   public:
+
+      time_t entryTime;
+
+      int entryCount;
+      in_addr_t addr[5];
+
+   public:
+
+      DnsEntry()
+      {
+         entryTime = 0;
+         entryCount = 0;
+         for(unsigned int idx = 0; idx < 5; idx++)
+         {
+            addr[idx] = -1;
+         }
+      }
+};
+
+typedef std::map<std::string, DnsEntry> DnsMap;
+typedef DnsMap::const_iterator DnsMapCIt;
+typedef DnsMap::iterator DnsMapIt;
+
+class DnsCache
+{
+   private:
+
+      DnsMap _entries;
+      time_t _lastCheckTime;
+
+   public:
+
+      DnsCache();
+
+      in_addr_t getIp(const std::string &hostname);
+      void checkCache();
+};
+
 class SipperProxy
 {
    private:
@@ -32,11 +76,18 @@ class SipperProxy
       std::string _inDomain;   //Hostname or IP.
       std::string _outDomain;
 
+      DnsCache _dnsCache;
+
    public:
 
       SipperProxy();
       ~SipperProxy();
       void start();
+
+      in_addr_t getIp(const std::string &hostname)
+      {
+         return _dnsCache.getIp(hostname);
+      }
 };
 
 #define MAX_PROXY_MSG_LEN 0xFFFF
@@ -69,6 +120,11 @@ class SipperProxyMsg
 
       int _removeFirstVia();
       int _setTargetFromFirstVia();
+
+      int _getFirstVia(char *&viaStart, char *&viaValStart);
+      void _removeData(char *from, char *to);
+
+
 };
 
 #endif

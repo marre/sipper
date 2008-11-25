@@ -4,6 +4,84 @@ LOG("ProxyMain");
 #include "SipperProxyConfig.h"
 #include "SipperProxyLogMgr.h"
 
+#include <netdb.h>
+
+DnsCache::DnsCache()
+{
+   _lastCheckTime = time(NULL); 
+}
+
+in_addr_t DnsCache::getIp(const std::string &hostname)
+{
+   in_addr_t ret = inet_addr(hostname.c_str());
+
+   if(ret != -1) return ret;
+
+   DnsMapCIt it = _entries.find(hostname);
+
+   if(it != _entries.end())
+   {
+      return it->second.addr[0];
+   }
+
+   struct hostent *hentry = gethostbyname(hostname.c_str());
+
+   if(hentry == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "Error doing DNS query [%s] [%s]\n",
+                    strerror(SipperProxyPortable::getErrorCode()),
+                    hostname.c_str());
+      return 1;
+   }
+
+   char **currentry;
+   DnsEntry entry;
+
+   for(currentry = hentry->h_addr_list; *currentry != NULL; currentry++)
+   {
+      if(entry.entryCount == 5) break;
+
+      in_addr_t netIP = 0;
+      memcpy(&netIP, *currentry, sizeof(int));
+      entry.addr[entry.entryCount] = netIP;
+
+      entry.entryCount++;
+   }
+
+   if(entry.entryCount == 0)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No records from DNS [%s]\n",
+                    hostname.c_str());
+      return -1;
+   }
+
+   _entries[hostname] = entry;
+   return entry.addr[0];
+}
+
+void DnsCache::checkCache()
+{
+   time_t now = time(NULL);
+   //Check every hour and clear entries older than 2hrs.
+   if((now - _lastCheckTime) < 3600) return;
+
+   _lastCheckTime = now;
+
+   DnsMapIt it = _entries.begin();
+
+   while(it != _entries.end())
+   {
+      if((now - it->second.entryTime) > 7200)
+      {
+         _entries.erase(it++);
+      }
+      else
+      {
+         ++it;
+      }
+   }
+}
+
 int main(int argc, char **argv)
 {
    std::string configFile("SipperProxy.cfg");
@@ -317,9 +395,6 @@ int SipperProxyMsg::_getFirstVia(char *&viaStart, char *&viaValStart)
       return -1;
    }
 
-   char *viaStart = NULL;
-   char *viaValStart = NULL;
-
    if(viaToUse == fullForm) 
    {
       viaStart = fullForm + 2;
@@ -367,17 +442,20 @@ int SipperProxyMsg::_removeFirstVia()
    if((viaValEnd == NULL) || (viaEnd < viaValEnd))
    {
       //RemoveFullHeader
-      _removedata(viaStart, viaEnd + 2);
+      _removeData(viaStart, viaEnd + 2);
    }
    else
    {
       //Comma separated value. Remove till ,.
-      _removedata(viaValStart, viaValEnd + 1);
+      _removeData(viaValStart, viaValEnd + 1);
    }
 }
 
 int SipperProxyMsg::_setTargetFromFirstVia()
 {
+   memset(&sendTarget, 0, sizeof(sendTarget));
+   sendTarget.sin_family = AF_INET;
+
    char *viaStart = NULL;
    char *viaValStart = NULL;
 
@@ -410,5 +488,15 @@ int SipperProxyMsg::_setTargetFromFirstVia()
       port = atoi(portStart + 1);
    }
 
-   //Continue here.
+   std::string hostname(hostStart, portStart - hostStart);
+
+   sendTarget.sin_port = htons(port);
+   sendTarget.sin_addr.s_addr = _context->getIp(hostname);
+
+   if(sendTarget.sin_addr.s_addr == -1)
+   {
+      return -1;
+   }
+
+   return 0;
 }
