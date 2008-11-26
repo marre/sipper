@@ -11,10 +11,10 @@ DnsCache::DnsCache()
    _lastCheckTime = time(NULL); 
 }
 
-void DnsCache::addEntry(const std::string &name, in_addr_t ip, boolean removable)
+void DnsCache::addEntry(const std::string &name, in_addr_t ip, bool removable)
 {
    DnsEntry entry;
-   entry.addr[0] = netIP;
+   entry.addr[0] = ip;
    entry.entryCount = 0;
 
    if(removable)
@@ -139,8 +139,8 @@ int main(int argc, char **argv)
 SipperProxy::SipperProxy() :
    _sipperOutSocket(-1),
    _sipperInSocket(-1),
-   _inAddr(""),
-   _outAddr(""),
+   _inAddr(NULL),
+   _outAddr(NULL),
    _inPort(0),
    _outPort(0),
    _numOfSipperDomain(0),
@@ -157,8 +157,8 @@ SipperProxy::SipperProxy() :
       _outStrAddr = _inStrAddr;
    }
 
-   _inPort = (unsigned short) atoi(
-                 config.getConfig("Global", "InPort", "5700").c_str());
+   _inStrPort = config.getConfig("Global", "InPort", "5700");
+   _inPort = (unsigned short) atoi(_inStrPort.c_str());
    //_outPort = (unsigned short) atoi(
                  //config.getConfig("Global", "OutPort", "0").c_str());
 
@@ -238,7 +238,7 @@ SipperProxy::SipperProxy() :
       SipperProxyPortable::setNonBlocking(_sipperOutSocket);
    }
 
-   int numOfSipper = config.getConfig("Global", "NumSipperDomain", "0");
+   int numOfSipper = atoi(config.getConfig("Global", "NumSipperDomain", "0").c_str());
 
    if(numOfSipper == 0)
    {
@@ -259,14 +259,39 @@ SipperProxy::SipperProxy() :
       if(ipstr == "")
       {
          logger.logMsg(ERROR_FLAG, 0,
-                       "Invalid IP for Domain[%s].\n", domainname);
+                       "Empty IP for Domain[%s].\n", domainname);
          exit(1);
       }
 
       sipperDomains[idx].ip   = inet_addr(ipstr.c_str());
-      sipperDomains[idx].name = config.getConfig(domainname, "Name", sipperDomains[idx].ip);
-      sipperDomains[idx].port = config.getConfig(domainname, "Port", "5060");
+
+      if(sipperDomains[idx].ip == -1)
+      {
+         logger.logMsg(ERROR_FLAG, 0,
+                       "Invalid IP[%s] for Domain[%s].\n", ipstr.c_str(), domainname);
+         exit(1);
+      }
+
+      sipperDomains[idx].name = config.getConfig(domainname, "Name", ipstr);
+      sipperDomains[idx].port = atoi(config.getConfig(domainname, "Port", "5060").c_str());
    }
+
+   pxyStrIp = config.getConfig("ProxyDomain", "Ip", "");
+
+   if(pxyStrIp == "")
+   {
+      logger.logMsg(ERROR_FLAG, 0, "Empty IP for ProxyDomain.\n");
+      exit(1);
+   }
+
+   pxyStrDomain = config.getConfig("ProxyDomain", "Name", pxyStrIp);
+   pxyStrPort = config.getConfig("ProxyDomain", "Port", "5060");
+
+   pxyViaHdr = "Via: SIP/2.0/UDP " + _inStrAddr + ":" + _inStrPort + ";branch=";
+   pxyRouteHdr = "Route: <sip:" + pxyStrDomain + ":" + pxyStrPort + ">\r\n";
+   pxyRecordRouteHdr = "Record-Route: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
+   pxyPathHdr = "Path: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
+   pxyUriHost = pxyStrDomain + ":" + pxyStrPort;
 }
 
 SipperProxy::~SipperProxy()
@@ -630,3 +655,159 @@ void SipperProxyMsg::_processRequest()
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
 }
+
+void SipperProxyMsg::_addToBuffer(char *startPos, const char *insData, int len)
+{
+   memmove(startPos + len, startPos, bufferLen - (startPos - buffer) + 1);
+   memcpy(startPos, insData, len);
+   bufferLen += len;
+}
+
+void SipperProxyMsg::_processViaRport()
+{
+   branch[0] = '\0';
+   char *viaStart = NULL;
+   char *viaValStart = NULL;
+
+   if(_getFirstVia(viaStart, viaValStart) == -1)
+   {
+      return;
+   }
+
+   while(*viaValStart != ';' && *viaValStart != '\0' &&
+         *viaValStart != ',' && *viaValStart != '\r') viaValStart++;
+
+   char insData[100];
+   int insLen= sprintf(insData, ";received=%s", inet_ntoa(recvSource.sin_addr));
+
+   _addToBuffer(viaValStart, insData, insLen);
+
+   if(*viaValStart != ';') return;
+
+   while(*viaValStart == ';')
+   {
+      if(strncmp(viaValStart, ";rport", 6) == 0)
+      {
+         viaValStart += 6;
+         insLen = sprintf(insData, "=%d", ntohs(recvSource.sin_port));
+         _addToBuffer(viaValStart, insData, insLen);
+      }
+      else if(strncmp(viaValStart, ";branch=", 8) == 0)
+      {
+         viaValStart += 8;
+         char *branchTarget = branch;
+         int cnt = 0;
+         while(*viaValStart != ';' && *viaValStart != '\0' &&
+               *viaValStart != ',' && *viaValStart != '\r' && cnt < 250)
+         {
+            *branchTarget = *viaValStart;
+            branchTarget++;
+            viaValStart++;
+            cnt++;
+         }
+
+         *branchTarget = '\0';
+      }
+
+      while(*viaValStart != ';' && *viaValStart != '\0' &&
+            *viaValStart != ',' && *viaValStart != '\r') viaValStart++;
+   }
+}
+
+void SipperProxyMsg::_addViaHeader()
+{
+   char viaHeader[1000];
+   int viaLen = 0;
+   if(*branch == '\0')
+   {
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+
+      viaLen = sprintf(viaHeader, "%sz9hG4bK_%d_%d_%d\r\n", _context->pxyViaHdr.c_str(), 
+                       tv.tv_sec, tv.tv_usec, rand());
+   }
+   else
+   {
+      viaLen = sprintf(viaHeader, "%s%s_0\r\n", _context->pxyViaHdr.c_str(), branch);
+   }
+
+   _addToBuffer(hdrStart, viaHeader, viaLen);
+}
+
+void SipperProxyMsg::_addPathHeader()
+{
+   _addToBuffer(hdrStart, _context->pxyPathHdr.c_str(), 
+                _context->pxyPathHdr.length());
+}
+
+void SipperProxyMsg::_addRecordRouteHeader()
+{
+   _addToBuffer(hdrStart, _context->pxyRecordRouteHdr.c_str(), 
+                _context->pxyRecordRouteHdr.length());
+}
+
+bool SipperProxyMsg::_isRegisterRequest()
+{
+   if(strncmp(buffer, "REGISTER ", 9) == 0)
+   {
+      return true;
+   }
+
+   return false;
+}
+
+bool SipperProxyMsg::_isRoutePresent()
+{
+   _routeStart = strstr(hdrStart - 2, "\r\nRoute:");
+   if(_routeStart != NULL)
+   {
+      _routeStart += 2;
+      return true;
+   }
+
+   return false;
+}
+
+bool SipperProxyMsg::_isReqURIContainsProxyDomain()
+{
+   char tmp = *hdrStart;
+   *hdrStart = '\0';
+
+   if(strstr(buffer, _context->pxyUriHost.c_str()) != NULL)
+   {
+      *hdrStart = tmp;
+      return true;
+   }
+
+   *hdrStart = tmp;
+   return false;
+}
+
+void SipperProxyMsg::_removeReqURI()
+{
+}
+
+void SipperProxyMsg::_moveLastRouteToReqURI()
+{
+}
+
+void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
+{
+}
+
+int SipperProxyMsg::_setTargetFromFirstRoute()
+{
+}
+
+void SipperProxyMsg::_setTargetFromReqURI()
+{
+}
+
+bool SipperProxyMsg::_isReqURIIsProxyDomain()
+{
+}
+
+void SipperProxyMsg::_setTargetFromSipperDomain()
+{
+}
+
