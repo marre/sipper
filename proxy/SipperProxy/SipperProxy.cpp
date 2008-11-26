@@ -419,6 +419,14 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 
    if(strncmp(buffer, "SIP/2.0", 7) == 0)
    {
+      char *end = strstr(buffer, "\r\n");
+      if(end == NULL)
+      {
+         logger.logMsg(ERROR_FLAG, 0, "Invalid Message [%s]\n", buffer);
+         return;
+      }
+
+      hdrStart = end + 2;
       _processResponse();
    }
    else
@@ -516,6 +524,8 @@ int SipperProxyMsg::_getFirstVia(char *&viaStart, char *&viaValStart)
       viaValStart = shortForm + 4;
    }
 
+   while(*viaValStart == ' ') viaValStart++;
+
    return 0;
 }
 
@@ -523,7 +533,7 @@ void SipperProxyMsg::_removeData(char *from, char *to)
 {
    if(to < from) return;
 
-   memmove(from, to, (buffer + bufferLen) - to);
+   memmove(from, to, (buffer + bufferLen) - to + 1);
    bufferLen -= (to - from);
 }
 
@@ -716,6 +726,9 @@ void SipperProxyMsg::_processViaRport()
 
          *branchTarget = '\0';
       }
+      else
+      {   viaValStart++;
+      }
 
       while(*viaValStart != ';' && *viaValStart != '\0' &&
             *viaValStart != ',' && *viaValStart != '\r') viaValStart++;
@@ -804,6 +817,8 @@ int SipperProxyMsg::_getFirstRoute(char *&routeStart, char *&routeValStart)
    routeStart = routeToUse + 2;
    routeValStart = routeToUse + 8;
 
+   while(*routeValStart == ' ') routeValStart++;
+
    return 0;
 }
 
@@ -817,6 +832,8 @@ int SipperProxyMsg::_getLastRoute(char *&routeStart, char *&routeEnd, bool &sing
       char *tmpPtr = strstr(routeToUse + 8, "\r\nRoute:");
 
       if(tmpPtr != NULL) routeToUse = tmpPtr;
+      else
+        break;
    }
 
    if(routeToUse == NULL)

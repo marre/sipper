@@ -4,7 +4,7 @@ OUTDIR=Unix
 SYSTEM_INFO=$(shell uname)
 EXTRA_LDFLAG=
 CC=g++
-CC_FLAGS=-pthread
+CC_FLAGS=-pthread -g
 
 ifeq ($(SYSTEM_INFO),SunOS)
    EXTRA_LDFLAG += -lsocket -lnsl -lstd++
