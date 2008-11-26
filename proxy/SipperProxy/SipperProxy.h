@@ -89,8 +89,8 @@ class SipperProxy
 
    public:
 
-      unsigned int numOfSipperDomain;
-      unsigned int toSendIndex;
+      unsigned int _numOfSipperDomain;
+      unsigned int _toSendIndex;
 
       SipperDomain *sipperDomains;
 
@@ -109,6 +109,8 @@ class SipperProxy
       SipperProxy();
       ~SipperProxy();
       void start();
+
+      SipperDomain * getSipperDomain();
 
       in_addr_t getIp(const std::string &hostname)
       {
@@ -171,8 +173,8 @@ class SipperProxyMsg
       void _moveLastRouteToReqURI();
       void _removeFirstRouteIfProxyDomain();
       int _setTargetFromFirstRoute();
-      void _setTargetFromReqURI();
-      void _setTargetFromSipperDomain();
+      int _setTargetFromReqURI();
+      int _setTargetFromSipperDomain();
 };
 
 #endif

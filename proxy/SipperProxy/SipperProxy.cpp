@@ -143,8 +143,8 @@ SipperProxy::SipperProxy() :
    _outAddr(NULL),
    _inPort(0),
    _outPort(0),
-   numOfSipperDomain(0),
-   toSendIndex(0),
+   _numOfSipperDomain(0),
+   _toSendIndex(0),
    sipperDomains(NULL)
 {
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
@@ -238,18 +238,18 @@ SipperProxy::SipperProxy() :
       SipperProxyPortable::setNonBlocking(_sipperOutSocket);
    }
 
-   int numOfSipper = atoi(config.getConfig("Global", "NumSipperDomain", "0").c_str());
+   _numOfSipperDomain = atoi(config.getConfig("Global", "NumSipperDomain", "0").c_str());
 
-   if(numOfSipper == 0)
+   if(_numOfSipperDomain == 0)
    {
       logger.logMsg(ERROR_FLAG, 0,
-                    "Num of SipperDomain is invalid [%d].\n", numOfSipperDomain);
+                    "Num of SipperDomain is invalid [%d].\n", _numOfSipperDomain);
       exit(1);
    }
 
-   sipperDomains = new SipperDomain[numOfSipper];
+   sipperDomains = new SipperDomain[_numOfSipperDomain];
 
-   for(unsigned int idx = 0; idx < numOfSipper; idx++)
+   for(unsigned int idx = 0; idx < _numOfSipperDomain; idx++)
    {
       char domainname[100];
       sprintf(domainname, "SipperDomain%d", idx + 1);
@@ -390,6 +390,15 @@ void SipperProxy::start()
 
       msg.processMessage(this);
    }
+}
+
+SipperDomain * SipperProxy::getSipperDomain()
+{
+   SipperDomain *ret = sipperDomains + _toSendIndex;
+   _toSendIndex ++;
+   if(_toSendIndex >= _numOfSipperDomain) _toSendIndex = 0;
+
+   return ret;
 }
 
 void SipperProxyMsg::processMessage(SipperProxy *context)
@@ -629,7 +638,7 @@ void SipperProxyMsg::_processRequest()
          _removeFirstRouteIfProxyDomain();
       }
 
-      if(_setTargetFromFirstRoute() == -2)
+      if(_setTargetFromFirstRoute() == -1)
       {
          _setTargetFromReqURI();
       }
@@ -949,18 +958,133 @@ void SipperProxyMsg::_moveLastRouteToReqURI()
       _removeData(requriStart + 1, hdrStart - 10);
       _addToBuffer(requriStart + 1, storedRouteStart, strlen(storedRouteStart));
    }
-}
 
+   char *end = strstr(buffer, "\r\n");
+   hdrStart = end + 2;
+}
 
 int SipperProxyMsg::_setTargetFromFirstRoute()
 {
+   memset(&sendTarget, 0, sizeof(sendTarget));
+   sendTarget.sin_family = AF_INET;
+
+   char *routeStart = NULL;
+   char *routeValStart = NULL;
+
+   if(_getFirstRoute(routeStart, routeValStart) == -1)
+   {
+      return -1;
+   }
+
+   while(*routeValStart == ' ') routeValStart++;
+
+   while(*routeValStart != ':' && *routeValStart != '\0' &&
+         *routeValStart != ';' && *routeValStart != '>' &&
+         *routeValStart != ',' && *routeValStart != '\r') routeValStart++;
+
+   if(*routeValStart != ':') return -1;
+
+   routeValStart++;
+   char *hostStart = routeValStart;
+
+   while(*routeValStart != ':' && *routeValStart != '\0' &&
+         *routeValStart != ';' && *routeValStart != '>' && *routeValStart != '@' &&
+         *routeValStart != ',' && *routeValStart != '\r') routeValStart++;
+
+   if(*routeValStart == '@') 
+   {
+      routeValStart++;
+      hostStart = routeValStart;
+   }
+   
+   while(*routeValStart != ':' && *routeValStart != '\0' &&
+         *routeValStart != ';' && *routeValStart != '>' && 
+         *routeValStart != ',' && *routeValStart != '\r') routeValStart++;
+
+   unsigned short port = 5060;
+
+   if(*routeValStart == ':')
+   {
+      port = atoi(routeValStart + 1);
+   }
+
+   std::string hostname(hostStart, routeValStart - hostStart);
+
+   sendTarget.sin_port = htons(port);
+   sendTarget.sin_addr.s_addr = _context->getIp(hostname);
+
+   if(sendTarget.sin_addr.s_addr == -1)
+   {
+      return -1;
+   }
+
+   return 0;
 }
 
-void SipperProxyMsg::_setTargetFromReqURI()
+int SipperProxyMsg::_setTargetFromSipperDomain()
 {
+   SipperDomain *domain = _context->getSipperDomain();
+
+   memset(&sendTarget, 0, sizeof(sendTarget));
+   sendTarget.sin_family = AF_INET;
+   sendTarget.sin_port = htons(domain->port);
+   sendTarget.sin_addr.s_addr = domain->ip;
+
+   return 0;
 }
 
-void SipperProxyMsg::_setTargetFromSipperDomain()
+int SipperProxyMsg::_setTargetFromReqURI()
 {
-}
+   memset(&sendTarget, 0, sizeof(sendTarget));
+   sendTarget.sin_family = AF_INET;
 
+   char *uriStart = buffer;
+
+   while(*uriStart != ' ' && *uriStart != '\0' &&
+         *uriStart != '\r') uriStart++;
+
+   if(*uriStart != ' ') return -1;
+
+   while(*uriStart == ' ') uriStart++;
+
+   while(*uriStart != ':' && *uriStart != '\0' &&
+         *uriStart != '\r') uriStart++;
+
+   if(*uriStart != ':') return -1;
+
+   uriStart++;
+
+   char *hostStart = uriStart;
+   while(*uriStart != '@' && *uriStart != '\0' && *uriStart != ':' &&
+         *uriStart != ';' && *uriStart != '>' && *uriStart != ' ' &&
+         *uriStart != ',' && *uriStart != '\r') uriStart++;
+
+   if(*uriStart == '@')
+   {
+      uriStart++;
+      hostStart = uriStart;
+   }
+
+   while(*uriStart != ':' && *uriStart != '\0' &&
+         *uriStart != ';' && *uriStart != '>' && *uriStart != ' ' &&
+         *uriStart != ',' && *uriStart != '\r') uriStart++;
+
+   unsigned short port = 5060;
+
+   if(*uriStart == ':')
+   {
+      port = atoi(uriStart + 1);
+   }
+
+   std::string hostname(hostStart, uriStart - hostStart);
+
+   sendTarget.sin_port = htons(port);
+   sendTarget.sin_addr.s_addr = _context->getIp(hostname);
+
+   if(sendTarget.sin_addr.s_addr == -1)
+   {
+      return -1;
+   }
+
+   return 0;
+}
