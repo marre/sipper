@@ -622,7 +622,6 @@ void SipperProxyMsg::_processRequest()
       if(_isReqURIContainsProxyDomain())
       {
          //Message from StrictRouter.
-         _removeReqURI();
          _moveLastRouteToReqURI();
       }
       else
@@ -637,7 +636,7 @@ void SipperProxyMsg::_processRequest()
    }
    else
    {
-      if(_isReqURIIsProxyDomain())
+      if(_isReqURIContainsProxyDomain())
       {
          //Choose one from the SipperDomain
          _setTargetFromSipperDomain();
@@ -783,15 +782,126 @@ bool SipperProxyMsg::_isReqURIContainsProxyDomain()
    return false;
 }
 
-void SipperProxyMsg::_removeReqURI()
+int SipperProxyMsg::_getFirstRoute(char *&routeStart, char *&routeValStart)
 {
+   char *routeToUse = strstr(hdrStart - 2, "\r\nRoute:");
+
+   if(routeToUse == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Route found. \n");
+      return -1;
+   }
+
+   routeStart = routeToUse + 2;
+   routeValStart = routeToUse + 8;
+
+   return 0;
+}
+
+int SipperProxyMsg::_getLastRoute(char *&routeStart, char *&routeEnd, bool &singleHdr,
+                                  char *&routeValStart, char *&routeValEnd)
+{
+   char *routeToUse = strstr(hdrStart - 2, "\r\nRoute:");
+
+   while(routeToUse != NULL)
+   {
+      char *tmpPtr = strstr(routeToUse + 8, "\r\nRoute:");
+
+      if(tmpPtr != NULL) routeToUse = tmpPtr;
+   }
+
+   if(routeToUse == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Route found. \n");
+      return -1;
+   }
+
+   routeStart = routeToUse + 2;
+   routeValStart = routeToUse + 8;
+
+   routeEnd = strstr(routeValStart, "\r\n");
+
+   if(routeEnd == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Route End found. \n");
+      return -1;
+   }
+
+   routeEnd += 2;
+   routeValEnd = routeEnd;
+
+   singleHdr = true;
+
+   char *tmpData = *routeEnd;
+   *routeEnd = '\0';
+   char *lastComma = rindex(routeValStart, ',');
+   *routeEnd = tmpData;
+
+   if(lastComma != NULL)
+   {
+      singleHdr = false;
+      routeValStart = lastComma;
+      routeValEnd = routeEnd - 2;
+   }
+
+   return 0;
+}
+
+
+void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
+{
+   char *routeStart = NULL;
+   char *routeValStart = NULL;
+   if(_getFirstRoute(routeStart, routeValStart) == -1)
+   {
+      return;
+   }
+
+   char *routeEnd = strstr(routeValStart, "\r\n");
+
+   if(routeEnd == NULL)
+   {
+      return;
+   }
+
+   char tmpData = *routeEnd;
+   *routeEnd = '\0';
+   char *routeValEnd = strstr(routeValStart, ",");
+   *routeEnd = tmpData;
+
+   if((routeValEnd == NULL) || (routeEnd < routeValEnd))
+   {
+      routeValEnd = routeEnd;
+
+      tmpData = *routeValEnd;
+      *routeValEnd = '\0';
+      if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
+      {
+         *routeValEnd = tmpData;;
+         _removeData(routeStart, routeEnd + 2);
+      }
+      else
+      {
+         *routeValEnd = tmpData;;
+      }
+   }
+   else
+   {
+      tmpData = *routeValEnd;
+      *routeValEnd = '\0';
+      if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
+      {
+         *routeValEnd = tmpData;;
+         _removeData(routeValStart, routeValEnd + 1);
+      }
+      else
+      {
+         *routeValEnd = tmpData;;
+      }
+   }
 }
 
 void SipperProxyMsg::_moveLastRouteToReqURI()
-{
-}
-
-void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
 {
 }
 
@@ -800,10 +910,6 @@ int SipperProxyMsg::_setTargetFromFirstRoute()
 }
 
 void SipperProxyMsg::_setTargetFromReqURI()
-{
-}
-
-bool SipperProxyMsg::_isReqURIIsProxyDomain()
 {
 }
 

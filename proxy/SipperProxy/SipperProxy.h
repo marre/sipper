@@ -169,7 +169,6 @@ class SipperProxyMsg
       void _removeFirstRouteIfProxyDomain();
       int _setTargetFromFirstRoute();
       void _setTargetFromReqURI();
-      bool _isReqURIIsProxyDomain();
       void _setTargetFromSipperDomain();
 };
 
