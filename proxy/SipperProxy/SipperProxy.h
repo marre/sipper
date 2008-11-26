@@ -55,6 +55,15 @@ class DnsCache
 
       in_addr_t getIp(const std::string &hostname);
       void checkCache();
+
+      void addEntry(const std::string &name, in_addr_t ip, boolean removable = false)
+};
+
+class SipperDomain
+{
+   std::string name;
+   in_addr_t ip;
+   unsigned short port;
 };
 
 class SipperProxy
@@ -77,6 +86,11 @@ class SipperProxy
       std::string _outDomain;
 
       DnsCache _dnsCache;
+
+      unsigned int _numOfSipperDomain;
+      unsigned int _toSendIndex;
+
+      SipperDomain *sipperDomains;
 
    public:
 

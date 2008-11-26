@@ -11,6 +11,24 @@ DnsCache::DnsCache()
    _lastCheckTime = time(NULL); 
 }
 
+void DnsCache::addEntry(const std::string &name, in_addr_t ip, boolean removable)
+{
+   DnsEntry entry;
+   entry.addr[0] = netIP;
+   entry.entryCount = 0;
+
+   if(removable)
+   {
+      entry.entryTime = time(NULL);
+   }
+   else
+   {
+      entry.entryTime = -1;
+   }
+
+   _entries[name] = entry;
+}
+
 in_addr_t DnsCache::getIp(const std::string &hostname)
 {
    in_addr_t ret = inet_addr(hostname.c_str());
@@ -71,6 +89,12 @@ void DnsCache::checkCache()
 
    while(it != _entries.end())
    {
+      if(it->second.entryTime == -1)
+      {
+         ++it;
+         continue;
+      }
+
       if((now - it->second.entryTime) > 7200)
       {
          _entries.erase(it++);
@@ -115,19 +139,30 @@ int main(int argc, char **argv)
 SipperProxy::SipperProxy() :
    _sipperOutSocket(-1),
    _sipperInSocket(-1),
-   _inAddr(NULL),
-   _outAddr(NULL),
+   _inAddr(""),
+   _outAddr(""),
    _inPort(0),
-   _outPort(0)
+   _outPort(0),
+   _numOfSipperDomain(0),
+   _toSendIndex(0),
+   sipperDomains(NULL)
 {
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
 
    _inStrAddr = config.getConfig("Global", "InAddr", "127.0.0.1");
-   _outStrAddr = config.getConfig("Global", "OutAddr", "127.0.0.1");
+   //_outStrAddr = config.getConfig("Global", "OutAddr", "");
+
+   if(_outStrAddr == "")
+   {
+      _outStrAddr = _inStrAddr;
+   }
+
    _inPort = (unsigned short) atoi(
                  config.getConfig("Global", "InPort", "5700").c_str());
-   _outPort = (unsigned short) atoi(
-                 config.getConfig("Global", "OutPort", "5800").c_str());
+   //_outPort = (unsigned short) atoi(
+                 //config.getConfig("Global", "OutPort", "0").c_str());
+
+   if(_outPort == 0) _outPort = _inPort;
 
    if((_sipperInSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
    {
@@ -202,6 +237,36 @@ SipperProxy::SipperProxy() :
 
       SipperProxyPortable::setNonBlocking(_sipperOutSocket);
    }
+
+   int numOfSipper = config.getConfig("Global", "NumSipperDomain", "0");
+
+   if(numOfSipper == 0)
+   {
+      logger.logMsg(ERROR_FLAG, 0,
+                    "Num of SipperDomain is invalid [%d].\n", _numOfSipperDomain);
+      exit(1);
+   }
+
+   sipperDomains = new SipperDomain[numOfSipper];
+
+   for(unsigned int idx = 0; idx < numOfSipper; idx++)
+   {
+      char domainname[100];
+      sprintf(domainname, "SipperDomain%d", idx + 1);
+
+      std::string ipstr = config.getConfig(domainname, "Ip", "");
+
+      if(ipstr == "")
+      {
+         logger.logMsg(ERROR_FLAG, 0,
+                       "Invalid IP for Domain[%s].\n", domainname);
+         exit(1);
+      }
+
+      sipperDomains[idx].ip   = inet_addr(ipstr.c_str());
+      sipperDomains[idx].name = config.getConfig(domainname, "Name", sipperDomains[idx].ip);
+      sipperDomains[idx].port = config.getConfig(domainname, "Port", "5060");
+   }
 }
 
 SipperProxy::~SipperProxy()
@@ -222,6 +287,11 @@ SipperProxy::~SipperProxy()
          SipperProxyPortable::disconnectSocket(_sipperInSocket);
       if(_sipperOutSocket != -1) 
          SipperProxyPortable::disconnectSocket(_sipperOutSocket);
+   }
+
+   if(sipperDomains != NULL)
+   {
+      delete []sipperDomains;
    }
 }
 
@@ -244,6 +314,8 @@ void SipperProxy::start()
       struct timeval time_out;
       time_out.tv_sec = 5;
       time_out.tv_usec = 0;
+
+      _dnsCache.checkCache();
 
       if(select(maxSock + 1, &read_fds, NULL, NULL, &time_out) == -1)
       {
@@ -354,6 +426,10 @@ void SipperProxyMsg::_processResponse()
       return;
    }
 
+   logger.logMsg(TRACE_FLAG, 0, "SendingResponse To[%s:%d] Len[%d]\n---\n[%s]\n---",
+                 inet_ntoa(sendTarget.sin_addr), ntohs(sendTarget.sin_port),
+                 bufferLen, buffer);
+
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
 }
@@ -416,6 +492,7 @@ void SipperProxyMsg::_removeData(char *from, char *to)
    memmove(from, to, (buffer + bufferLen) - to);
    bufferLen -= (to - from);
 }
+
 int SipperProxyMsg::_removeFirstVia()
 {
    char *viaStart = NULL;
@@ -499,4 +576,57 @@ int SipperProxyMsg::_setTargetFromFirstVia()
    }
 
    return 0;
+}
+
+void SipperProxyMsg::_processRequest()
+{
+   _processViaRport();
+   _addViaHeader();
+
+   if(_isRegisterRequest())
+   {
+      _addPathHeader();
+   }
+   else
+   {
+      _addRecordRouteHeader();
+   }
+
+   if(_isRoutePresent())
+   {
+      if(_isReqURIContainsProxyDomain())
+      {
+         //Message from StrictRouter.
+         _removeReqURI();
+         _moveLastRouteToReqURI();
+      }
+      else
+      {
+         _removeFirstRouteIfProxyDomain();
+      }
+
+      if(_setTargetFromFirstRoute() == -2)
+      {
+         _setTargetFromReqURI();
+      }
+   }
+   else
+   {
+      if(_isReqURIIsProxyDomain())
+      {
+         //Choose one from the SipperDomain
+         _setTargetFromSipperDomain();
+      }
+      else
+      {
+         _setTargetFromReqURI();
+      }
+   }
+
+   logger.logMsg(TRACE_FLAG, 0, "SendingRequest To[%s:%d] Len[%d]\n---\n[%s]\n---",
+                 inet_ntoa(sendTarget.sin_addr), ntohs(sendTarget.sin_port),
+                 bufferLen, buffer);
+
+   sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
+          sizeof(sockaddr_in));
 }
