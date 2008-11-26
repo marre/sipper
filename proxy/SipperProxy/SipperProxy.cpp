@@ -274,6 +274,8 @@ SipperProxy::SipperProxy() :
 
       sipperDomains[idx].name = config.getConfig(domainname, "Name", ipstr);
       sipperDomains[idx].port = atoi(config.getConfig(domainname, "Port", "5060").c_str());
+
+      _dnsCache.addEntry(sipperDomains[idx].name, sipperDomains[idx].ip);
    }
 
    pxyStrIp = config.getConfig("ProxyDomain", "Ip", "");
