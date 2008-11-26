@@ -802,6 +802,23 @@ bool SipperProxyMsg::_isReqURIContainsProxyDomain()
       return true;
    }
 
+   if(_context->pxyStrPort == "5060")
+   {
+      int len = _context->pxyStrDomain.length();
+      char *domainstart = strstr(buffer, _context->pxyStrDomain.c_str());
+
+      if(domainstart != NULL)
+      {
+         if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+            (*(domainstart + len) == ' ' || *(domainstart + len) == '>' || 
+             *(domainstart + len) == ';'))
+         {
+            *hdrStart = tmp;
+            return true;
+         }
+      }
+   }
+
    *hdrStart = tmp;
    return false;
 }
