@@ -143,8 +143,8 @@ SipperProxy::SipperProxy() :
    _outAddr(NULL),
    _inPort(0),
    _outPort(0),
-   _numOfSipperDomain(0),
-   _toSendIndex(0),
+   numOfSipperDomain(0),
+   toSendIndex(0),
    sipperDomains(NULL)
 {
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
@@ -243,7 +243,7 @@ SipperProxy::SipperProxy() :
    if(numOfSipper == 0)
    {
       logger.logMsg(ERROR_FLAG, 0,
-                    "Num of SipperDomain is invalid [%d].\n", _numOfSipperDomain);
+                    "Num of SipperDomain is invalid [%d].\n", numOfSipperDomain);
       exit(1);
    }
 
@@ -827,12 +827,12 @@ int SipperProxyMsg::_getLastRoute(char *&routeStart, char *&routeEnd, bool &sing
       return -1;
    }
 
-   routeEnd += 2;
    routeValEnd = routeEnd;
+   routeEnd += 2;
 
    singleHdr = true;
 
-   char *tmpData = *routeEnd;
+   char tmpData = *routeEnd;
    *routeEnd = '\0';
    char *lastComma = rindex(routeValStart, ',');
    *routeEnd = tmpData;
@@ -840,13 +840,12 @@ int SipperProxyMsg::_getLastRoute(char *&routeStart, char *&routeEnd, bool &sing
    if(lastComma != NULL)
    {
       singleHdr = false;
-      routeValStart = lastComma;
+      routeValStart = lastComma + 1;
       routeValEnd = routeEnd - 2;
    }
 
    return 0;
 }
-
 
 void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
 {
@@ -903,7 +902,55 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
 
 void SipperProxyMsg::_moveLastRouteToReqURI()
 {
+   char *routeStart = NULL;
+   char *routeEnd = NULL;
+   char *routeValStart = NULL;
+   char *routeValEnd = NULL;
+   bool singleHdr = false;
+
+   if(_getLastRoute(routeStart, routeEnd, singleHdr,
+                    routeValStart, routeValEnd) == -1)
+   {
+      return;
+   }
+
+   char routeHdr[1000];
+   if(singleHdr)
+   {
+      strncpy(routeHdr, routeValStart, (routeValEnd - routeValStart));
+      _removeData(routeStart, routeEnd);
+   }
+   else
+   {
+      strncpy(routeHdr, routeValStart, (routeValEnd - routeValStart));
+      _removeData(routeValStart -1, routeValEnd);
+   }
+
+   char *storedHdr = routeHdr;
+   while(*storedHdr == ' ' || *storedHdr == '<') storedHdr++;
+
+   char *storedRouteStart = storedHdr;
+   while(*storedHdr != ' ' && *storedHdr != '>' && *storedHdr != '\0') storedHdr++;
+   *storedHdr = '\0';
+
+   char tmpData = *hdrStart;
+   *hdrStart = '\0';
+   char *requriStart = strstr(buffer, " ");
+   *hdrStart = tmpData;
+
+   if(requriStart == NULL)
+   {
+      logger.logMsg(TRACE_FLAG, 0, "Invalid ReqURI.\n");
+      return;
+   }
+
+   if(hdrStart - 10 > requriStart + 1)
+   {
+      _removeData(requriStart + 1, hdrStart - 10);
+      _addToBuffer(requriStart + 1, storedRouteStart, strlen(storedRouteStart));
+   }
 }
+
 
 int SipperProxyMsg::_setTargetFromFirstRoute()
 {

@@ -89,8 +89,8 @@ class SipperProxy
 
    public:
 
-      unsigned int _numOfSipperDomain;
-      unsigned int _toSendIndex;
+      unsigned int numOfSipperDomain;
+      unsigned int toSendIndex;
 
       SipperDomain *sipperDomains;
 
@@ -161,10 +161,13 @@ class SipperProxyMsg
       void _addPathHeader();
       void _addRecordRouteHeader();
 
+      int _getFirstRoute(char *&routeStart, char *&routeValStart);
+      int _getLastRoute(char *&routeStart, char *&routeEnd, bool &singleHdr,
+                        char *&routeValStart, char *&routeValEnd);
+
       bool _isRegisterRequest();
       bool _isRoutePresent();
       bool _isReqURIContainsProxyDomain();
-      void _removeReqURI();
       void _moveLastRouteToReqURI();
       void _removeFirstRouteIfProxyDomain();
       int _setTargetFromFirstRoute();
