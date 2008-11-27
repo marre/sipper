@@ -541,6 +541,31 @@ void SipperProxyMsg::_removeData(char *from, char *to)
    bufferLen -= (to - from);
 }
 
+void SipperProxyMsg::_addToBuffer(char *startPos, const char *insData, int len)
+{
+   memmove(startPos + len, startPos, bufferLen - (startPos - buffer) + 1);
+   memcpy(startPos, insData, len);
+   bufferLen += len;
+}
+
+void SipperProxyMsg::_replaceData(char *from, char *to, const char *insData, int len)
+{
+   if(len == (to - from))
+   {
+      memcpy(from, insData, len);
+   }
+   else if(len < (to - from))
+   {
+      memcpy(from, insData, len);
+      _removeData(from + len, to);
+   }
+   else 
+   {
+     memcpy(from, insData, (to - from));
+     _addToBuffer(to, insData + (to - from), len - (to - from));
+   }
+}
+
 int SipperProxyMsg::_removeFirstVia()
 {
    char *viaStart = NULL;
@@ -628,7 +653,11 @@ int SipperProxyMsg::_setTargetFromFirstVia()
 
 void SipperProxyMsg::_processRequest()
 {
-   _processViaRport();
+   if(_processViaRport() == -1)
+   {
+      return;
+   }
+
    _addViaHeader();
 
    if(_isRegisterRequest())
@@ -678,14 +707,7 @@ void SipperProxyMsg::_processRequest()
           sizeof(sockaddr_in));
 }
 
-void SipperProxyMsg::_addToBuffer(char *startPos, const char *insData, int len)
-{
-   memmove(startPos + len, startPos, bufferLen - (startPos - buffer) + 1);
-   memcpy(startPos, insData, len);
-   bufferLen += len;
-}
-
-void SipperProxyMsg::_processViaRport()
+int SipperProxyMsg::_processViaRport()
 {
    branch[0] = '\0';
    char *viaStart = NULL;
@@ -693,7 +715,8 @@ void SipperProxyMsg::_processViaRport()
 
    if(_getFirstVia(viaStart, viaValStart) == -1)
    {
-      return;
+      logger.logMsg(ERROR_FLAG, 0, "No via found in the request received.\n");
+      return -1;
    }
 
    while(*viaValStart != ';' && *viaValStart != '\0' &&
@@ -703,8 +726,6 @@ void SipperProxyMsg::_processViaRport()
    int insLen= sprintf(insData, ";received=%s", inet_ntoa(recvSource.sin_addr));
 
    _addToBuffer(viaValStart, insData, insLen);
-
-   if(*viaValStart != ';') return;
 
    while(*viaValStart == ';')
    {
@@ -737,6 +758,8 @@ void SipperProxyMsg::_processViaRport()
       while(*viaValStart != ';' && *viaValStart != '\0' &&
             *viaValStart != ',' && *viaValStart != '\r') viaValStart++;
    }
+
+   return 0;
 }
 
 void SipperProxyMsg::_addViaHeader()
@@ -925,26 +948,60 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
       {
          *routeValEnd = tmpData;;
          _removeData(routeStart, routeEnd + 2);
+         return;
       }
-      else
+
+      if(_context->pxyStrPort == "5060")
       {
-         *routeValEnd = tmpData;;
+         int len = _context->pxyStrDomain.length();
+         char *domainstart = strstr(routeValStart, _context->pxyStrDomain.c_str());
+   
+         if(domainstart != NULL)
+         {
+            if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+               (*(domainstart + len) == ',' || *(domainstart + len) == '>' || 
+                *(domainstart + len) == ';'))
+            {
+               *routeValEnd = tmpData;
+               _removeData(routeStart, routeEnd + 2);
+               return;
+            }
+         }
       }
+
+      *routeValEnd = tmpData;;
+      return;
    }
-   else
+
+   tmpData = *routeValEnd;
+   *routeValEnd = '\0';
+   if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
    {
-      tmpData = *routeValEnd;
-      *routeValEnd = '\0';
-      if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
+      *routeValEnd = tmpData;;
+      _removeData(routeValStart, routeValEnd + 1);
+      return;
+   }
+
+   if(_context->pxyStrPort == "5060")
+   {
+      int len = _context->pxyStrDomain.length();
+      char *domainstart = strstr(routeValStart, _context->pxyStrDomain.c_str());
+  
+      if(domainstart != NULL)
       {
-         *routeValEnd = tmpData;;
-         _removeData(routeValStart, routeValEnd + 1);
-      }
-      else
-      {
-         *routeValEnd = tmpData;;
+         if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+            (*(domainstart + len) == ',' || *(domainstart + len) == '>' || 
+             *(domainstart + len) == ';'))
+         {
+            *routeValEnd = tmpData;
+            _removeData(routeValStart, routeValEnd + 1);
+            return;
+         }
       }
    }
+
+   *routeValEnd = tmpData;;
+   return;
 }
 
 void SipperProxyMsg::_moveLastRouteToReqURI()
@@ -993,8 +1050,10 @@ void SipperProxyMsg::_moveLastRouteToReqURI()
 
    if(hdrStart - 10 > requriStart + 1)
    {
-      _removeData(requriStart + 1, hdrStart - 10);
-      _addToBuffer(requriStart + 1, storedRouteStart, strlen(storedRouteStart));
+      //_removeData(requriStart + 1, hdrStart - 10);
+      //_addToBuffer(requriStart + 1, storedRouteStart, strlen(storedRouteStart));
+      _replaceData(requriStart + 1, hdrStart - 10, 
+                   storedRouteStart, strlen(storedRouteStart));
    }
 
    char *end = strstr(buffer, "\r\n");
@@ -1100,8 +1159,9 @@ int SipperProxyMsg::_setTargetFromSipperDomain()
          *uriStart != ',' && *uriStart != '\r') uriStart++;
 
    char *hostEnd = uriStart;
-   _removeData(hostStart, hostEnd);
-   _addToBuffer(hostStart, domain->hostpart.c_str(), domain->hostpart.length());
+   //_removeData(hostStart, hostEnd);
+   //_addToBuffer(hostStart, domain->hostpart.c_str(), domain->hostpart.length());
+   _replaceData(hostStart, hostEnd, domain->hostpart.c_str(), domain->hostpart.length());
 
    char *end = strstr(buffer, "\r\n");
    hdrStart = end + 2;

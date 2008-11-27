@@ -156,11 +156,12 @@ class SipperProxyMsg
       int _setTargetFromFirstVia();
 
       int _getFirstVia(char *&viaStart, char *&viaValStart);
+
       void _removeData(char *from, char *to);
-
       void _addToBuffer(char *startPos, const char *insData, int len);
+      void _replaceData(char *from, char *to, const char *insData, int len);
 
-      void _processViaRport();
+      int _processViaRport();
       void _addViaHeader();
       void _addPathHeader();
       void _addRecordRouteHeader();
