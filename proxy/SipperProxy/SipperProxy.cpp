@@ -273,8 +273,10 @@ SipperProxy::SipperProxy() :
       }
 
       sipperDomains[idx].name = config.getConfig(domainname, "Name", ipstr);
-      sipperDomains[idx].port = atoi(config.getConfig(domainname, "Port", "5060").c_str());
+      std::string portinfo = config.getConfig(domainname, "Port", "5060");
+      sipperDomains[idx].port = atoi(portinfo.c_str());
 
+      sipperDomains[idx].hostpart = sipperDomains[idx].name + ":" + portinfo;
       _dnsCache.addEntry(sipperDomains[idx].name, sipperDomains[idx].ip);
    }
 
@@ -1065,6 +1067,44 @@ int SipperProxyMsg::_setTargetFromSipperDomain()
    sendTarget.sin_family = AF_INET;
    sendTarget.sin_port = htons(domain->port);
    sendTarget.sin_addr.s_addr = domain->ip;
+
+   char *uriStart = buffer;
+
+   while(*uriStart != ' ' && *uriStart != '\0' &&
+         *uriStart != '\r') uriStart++;
+
+   if(*uriStart != ' ') return -1;
+
+   while(*uriStart == ' ') uriStart++;
+
+   while(*uriStart != ':' && *uriStart != '\0' &&
+         *uriStart != '\r') uriStart++;
+
+   if(*uriStart != ':') return -1;
+
+   uriStart++;
+
+   char *hostStart = uriStart;
+   while(*uriStart != '@' && *uriStart != '\0' && *uriStart != ':' &&
+         *uriStart != ';' && *uriStart != '>' && *uriStart != ' ' &&
+         *uriStart != ',' && *uriStart != '\r') uriStart++;
+
+   if(*uriStart == '@')
+   {
+      uriStart++;
+      hostStart = uriStart;
+   }
+
+   while(*uriStart != '\0' &&
+         *uriStart != ';' && *uriStart != '>' && *uriStart != ' ' &&
+         *uriStart != ',' && *uriStart != '\r') uriStart++;
+
+   char *hostEnd = uriStart;
+   _removeData(hostStart, hostEnd);
+   _addToBuffer(hostStart, domain->hostpart.c_str(), domain->hostpart.length());
+
+   char *end = strstr(buffer, "\r\n");
+   hdrStart = end + 2;
 
    return 0;
 }

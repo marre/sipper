@@ -66,6 +66,8 @@ class SipperDomain
       std::string name;
       in_addr_t ip;
       unsigned short port;
+
+      std::string hostpart;
 };
 
 class SipperProxy
