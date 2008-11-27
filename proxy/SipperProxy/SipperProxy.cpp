@@ -626,19 +626,53 @@ int SipperProxyMsg::_setTargetFromFirstVia()
    char *hostStart = viaValStart;
    char *portStart = viaValStart;
 
-   while(*portStart != ':' && *portStart != '\r' && *portStart != ',' && *portStart != '\0')
+   while(*portStart != ':' && *portStart != '\r' && *portStart != ',' && *portStart != '\0' && *portStart != ';')
    {
       portStart++;
    }
 
+   std::string hostname(hostStart, portStart - hostStart);
    unsigned short port = 5060;
 
    if(*portStart == ':')
    {
-      port = atoi(portStart + 1);
+      portStart++;
+      port = atoi(portStart);
+
+      while(*portStart != ':' && *portStart != '\r' && 
+            *portStart != ',' && *portStart != '\0' && *portStart != ';')
+      {
+         portStart++;
+      }
    }
 
-   std::string hostname(hostStart, portStart - hostStart);
+   char *paramStart = portStart;
+
+   while(*paramStart == ';')
+   {
+      paramStart++;
+
+      if(strncmp(paramStart, "rport=", 6) == 0)
+      {
+         paramStart += 6;
+         port = atoi(paramStart);
+      }
+      else if(strncmp(paramStart, "received=", 9) == 0)
+      {
+         paramStart += 9;
+         hostStart = paramStart;
+         char *hostend = paramStart;
+
+         while(*hostend != ';' && *hostend != '\0' &&
+               *hostend != ',' && *hostend != '\r') hostend++;
+
+         hostname.assign(hostStart, hostend - hostStart);
+         paramStart = hostend;
+      }
+
+      while(*paramStart != ';' && *paramStart != '\0' &&
+            *paramStart != ',' && *paramStart != '\r') paramStart++;
+   }
 
    sendTarget.sin_port = htons(port);
    sendTarget.sin_addr.s_addr = _context->getIp(hostname);
