@@ -35,13 +35,14 @@ module SIP
       #   (d) transaction_wrong_state() if the transaction transition is tried in a wrong state
       #       i.e a message is either received or being tried to send out in a state where it is
       #       illegal to do so. 
-      def initialize(tu, branch_id, txn_handler, transport, tp_flags, &block)
+      def initialize(tu, branch_id, txn_handler, transport, tp_flags, sock = nil, &block)
         @transaction_name = :Nict # need to have this name defined for every transaction
         @tu = tu
         @branch_id = branch_id
         @transport = transport
         @txn_handler = txn_handler
         @tp_flags = tp_flags
+        @sock = sock
         self.tk = 0 if @transport.reliable?  # one line later it can be overidden by arguments.
         super(&block)  # override timers
         #@sm = Ict_sm.new(self)
@@ -155,7 +156,7 @@ module SIP
       
       def __send_request
         logd "Sending Non-INVITE from the Nict #{self}"
-        _send_to_transport(@request)  
+        _send_to_transport(@request, @sock)  
       end
       
       def __start_E

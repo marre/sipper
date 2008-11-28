@@ -265,7 +265,8 @@ class Session
         branch = msg.via.branch
         klass = @transaction_handlers[:Ict] || @transaction_handlers[:Base]
         txn_handler = klass.new if klass
-        ict = SIP::Transaction::InviteClientTransaction.new(self, branch, txn_handler, transport, @tp_flags)
+        ict = SIP::Transaction::InviteClientTransaction.new(self, branch, txn_handler, 
+          transport, @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
         @tmr_hash[:Ict].each_pair {|k,v| ict.send("#{k}=".to_sym, v) }  #check if sym required
         msg.transaction = ict
         @transactions[branch] = ict
@@ -277,7 +278,8 @@ class Session
         branch = msg.via.branch
         klass = @transaction_handlers[:Nict] || @transaction_handlers[:Base]
         txn_handler = klass.new if klass
-        nict = SIP::Transaction::NonInviteClientTransaction.new(self, branch, txn_handler, transport, @tp_flags)
+        nict = SIP::Transaction::NonInviteClientTransaction.new(self, branch, txn_handler, 
+          transport,  @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
         @tmr_hash[:Nict].each_pair {|k,v| nict.send("#{k}=".to_sym, v) }  #check if sym required
         msg.transaction = nict
         if msg.method == "CANCEL"
@@ -398,8 +400,7 @@ class Session
     logd("In send_common @local_uri=#{@local_uri.to_s}, @remote_uri=#{@remote_uri.to_s}, @call_id=#{@call_id.to_s}")
     raise StandardError if transport.nil? 
     # Now set the content length
-    msg.content_length = msg.content_len.to_s unless msg.respond_to?(:content_length) && msg.content_length && msg.content_length.respond_to?(:frozen_str) && msg.content_length.frozen_str
-    #logd("Sending msg #{msg}")
+    msg.update_content_length()
     SessionManager.add_session self, ((msg.class == Response) && (SipperUtil::SUCC_RANGE.include?msg.code))
     logd("Session map is #{@session_map}")
     if @header_order_arr
@@ -938,7 +939,8 @@ class Session
           logd("Not found transaction for branch #{request.via.branch} for INVITE, creating a new IST")
           klass = @transaction_handlers[:Ist] || @transaction_handlers[:Base]
           txn_handler = klass.new if klass
-          ist = SIP::Transaction::InviteServerTransaction.new(self, branch, txn_handler, transport, @tp_flags)
+          ist = SIP::Transaction::InviteServerTransaction.new(self, branch, txn_handler, transport, 
+                  @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
           @tmr_hash[:Ist].each_pair {|k,v| ist.send("#{k}=".to_sym, v) }  
           @transactions[branch] = ist
         end
@@ -984,7 +986,8 @@ class Session
           logd("Not found transaction for branch #{request.via.branch} for non-INVITE, creating a new NIST")
           klass = @transaction_handlers[:Nist] || @transaction_handlers[:Base]
           txn_handler = klass.new if klass
-          nist = SIP::Transaction::NonInviteServerTransaction.new(self, branch, txn_handler, transport, @tp_flags)
+          nist = SIP::Transaction::NonInviteServerTransaction.new(self, branch, txn_handler, transport, 
+                   @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
           @tmr_hash[:Nist].each_pair {|k,v| nist.send("#{k}=".to_sym, v) }  
         end
         request.transaction = nist

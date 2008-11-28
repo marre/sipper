@@ -17,7 +17,7 @@ class TestSmokeTcp < DrivenSipTestCase
     module SipInline
       class UasSmokeTController < SIP::SipTestDriverController
       
-        transaction_usage :use_transactions=>false
+        transaction_usage :use_transactions=>true
         
         def on_invite(session)
           session.respond_with(200)
@@ -41,7 +41,7 @@ class TestSmokeTcp < DrivenSipTestCase
       
       class UacSmokeTController < SIP::SipTestDriverController
       
-        transaction_usage :use_transactions=>false 
+        transaction_usage :use_transactions=>true
         
         def start
           u = create_tcp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
@@ -70,10 +70,10 @@ class TestSmokeTcp < DrivenSipTestCase
   
   
   def test_smoke_tcp_controllers
-    self.expected_flow = ["> INVITE",  "< 200", "> ACK", "< BYE", "> 200"]
+    self.expected_flow = ["> INVITE",  "< 100", "< 200", "> ACK", "< BYE", "> 200"]
     start_controller
     verify_call_flow(:out)
-    self.expected_flow = ["< INVITE", "> 200", "< ACK", "> BYE", "< 200"]
+    self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK", "> BYE", "< 200"]
     verify_call_flow(:in)
   end
 

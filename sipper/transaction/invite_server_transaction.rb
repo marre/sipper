@@ -36,13 +36,14 @@ module SIP
       #       i.e a message is either received or being tried to send out in a state where it is
       #       illegal to do so.
       # 
-      def initialize(tu, branch_id, txn_handler, transport, tp_flags, &block)
+      def initialize(tu, branch_id, txn_handler, transport, tp_flags, sock = nil, &block)
         @transaction_name = :Ist # need to have this name defined for every transaction
         @tu = tu
         @branch_id = branch_id
         @transport = transport
         @txn_handler = txn_handler
         @tp_flags = tp_flags
+        @sock = sock
         self.ti = 0 if @transport.reliable?  # one line later it can be overidden by arguments.
         self.tz = 0 if @transport.reliable?   
         super(&block)  # override timers
@@ -204,7 +205,7 @@ module SIP
         r = @tu.create_response(100, "Trying")
         @last_sent_response = r
         logd "Sending the 100 Trying response from Ist #{self}"
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
       
       def __consume_msg(b)
@@ -220,14 +221,14 @@ module SIP
       def __send_provisional_response(r)
         logd "Sending the provisional response #{r.code} from Ist #{self}"
         @last_sent_response = r
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
       
       
       def __send_last_response
         if @last_sent_response
           logd "Sending the last response #{@last_sent_response.code} from Ist #{self}"
-          _send_to_transport(@last_sent_response)
+          _send_to_transport(@last_sent_response, @sock)
         else
           logw("No last response available, not sending anything from #{self}")
         end
@@ -235,13 +236,13 @@ module SIP
       
       def __send_success_response(r)
         logd "Sending the 2xx response #{r.code} from Ist #{self}"
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
       
       def __send_non_success_final_response(r)
         logd "Sending the non-sucess final response #{r.code} from Ist #{self}"
         @last_sent_response = r
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
 
       
@@ -249,7 +250,7 @@ module SIP
         r = @tu.rejection_response_with(487, @invite)
         @last_sent_response = r
         logd "Sending the 487 response from Ist #{self}"
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
       
       def __start_G

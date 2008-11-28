@@ -17,13 +17,13 @@ class TestInviteServerTransaction < SipTestCase
   end
   
   def test_initial_state
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil, nil)
     assert_equal("IstMap.Initial", ist.state)
   end
 
   # invite in initial state  
   def test_invite_initial
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil, nil)
     ist.txn_received SipMockTester::MockRequest.new("INVITE")
     assert_equal("IstMap.Proceeding", ist.state)
     assert_equal(1, @t.msg.length)
@@ -32,7 +32,7 @@ class TestInviteServerTransaction < SipTestCase
     
   # sending provisional in proceeding  
   def test_proceeding_provisional
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, @t, nil, nil)
     ist.txn_received SipMockTester::MockRequest.new("INVITE")  # now in proceeding
     r = SipMockTester::MockResponse.new(180)
     ist.txn_send r
@@ -43,7 +43,7 @@ class TestInviteServerTransaction < SipTestCase
   # invite comes in proceeding after just 100 trying being sent
   def test_proceeding_invite1
     t = SipMockTester::MockMsgTransport.new
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil, nil)
     i = SipMockTester::MockRequest.new("INVITE")  
     ist.txn_received(i)   # now in proceeding
     assert(ist.consume?)
@@ -177,7 +177,7 @@ class TestInviteServerTransaction < SipTestCase
   
   def test_wrong_state
     t = SipMockTester::MockMsgTransport.new
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil, nil)
     i = SipMockTester::MockRequest.new("INVITE")  
     ist.txn_received(i)   # now in proceeding
     r = SipMockTester::MockResponse.new(400)
@@ -198,7 +198,7 @@ class TestInviteServerTransaction < SipTestCase
   
   def _send_initial_invite_with_msg_transport
     t = SipMockTester::MockMsgTransport.new
-    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil)
+    ist = SIP::Transaction::InviteServerTransaction.new(@tu, nil, nil, t, nil, nil)
     i = SipMockTester::MockRequest.new("INVITE")  
     ist.txn_received(i)   # now in proceeding
     [ist, t, i]

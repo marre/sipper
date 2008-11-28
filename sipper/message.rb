@@ -429,6 +429,10 @@ class Message
       self.code.to_s
     end
   end
+  
+  def update_content_length
+    self.content_length = self.content_len.to_s unless self.respond_to?(:content_length) && self.content_length && self.content_length.respond_to?(:frozen_str) && self.content_length.frozen_str
+  end
 
    private :tag, :_header_name
    protected :_format_message

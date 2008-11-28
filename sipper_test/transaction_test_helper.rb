@@ -150,6 +150,8 @@ module SipMockTester
     def method
       @method
     end
+    def update_content_length      
+    end
   end
   
   class MockResponse
@@ -169,6 +171,8 @@ module SipMockTester
     def get_reqeust()
        raise "No associated request." unless @request
        return @request
+    end
+    def update_content_length      
     end
   end
   

@@ -18,28 +18,28 @@ class TestInviteClientTransaction < SipTestCase
   
   
   def test_initial_state
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     assert_equal("IctMap.Initial", ict.state)
   end
   
   
   # default timer A is 500 ms
   def test_default_timerA
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     sleep 5  
     _assert_deltas(@t, 500, 4) 
   end
   
   def test_override_T1
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.t1 = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.t1 = 100}
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     sleep 2  # you should have invites at [0, 100, 300, 700] -> 0.7 sec
     _assert_deltas(@t, 100, 4)
   end
   
   def test_override_timerA
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.ta = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.ta = 100}
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     sleep 2  # you should have invites at [0, 100, 300, 700] -> 0.7 sec
     _assert_deltas(@t, 100, 4)
@@ -47,7 +47,7 @@ class TestInviteClientTransaction < SipTestCase
   
   
   def test_default_timerB
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.t1 = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.t1 = 100}
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
     sleep 8  # 64*t1 is when it will terminate
@@ -56,14 +56,14 @@ class TestInviteClientTransaction < SipTestCase
   end
   
   def test_override_timerB
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.tb = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.tb = 100}
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     sleep 0.5
     assert_equal("IctMap.Terminated", ict.state)
   end
   
   def test_provisional
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) { self.t1=100 }
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) { self.t1=100 }
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     ict.txn_received SipMockTester::MockResponse.new(100)
     assert_equal(1, @t.msg.length)
@@ -111,7 +111,7 @@ class TestInviteClientTransaction < SipTestCase
   end
   
   def test_success_final
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     ict.txn_received SipMockTester::MockResponse.new(180)
     assert_equal(1, @t.msg.length)
@@ -122,7 +122,7 @@ class TestInviteClientTransaction < SipTestCase
     assert(ict.consume?)
     
     # before prov.
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
     ict.txn_received SipMockTester::MockResponse.new(200)
@@ -132,7 +132,7 @@ class TestInviteClientTransaction < SipTestCase
   
   def test_trans_exception
     t = SipMockTester::ExceptionalTransportOnNthAttempt.new(1)
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, t, nil, nil)
     assert_equal("IctMap.Initial", ict.state)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Terminated", ict.state)
@@ -140,7 +140,7 @@ class TestInviteClientTransaction < SipTestCase
   
   def test_trans_exception_on_retransmit
     t = SipMockTester::ExceptionalTransportOnNthAttempt.new(2)
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, t, nil, nil)
     assert_equal("IctMap.Initial", ict.state)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
@@ -159,7 +159,7 @@ class TestInviteClientTransaction < SipTestCase
   end
   
   def test_no_timerA_reliable
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.t1 = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.t1 = 100}
     rt = @t.dup                                   # make the 
     rt.extend(SIP::Transport::ReliableTransport)  # transport reliable
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
@@ -168,7 +168,7 @@ class TestInviteClientTransaction < SipTestCase
   end
   
   def test_timerB_with_reliable
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil) {self.tb = 100}
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, nil, @t, nil, nil) {self.tb = 100}
     rt = @t.dup                                   # make the 
     rt.extend(SIP::Transport::ReliableTransport)  # transport reliable
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
@@ -185,7 +185,7 @@ class TestInviteClientTransaction < SipTestCase
   # default, proceed with no change
   def test_txn_handler1
     tcbh = SipMockTester::Tcbh1.new
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
     assert_equal("IctMap.Initial", tcbh.states[0])  # before
@@ -196,7 +196,7 @@ class TestInviteClientTransaction < SipTestCase
   # state change but no action masker
   def test_txn_handler2
     tcbh = SipMockTester::Tcbh2.new
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
     assert_equal(0, @t.msg.length)   
@@ -215,7 +215,7 @@ class TestInviteClientTransaction < SipTestCase
   # illegal state test
   def test_txn_handler4
     tcbh = SipMockTester::Tcbh4.new
-    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    ict = SIP::Transaction::InviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     assert_equal("IctMap.Calling", ict.state)
     assert_equal(1, @t.msg.length)
@@ -253,7 +253,7 @@ class TestInviteClientTransaction < SipTestCase
     inv.from = "Sipper <sip:sipper@127.0.0.1:5060>;tag=1"
     inv.to = "Sut <sip:sut@127.0.0.1:5061>"
     inv.cseq = "1 INVITE"
-    @ict = SIP::Transaction::InviteClientTransaction.new(SipMockTester::Tu.new, nil, nil, @tm, nil)
+    @ict = SIP::Transaction::InviteClientTransaction.new(SipMockTester::Tu.new, nil, nil, @tm, nil, nil)
     
     @ict.txn_send inv
     

@@ -45,13 +45,14 @@ module SIP
       #       illegal to do so.
       #   (e) transaction_record() record the message from the transaction. 
       # 
-      def initialize(tu, branch_id, txn_handler, transport, tp_flags, &block)
+      def initialize(tu, branch_id, txn_handler, transport, tp_flags, sock = nil, &block)
         @transaction_name = :Nist # need to have this name defined for every transaction
         @tu = tu
         @branch_id = branch_id
         @transport = transport
         @txn_handler = txn_handler
         @tp_flags = tp_flags
+        @sock = sock
         self.tj = 0 if @transport.reliable?  # one line later it can be overidden by arguments.
         super(&block)  # override timers
         SIP::Transaction::StateMachineWrapper.bootstrap_machine(self, Nist_sm)
@@ -199,14 +200,14 @@ module SIP
       def __send_provisional_response(r)
         logd "Sending the provisional response #{r.code} from Nist #{self}"
         @last_sent_response = r
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
       
       
       def __send_last_response
         if @last_sent_response
           logd "Sending the last response #{@last_sent_response.code} from Ist #{self}"
-          _send_to_transport(@last_sent_response)
+          _send_to_transport(@last_sent_response, @sock)
         else
           logw("No last response available, not sending anything from #{self}")
         end
@@ -216,7 +217,7 @@ module SIP
       def __send_final_response(r)
         logd "Sending a final response #{r.code} from Nist #{self}"
         @last_sent_response = r
-        _send_to_transport(r)
+        _send_to_transport(r, @sock)
       end
 
       

@@ -19,21 +19,21 @@ class TestNonInviteClientTransaction < SipTestCase
   
   
   def test_initial_state
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     assert_equal("NictMap.Initial", nict.state)
   end
   
   
   # default timer E is 500 ms
   def test_default_timerE
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     sleep 5  
     _assert_deltas(@t, 500, 4)  
   end
   
   def test_override_T1
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty*2
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     sleep((@grty*200)/1000.0)  # 2 sec for 50 msec grty
@@ -42,7 +42,7 @@ class TestNonInviteClientTransaction < SipTestCase
   
 
   def test_timerE_F
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty*2  
     nict.t2 = @grty*4  
     nict.tf = @grty*25 
@@ -55,7 +55,7 @@ class TestNonInviteClientTransaction < SipTestCase
   
   
   def test_provisional
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty*2 
     nict.t2 = @grty*10  
     nict.txn_send SipMockTester::MockRequest.new("INFO")
@@ -73,7 +73,7 @@ class TestNonInviteClientTransaction < SipTestCase
   
   def test_timerF_with_reliable
     @t.extend(SIP::Transport::ReliableTransport)
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty #50
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     sleep((@grty*70)/1000.0)
@@ -82,7 +82,7 @@ class TestNonInviteClientTransaction < SipTestCase
   
   
   def test_final_in_trying
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty*2 #100
     nict.tk = @grty*20 #1000
     nict.txn_send SipMockTester::MockRequest.new("INFO")
@@ -99,7 +99,7 @@ class TestNonInviteClientTransaction < SipTestCase
   end
 
   def test_final_in_proceeding
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, nil, @t, nil, nil)
     nict.t1 = @grty*2 #100
     nict.tk = @grty*20 #1000
     nict.txn_send SipMockTester::MockRequest.new("INFO")
@@ -127,7 +127,7 @@ class TestNonInviteClientTransaction < SipTestCase
   def test_trans_exception1
     tu = SipMockTester::Tu.new
     t = SipMockTester::ExceptionalTransportOnNthAttempt.new(1)
-    nict = SIP::Transaction::NonInviteClientTransaction.new(tu, nil, nil, t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(tu, nil, nil, t, nil, nil)
     assert_equal("NictMap.Initial", nict.state)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     assert_equal("NictMap.Terminated", nict.state)
@@ -137,7 +137,7 @@ class TestNonInviteClientTransaction < SipTestCase
   def test_trans_exception2
     tu = SipMockTester::Tu.new
     t = SipMockTester::ExceptionalTransportOnNthAttempt.new(2)
-    nict = SIP::Transaction::NonInviteClientTransaction.new(tu, nil, nil, t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(tu, nil, nil, t, nil, nil)
     nict.te = @grty*2
     assert_equal("NictMap.Initial", nict.state)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
@@ -152,7 +152,7 @@ class TestNonInviteClientTransaction < SipTestCase
   # default, proceed with no change
   def test_txn_handler1
     tcbh = SipMockTester::Tcbh1.new
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     assert_equal("NictMap.Trying", nict.state)
     assert_equal("NictMap.Initial", tcbh.states[0])  # before
@@ -164,7 +164,7 @@ class TestNonInviteClientTransaction < SipTestCase
   # state change but no action masker
   def test_txn_handler2
     tcbh = SipMockTester::Tcbh2.new
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     nict.txn_send SipMockTester::MockRequest.new("MESSAGE")
     assert_equal("NictMap.Trying", nict.state)
     assert_equal(0, @t.msg.length)   
@@ -173,7 +173,7 @@ class TestNonInviteClientTransaction < SipTestCase
   # do not proceed
   def test_txn_handler3
     tcbh = SipMockTester::Tcbh3.new
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     assert_equal("NictMap.Initial", nict.state)
     assert_equal(0, @t.msg.length)   
@@ -183,7 +183,7 @@ class TestNonInviteClientTransaction < SipTestCase
   # illegal state test
   def test_txn_handler4
     tcbh = SipMockTester::Tcbh4.new
-    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil)
+    nict = SIP::Transaction::NonInviteClientTransaction.new(@tu, nil, tcbh, @t, nil, nil)
     nict.txn_send SipMockTester::MockRequest.new("INFO")
     assert_equal("NictMap.Trying", nict.state)
     assert_equal(1, @t.msg.length)

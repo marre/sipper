@@ -192,14 +192,15 @@ module SIP
         @tj = self.t1*64 || SipperConfigurator[:TransactionTimers][:tj]
       end
       
-      def _send_to_transport(msg)
+      def _send_to_transport(msg, sock=nil)
+        msg.update_content_length()
         if msg.is_request?
           rd = @tu.get_request_destination()
         else
           rd = @tu.get_response_destination(msg)
         end
         @transport = rd[0] if rd[0]
-        @msg_sent = @transport.send(msg, @tp_flags, rd[1], rd[2])
+        @msg_sent = @transport.send(msg, @tp_flags, rd[1], rd[2], sock)
         logd("Now record the outgoing message from #{self.transaction_name}") 
         @tu.transaction_record("out", msg)
       rescue 
