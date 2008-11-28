@@ -133,7 +133,7 @@ module SIP
       def _send_non_success_final(msg)
         @last_response_sent = msg
         @ok_to_run_timerH = true unless @transport.reliable?
-        @ok_to_run_timerG = true
+        @ok_to_run_timerG = true unless @transport.reliable?
         @sm.non_success_final(msg)
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
