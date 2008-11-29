@@ -409,7 +409,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 {
    _context = context;
 
-   if(bufferLen < 0 || bufferLen > MAX_PROXY_MSG_LEN)
+   if(bufferLen < 0 || bufferLen > MAX_PROXY_MSG_LEN || bufferLen > 3000)
    {
       logger.logMsg(ERROR_FLAG, 0, "Invalid MessageLen [%d]\n", bufferLen);
       return;
