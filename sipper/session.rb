@@ -206,10 +206,11 @@ class Session
     @local_uri, @remote_uri = begin 
       log_and_raise "Cannot send CANCEL as no response received so far" unless _check_cancel_state(msg) if (msg.method == "CANCEL" && SipperConfigurator[:ProtocolCompliance]=='strict')
       logd("This is a request and is initial "+msg.initial.to_s)
+      SipperUtil::MessageFill.fill(msg, :lctg=>_fixed_local_tag(msg.from.tag).to_s)
       if msg.initial 
         _increment_local_cseq  
-        SipperUtil::MessageFill.fill(msg, :lcnts=>@local_cseq.to_s, :lctg=>_fixed_local_tag(msg.from.tag).to_s,
-        :lcntr=>@remote_cseq.to_s, :gcnt=>SipperUtil::Counter.instance.next.to_s, :rnd=>SipperUtil.trand,
+        SipperUtil::MessageFill.fill(msg, :lcnts=>@local_cseq.to_s,:lcntr=>@remote_cseq.to_s, 
+        :gcnt=>SipperUtil::Counter.instance.next.to_s, :rnd=>SipperUtil.trand,
         :lip=>@transport.ip, :lp=>@transport.port.to_s, 
         :rip=>@rip, :rp=>@rp.to_s, :trans=>@transport.tid)
         
