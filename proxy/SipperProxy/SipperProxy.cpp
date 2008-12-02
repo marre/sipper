@@ -296,6 +296,11 @@ SipperProxy::SipperProxy() :
    pxyRecordRouteHdr = "Record-Route: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
    pxyPathHdr = "Path: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
    pxyUriHost = pxyStrDomain + ":" + pxyStrPort;
+
+   incPathHdr = (atoi(config.getConfig("Global", "IncludePathHeader", 
+                                       "1").c_str()) == 0) ? false : true;
+   incRecordRouteHdr = (atoi(config.getConfig("Global", 
+                 "IncludeRecordRouteHeader", "1").c_str()) == 0) ? false : true;
 }
 
 SipperProxy::~SipperProxy()
@@ -818,14 +823,20 @@ void SipperProxyMsg::_addViaHeader()
 
 void SipperProxyMsg::_addPathHeader()
 {
-   _addToBuffer(hdrStart, _context->pxyPathHdr.c_str(), 
-                _context->pxyPathHdr.length());
+   if(_context->incPathHdr)
+   {
+      _addToBuffer(hdrStart, _context->pxyPathHdr.c_str(), 
+                   _context->pxyPathHdr.length());
+   }
 }
 
 void SipperProxyMsg::_addRecordRouteHeader()
 {
-   _addToBuffer(hdrStart, _context->pxyRecordRouteHdr.c_str(), 
-                _context->pxyRecordRouteHdr.length());
+   if(_context->incRecordRouteHdr)
+   {
+      _addToBuffer(hdrStart, _context->pxyRecordRouteHdr.c_str(), 
+                   _context->pxyRecordRouteHdr.length());
+   }
 }
 
 bool SipperProxyMsg::_isRegisterRequest()

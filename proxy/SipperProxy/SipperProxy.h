@@ -96,15 +96,18 @@ class SipperProxy
 
       SipperDomain *sipperDomains;
 
-      std::string pxyStrIp;
-      std::string pxyStrDomain;
-      std::string pxyStrPort;
+      std::string pxyStrIp;     //68.178.254.124
+      std::string pxyStrDomain; //sip.agnity.com
+      std::string pxyStrPort;   //5060
 
       std::string pxyRouteHdr;
       std::string pxyPathHdr;
       std::string pxyRecordRouteHdr;
-      std::string pxyUriHost;
+      std::string pxyUriHost;   //sip.agnity.com:5060
       std::string pxyViaHdr;
+
+      bool incPathHdr;
+      bool incRecordRouteHdr;
 
    public:
 
