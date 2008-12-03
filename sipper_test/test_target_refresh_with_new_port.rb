@@ -152,6 +152,7 @@ class TestTargetRefreshWithNewPort < DrivenSipTestCase
   def teardown
     SipperConfigurator[:SessionRecord] = @sr
     SipperConfigurator[:LocalTestPort] = @tp
+    SIP::StrayMessageManager.clear_handler
     super
   end
 

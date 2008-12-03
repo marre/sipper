@@ -74,7 +74,7 @@ class TestSmokeTcp < DrivenSipTestCase
     start_controller
     verify_call_flow(:out)
     self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK", "> BYE", "< 200"]
-    verify_call_flow(:in)
+    verify_call_flow()
   end
 
   def teardown
