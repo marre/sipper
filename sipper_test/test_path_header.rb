@@ -32,8 +32,8 @@ class TestPathHeader1 < DrivenSipTestCase
         
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "path_r_proxy.rb")} &")    
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "registrar_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "path_r_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "registrar_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2
@@ -136,9 +136,11 @@ class TestPathHeader1 < DrivenSipTestCase
     end
     
     self.expected_flow = ["> REGISTER", "< 100 {0,}", "< 200","! path_hdr_returned"]
+    sleep 2
     start_named_controller_non_blocking("SipInline::UA1Path1Controller")
     sleep 2
     start_named_controller("SipInline::UA2Path1Controller")
+    sleep 3
     verify_call_flow(:out,0)
     
     self.expected_flow = ["> INVITE", "< 100 {0,}","< 200","> ACK", "< BYE","> 200"]

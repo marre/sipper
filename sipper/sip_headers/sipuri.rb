@@ -104,6 +104,9 @@ module URI
       self.to_s == other.to_s
     end
     
+    def port=(p)
+      @port = p.to_s
+    end
     
     def to_s
       if @frozen_str

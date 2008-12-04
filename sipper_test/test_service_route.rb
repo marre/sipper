@@ -32,8 +32,8 @@ class TestServiceRoute1 < DrivenSipTestCase
         
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "path_r_proxy.rb")} &")    
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "registrar_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "path_r_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "registrar_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2
@@ -128,13 +128,14 @@ class TestServiceRoute1 < DrivenSipTestCase
     end
     
     self.expected_flow = ["> REGISTER", "< 100 {0,}", "< 200"]
+    sleep 2
     start_controller
     verify_call_flow(:out,0)
     self.expected_flow = ["> INVITE", "< 100 {0,}","< 200","> ACK", "< BYE","> 200"]
     verify_call_flow(:out,1)
     self.expected_flow = ["< INVITE","! double_via", "> 100 {0,}","> 200","< ACK", "> BYE","< 200"]
     verify_call_flow(:in)
-    
+    sleep 5    
   end
   
   def teardown
