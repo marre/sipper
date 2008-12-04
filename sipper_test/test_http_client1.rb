@@ -16,7 +16,7 @@ class TestHttpClient1 < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          session.send_http_get_to('http://www.example.com/index.html')  
+          session.send_http_get_to('http://www.yahoo.com/index.html')  
         end
         
         
