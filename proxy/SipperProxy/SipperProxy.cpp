@@ -296,6 +296,7 @@ SipperProxy::SipperProxy() :
    pxyRecordRouteHdr = "Record-Route: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
    pxyPathHdr = "Path: <sip:" + pxyStrDomain + ":" + pxyStrPort + ";lr>\r\n";
    pxyUriHost = pxyStrDomain + ":" + pxyStrPort;
+   pxyUriIPHost = pxyStrIp + ":" + pxyStrPort;
 
    incPathHdr = (atoi(config.getConfig("Global", "IncludePathHeader", 
                                        "1").c_str()) == 0) ? false : true;
@@ -866,7 +867,8 @@ bool SipperProxyMsg::_isReqURIContainsProxyDomain()
    char tmp = *hdrStart;
    *hdrStart = '\0';
 
-   if(strstr(buffer, _context->pxyUriHost.c_str()) != NULL)
+   if((strstr(buffer, _context->pxyUriHost.c_str()) != NULL) ||
+      (strstr(buffer, _context->pxyUriIPHost.c_str()) != NULL))
    {
       *hdrStart = tmp;
       return true;
@@ -876,6 +878,20 @@ bool SipperProxyMsg::_isReqURIContainsProxyDomain()
    {
       int len = _context->pxyStrDomain.length();
       char *domainstart = strstr(buffer, _context->pxyStrDomain.c_str());
+
+      if(domainstart != NULL)
+      {
+         if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+            (*(domainstart + len) == ' ' || *(domainstart + len) == '>' || 
+             *(domainstart + len) == ';'))
+         {
+            *hdrStart = tmp;
+            return true;
+         }
+      }
+
+      len = _context->pxyStrIp.length();
+      domainstart = strstr(buffer, _context->pxyStrIp.c_str());
 
       if(domainstart != NULL)
       {
@@ -989,7 +1005,8 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
 
       tmpData = *routeValEnd;
       *routeValEnd = '\0';
-      if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
+      if((strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL) ||
+         (strstr(routeValStart, _context->pxyUriIPHost.c_str()) != NULL))
       {
          *routeValEnd = tmpData;;
          _removeData(routeStart, routeEnd + 2);
@@ -1012,6 +1029,21 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
                return;
             }
          }
+
+         len = _context->pxyStrIp.length();
+         domainstart = strstr(routeValStart, _context->pxyStrIp.c_str());
+   
+         if(domainstart != NULL)
+         {
+            if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+               (*(domainstart + len) == ',' || *(domainstart + len) == '>' || 
+                *(domainstart + len) == ';'))
+            {
+               *routeValEnd = tmpData;
+               _removeData(routeStart, routeEnd + 2);
+               return;
+            }
+         }
       }
 
       *routeValEnd = tmpData;;
@@ -1020,7 +1052,8 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
 
    tmpData = *routeValEnd;
    *routeValEnd = '\0';
-   if(strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL)
+   if((strstr(routeValStart, _context->pxyUriHost.c_str()) != NULL) ||
+      (strstr(routeValStart, _context->pxyUriIPHost.c_str()) != NULL))
    {
       *routeValEnd = tmpData;;
       _removeData(routeValStart, routeValEnd + 1);
@@ -1031,6 +1064,21 @@ void SipperProxyMsg::_removeFirstRouteIfProxyDomain()
    {
       int len = _context->pxyStrDomain.length();
       char *domainstart = strstr(routeValStart, _context->pxyStrDomain.c_str());
+  
+      if(domainstart != NULL)
+      {
+         if((*(domainstart - 1) == '@' || *(domainstart - 1) == ':') &&
+            (*(domainstart + len) == ',' || *(domainstart + len) == '>' || 
+             *(domainstart + len) == ';'))
+         {
+            *routeValEnd = tmpData;
+            _removeData(routeValStart, routeValEnd + 1);
+            return;
+         }
+      }
+
+      len = _context->pxyStrIp.length();
+      domainstart = strstr(routeValStart, _context->pxyStrIp.c_str());
   
       if(domainstart != NULL)
       {

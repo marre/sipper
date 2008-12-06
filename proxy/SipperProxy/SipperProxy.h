@@ -104,6 +104,7 @@ class SipperProxy
       std::string pxyPathHdr;
       std::string pxyRecordRouteHdr;
       std::string pxyUriHost;   //sip.agnity.com:5060
+      std::string pxyUriIPHost; //68.178.254.124:5060
       std::string pxyViaHdr;
 
       bool incPathHdr;
