@@ -105,7 +105,7 @@ module URI
     end
     
     def port=(p)
-      @port = p.to_s
+      @port = p.to_s unless p.nil?
     end
     
     def to_s

@@ -16,4 +16,8 @@ class UdpSession < Session
     super(tp, rip, rp, rs, session_limit)  
   end
   
+  def convert_session_to_tcp
+    self.transport = nil
+    s = Marshal.dump(self)  
+  end
 end
