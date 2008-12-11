@@ -362,6 +362,24 @@ module SipHeaders
     end
   end
   
+  class PAssociatedUri < AddressHeader
+    
+    def initialize
+      @name = "P-Associated-URI"
+      super
+    end
+    
+  end
+
+  class PCalledPartyId < AddressHeader
+    
+    def initialize
+      @name = "P-Called-Party-ID"
+      super
+    end
+    
+  end  
+  
   class PAssertedIdentity < AddressHeader
     
     def initialize

@@ -61,7 +61,7 @@ module SIP
       peer_session = get_or_create_peer_session(session, rip, rp)
       if peer_session.initial_state?
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
-        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path, :service_route)
+        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path, :service_route, :privacy, :referred_by)
         r.from.tag = "3"
       else
         if(orig_request.method == "CANCEL")
@@ -83,7 +83,7 @@ module SIP
       peer_session = get_peer_session(session)
       if peer_session
         r = peer_session.create_response(orig_response.code)
-        r.copy_from(orig_response,  :content, :content_type, :path, :service_route)
+        r.copy_from(orig_response,  :content, :content_type, :path, :service_route, :privacy, :warning)
         return r
       else
         logw("No peer session found, cannot create the response")
@@ -158,6 +158,26 @@ module SIP
       end
     end
     
+    def apply_privacy(msg)
+      if !msg[:privacy] || msg[:privacy].to_s == "none"
+        return msg
+      else
+        if msg.privacys.include?("user")
+          if msg.class == Request  
+            if msg.method == "REFER"
+              msg.referred_by ='sip:anonymous@anonymous.invalid'
+            end
+            msg.from.uri = "sip:anonymous@anonymous.invalid"
+            msg.from.display_name ='"Anonymous"' 
+          elsif msg[:warning]
+            warn_code,warn_agent,warn_text  = msg.warning.to_s.split(' ',3)
+            msg.warning = warn_code + " " + warn_text
+          end  
+        end    
+        msg.privacy = nil
+        return msg
+      end    
+    end  
     
   end
 end

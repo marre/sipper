@@ -73,6 +73,9 @@ module SipperUtil
     # Handling of new headers of rfc 3903
     hdr = "SIP-ETag" if hdr == "Sip-Etag"
     hdr = "SIP-If-Match" if hdr == "Sip-If-Match"
+    hdr = "P-Associated-URI" if hdr == "P-Associated-Uri"
+    hdr = "P-Called-Party-ID" if hdr == "P-Called-Party-Id"
+    hdr = "P-Visited-Network-ID" if hdr == "P-Visited-Network-Id"
     hdr
   end
   
