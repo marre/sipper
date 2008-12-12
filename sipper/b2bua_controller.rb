@@ -158,6 +158,9 @@ module SIP
       end
     end
     
+    
+    # Provides Privacy service to users, user can call this API after creating 
+    # the request or response to apply the privacy. 
     def apply_privacy(msg)
       if !msg[:privacy] || msg[:privacy].to_s == "none"
         return msg
