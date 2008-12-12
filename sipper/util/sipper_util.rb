@@ -57,6 +57,8 @@ module SipperUtil
   # -- Here is an ugly handling for WWW-Authenticate header todo fix this
   # and also Call-ID handling, as Call-Id is valid yet some tools such
   # as sipp does not handle it.
+  # Headers SIP-ETag & SIP-If-Match are added as per rfc 3903
+  # Headers P-Associated-URI, P-Called-Party-ID & P-Visited-Network-ID are added as per rfc 3455
   # ++
   def SipperUtil.headerize(hname)
     return nil if hname.nil?
