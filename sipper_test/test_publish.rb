@@ -59,7 +59,7 @@ class TestPublish < DrivenSipTestCase
           r.content_type = "application/pidf+xml"
           r.content = "Published PIDF document\r\n"
           u.send(r)
-          logd("Sent a new Subscribe from #{name}")
+          logd("Sent a new Publish from #{name}")
         end
         
         def on_success_res(session)
