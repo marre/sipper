@@ -33,6 +33,7 @@ require 'sdp/sdp_parser'
 require 'sdp/sdp_generator'
 require 'custom_message'
 require 'registration'
+require 'xml_generator/xml_doc_generator'
 
 class Session
   include SipLogger
@@ -2012,6 +2013,11 @@ class Session
     session = SessionManager.find_session(callid, localtag, remotetag)
     return session
   end 
+  
+  def create_reginfo_doc(aor, ver, contacts=nil)
+    XmlDoc::RegInfoDoc.create(aor,ver,contacts)
+  end  
+  
   protected :_get_sq_lock, :_get_recorder, :_remove_recorder
   private :_on_request, :_on_response,  :_on_common_sip, :_do_record_sip, :_check_cancel_state, 
   :_check_for_pending_cancel, :_fixed_local_tag, :_send_common, 
