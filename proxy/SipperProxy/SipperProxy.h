@@ -107,6 +107,7 @@ class SipperProxy
       std::string pxyUriIPHost; //68.178.254.124:5060
       std::string pxyViaHdr;
 
+      bool processMaxForward;
       bool incPathHdr;
       bool incRecordRouteHdr;
 
@@ -165,6 +166,7 @@ class SipperProxyMsg
       void _addToBuffer(char *startPos, const char *insData, int len);
       void _replaceData(char *from, char *to, const char *insData, int len);
 
+      int _processMaxForward();
       int _processViaRport();
       void _addViaHeader();
       void _addPathHeader();

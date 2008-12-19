@@ -302,6 +302,8 @@ SipperProxy::SipperProxy() :
                                        "1").c_str()) == 0) ? false : true;
    incRecordRouteHdr = (atoi(config.getConfig("Global", 
                  "IncludeRecordRouteHeader", "1").c_str()) == 0) ? false : true;
+   processMaxForward = (atoi(config.getConfig("Global", "ProcessMaxForwards",
+                                        "1").c_str()) == 0) ? false : true;
 }
 
 SipperProxy::~SipperProxy()
@@ -693,6 +695,11 @@ int SipperProxyMsg::_setTargetFromFirstVia()
 
 void SipperProxyMsg::_processRequest()
 {
+   if(_processMaxForward() == -1)
+   {
+      return;
+   }
+
    if(_processViaRport() == -1)
    {
       return;
@@ -820,6 +827,47 @@ void SipperProxyMsg::_addViaHeader()
    }
 
    _addToBuffer(hdrStart, viaHeader, viaLen);
+}
+
+int SipperProxyMsg::_processMaxForward()
+{
+   if(!_context->processMaxForward)
+   {
+      return 0;
+   }
+
+   char *maxFwdStart = strstr(hdrStart - 2, "\r\nMax-Forwards:");
+
+   if(maxFwdStart == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "Max-Forwards not found in message.\n");
+      return -1;
+   }
+
+   maxFwdStart += 15;
+
+   while(*maxFwdStart == ' ') maxFwdStart++;
+
+   int currmaxFwd = atoi(maxFwdStart);
+
+   if(currmaxFwd <= 0)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "Max-Forwards limit reached.\n");
+      return -1;
+   }
+
+   currmaxFwd--;
+
+   char *maxFwdEnd = maxFwdStart;
+   if(*maxFwdEnd == '-') maxFwdEnd++;
+
+   while(isdigit(*maxFwdEnd)) maxFwdEnd++;
+
+   char tmpdata[30];
+   int tmplen = sprintf(tmpdata, "%d", currmaxFwd);
+
+   _replaceData(maxFwdStart, maxFwdEnd, tmpdata, tmplen);
+   return 0;
 }
 
 void SipperProxyMsg::_addPathHeader()
