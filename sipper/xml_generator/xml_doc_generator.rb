@@ -75,38 +75,39 @@ module XmlDoc
       entity = entity.to_s.gsub('sip:','pres:')
       presence.attributes["entity"] = entity
       
-      tuple_list = pidftuple.to_a
+      if pidftuple
+        tuple_list = pidftuple.class.to_s.include?('Array')? pidftuple : [pidftuple]
       
-      tuple_list.each do |data|
-        tuple = Element.new "tuple"
-        tuple.attributes["id"] = data.tuple_id
+        tuple_list.each do |data|
+          tuple = Element.new "tuple"
+          tuple.attributes["id"] = data.tuple_id
         
-        status = Element.new "status"
-        if data.status
-          basic = Element.new "basic"
-          basic.text = data.status
-          status.add_element basic
+          status = Element.new "status"
+          if data.status
+            basic = Element.new "basic"
+            basic.text = data.status
+            status.add_element basic
+          end
+        
+          if data.contact_addr
+            contact = Element.new "contact" 
+            contact.attributes["priority"] = data.contact_priority if data.contact_priority
+            contact.text = data.contact_addr
+            tuple.add_element contact
+          end
+        
+          if data.tuple_note
+            comment = Element.new "note" 
+            comment.text = data.tuple_note
+            tuple.add_element comment
+          end
+        
+          time = Element.new "timestamp"
+          time.text = data.timestamp
+          tuple.add_element time
+          presence.add_element tuple
         end
-        
-        if data.contact_addr
-          contact = Element.new "contact" 
-          contact.attributes["priority"] = data.contact_priority if data.contact_priority
-          contact.text = data.contact_addr
-          tuple.add_element contact
-        end
-        
-        if data.tuple_note
-          comment = Element.new "note" 
-          comment.text = data.tuple_note
-          tuple.add_element comment
-        end
-        
-        time = Element.new "timestamp"
-        time.text = data.timestamp
-        tuple.add_element time
-        presence.add_element tuple
       end
-      
       presence_note_list = presence_note.to_a
       
       presence_note_list.each do |data|
