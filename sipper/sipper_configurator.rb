@@ -233,6 +233,9 @@ class SipperConfigurator
   #       A configurable secret key for generating 
   #       nonce / cnonce values
   #
+  # :SipperRealm:
+  #       Default Realm used by the UAS to generate digest challenge. 
+  #
   # :SipperMedia:
   #      If set to true the Sipper media library is available
   #      for use.

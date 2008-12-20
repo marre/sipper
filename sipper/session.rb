@@ -48,7 +48,7 @@ class Session
   :use_nict, :use_ist, :use_nist, :session_timer, :session_limit, :tmr_hash,
   :use_2xx_retrans, :use_1xx_retrans, :t2xx_retrans_timers, :t1xx_retrans_timers, 
   :dialog_routes, :force_update_session_map, :reliable_1xx_status, :ihttp_response, 
-  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat
+  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm
   
   class SubscriptionData
     attr_accessor :key, :timer, :source, :event, :event_id, :state, :method
@@ -618,6 +618,7 @@ class Session
   end
   
   # Challenge here is the header object of WWW-Authenticate or Proxy-Authenticate header. 
+  # This is used by the UAC sending the response to challenge. 
   def create_request_with_response_to_challenge(challenge, proxy_challenge, user, passwd, lsr = @last_sent_request)
     new_req = lsr.dup
     new_req.initial = false
@@ -634,6 +635,39 @@ class Session
     end
     
     new_req
+  end
+  
+  # Challenge response is created by UAS when it wants to authenticate the UAC.
+  def create_challenge_response(req = @irequest, proxy=false, realm=nil, 
+    domain=nil, add_opaque=false, stale=false)
+    if proxy
+      res = create_response(407)
+    else  
+      res = create_response(401)
+    end
+    @da = SipperUtil::DigestAuthorizer.new  if @da.nil?
+    if realm.nil?
+      realm = @realm || SipperConfigurator[:SipperRealm]  
+    end
+    if proxy
+      res.proxy_authenticate = 
+        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy)
+    else
+      res.www_authenticate = 
+        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy)
+    end
+    return res
+  end
+  
+  
+  def authenticate_request(req=@irequest)
+    return [false, false] unless @da
+    return [false, false] unless (req[:authorization] || req[:proxy_authorization])
+    atr = req.authorization if req[:authorization]
+    atr = req.proxy_authorization if req[:proxy_authorization]
+    user = SipperUtil.unquote_str(atr.username)
+    passwd = SIP::Locator[:PasswordStore].get(user)
+    return [@da.do_authentication(req, user, passwd), true]
   end
   
   def create_response(code, phrase="SELECT", req=irequest, reliability=false)
@@ -2013,6 +2047,12 @@ class Session
     session = SessionManager.find_session(callid, localtag, remotetag)
     return session
   end 
+  
+  # realm is used by UAS setting it in the response challenge
+  def set_realm(val)
+    @realm = val  
+  end
+  
   
   def create_reginfo_doc(aor, ver, contacts=nil)
     XmlDoc::RegInfoDoc.create(aor,ver,contacts)

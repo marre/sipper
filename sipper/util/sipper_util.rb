@@ -267,6 +267,20 @@ module SipperUtil
     begin; raise; rescue => e; puts e.backtrace.join("\n"); end;  
   end
   
+  def SipperUtil.quote_str(str)
+      qs = '"' 
+      qs << str << '"'
+      qs
+    end
+    
+    def SipperUtil.unquote_str(str)
+      if str[0].chr == '"'
+        str[1...-1]
+      else
+        str
+      end
+    end
+  
   module Recordable
     def p_session_record
       'msg-info'

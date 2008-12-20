@@ -47,6 +47,15 @@ module SIP
       @behind_nat
     end
     
+    
+    def self.realm(val)
+      @realm = val  
+    end
+    
+    def self.get_realm
+      @realm
+    end
+    
     # The transaction usage hash setting is like a modifier in the 
     # controller. The setting is exactly same as the configuration setting
     # eg transaction_usage :use_transactions=>true, :use_ict=>false, :use_nict=>true
@@ -383,6 +392,7 @@ module SIP
       s.set_compact_headers(self.class.get_compact_headers)
       s.set_session_record(self.class.get_session_record)
       s.set_behind_nat(self.class.get_behind_nat)
+      s.set_realm(self.class.get_realm)
       return s
     end
     
@@ -427,6 +437,10 @@ module SIP
     # for the AOR belonging to the UA.
     def dialog_store
       SIP::Locator[:DialogInfoStore] 
+    end
+    
+    def password_store
+      SIP::Locator[:PasswordStore]
     end
     
     private :_create_session

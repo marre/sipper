@@ -22,6 +22,7 @@ require 'test_completion_signaling_helper'
 require 'util/timer/timer_manager'
 require 'util/timer/sip_timer_helper'
 require 'util/persistence/ps_sipper_map'
+require 'util/persistence/csv_sipper_map'
 require 'version'
 require 'message'
 require 'request'
@@ -178,6 +179,9 @@ module SIP
       
       # Location service store / for dialog store
       SIP::Locator[:DialogInfoStore] = SipperUtil::Persistence::PsSipperMap.new("dialog_info_store")
+      
+      # To be used for simple password DB
+      SIP::Locator[:PasswordStore] = SipperUtil::Persistence::CsvSipperMap.new("passwd_store")
       
       # Sipper HTTP Client
       SIP::Locator[:HttpRequestDispatcher] = SipperHttpRequestDispatcher.new(@q, SipperConfigurator[:HttpClientThreads])
