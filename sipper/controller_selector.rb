@@ -47,7 +47,7 @@ module SIP
       logd("There are a total of #{@controllers.size} controllers, they are #{@controllers.keys.join(',')}")
     end
     
-   
+    
     def load_controller_from_string(str)
       existing_controllers = SIP::ControllerClassLoader.controllers
       SIP::ControllerClassLoader.load_from_string(str)
@@ -59,32 +59,32 @@ module SIP
       end
       name
     end
-   
+    
     def get_controllers(request=nil)
       if @order_arr
         logd("order_arr present with #{@order_arr.join(',')}")
         control_order = @controllers.sort do |x,y|
           # todo DRY it when you have tests
-          (@order_arr.index(x[0])?@order_arr.index(x[0]):@order_arr.length) <=> (@order_arr.index(y[0])?@order_arr.index(y[0]):@order_arr.length)
+           (@order_arr.index(x[0])?@order_arr.index(x[0]):@order_arr.length) <=> (@order_arr.index(y[0])?@order_arr.index(y[0]):@order_arr.length)
         end 
       else
         control_order = @controllers.sort
       end
       control_order.map {|x| x[1]}
     end
-      
+    
     def get_controller(name)
       @controllers[name]
     end
-  
-  
+    
+    
     def clear_all
       @controllers = {}
       @order_arr = nil
       SIP::ControllerClassLoader.clear_all 
     end
-  
-   
+    
+    
     
     def create_controllers
       logd("Loading controller from ControllerClassFinder")
@@ -97,6 +97,7 @@ module SIP
       m = SipperUtil.constantize(fqcname)       
       if m.class == Class
         @controllers[fqcname] = inst = m.new  
+        instrument_for_authentication(inst, m)
         if inst.order >= 0
           if @order_arr
             @order_arr.insert([inst.order, @order_arr.length].min, fqcname) 
@@ -107,7 +108,46 @@ module SIP
       end
     end
     
-    private  :create_controllers 
+    def instrument_for_authentication(c_obj, c_class)
+      ar = c_class.get_authenticate_requests
+      if ar.nil?
+        ar = c_class.get_authenticate_proxy_requests
+        SIP::ControllerSelector.push(true) unless ar.nil?
+      else
+        SIP::ControllerSelector.push(false)
+      end
+      
+      if ar && ar.length>0
+        ar.each do |meth|
+          hndlr = "on_" + meth.to_s
+          SIP::ControllerSelector.push(hndlr)
+          class <<c_obj
+            define_method((SIP::ControllerSelector.pop).to_sym) do |session|
+              result, old =  session.authenticate_request
+              if result
+                super
+              else
+                if old
+                  session.respond_with(403)  
+                else
+                  r = session.create_challenge_response(session.irequest, SIP::ControllerSelector.pop)
+                  session.send(r)
+                end
+              end      
+            end
+          end
+        end
+      end
+    end
+    
+    def self.push(t)
+      (@t ||= []) << t  
+    end
+    
+    def self.pop
+      @t.pop if @t    
+    end
+    private  :create_controllers, :instrument_for_authentication 
     
   end
 end

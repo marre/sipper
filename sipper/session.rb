@@ -647,7 +647,7 @@ class Session
     end
     @da = SipperUtil::DigestAuthorizer.new  if @da.nil?
     if realm.nil?
-      realm = @realm || SipperConfigurator[:SipperRealm]  
+      realm = @realm || SipperConfigurator[:SipperRealm] || "sipper.com"
     end
     if proxy
       res.proxy_authenticate = 

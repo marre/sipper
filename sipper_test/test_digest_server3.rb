@@ -1,7 +1,8 @@
 
+
 require 'driven_sip_test_case'
 
-class TestDigestServer1 < DrivenSipTestCase
+class TestDigestServer3 < DrivenSipTestCase
   
   def setup
     super
@@ -10,23 +11,14 @@ class TestDigestServer1 < DrivenSipTestCase
     require 'sip_test_driver_controller'
     
     module SipInline
-      class UasDigestS1Controller < SIP::SipTestDriverController
+      class UasDigestS3Controller < SIP::SipTestDriverController
       
         transaction_usage :use_transactions=>true
+        realm "my_sipper.com"
+        authenticate_requests :invite
         
-        def on_invite(session)
-          result, old =  session.authenticate_request
-          if result
-            session.respond_with(200)
-          else
-            if old
-              session.respond_with(403)  
-            else
-              r = session.create_challenge_response(session.irequest, false,
-                "sipper2.com")
-              session.send(r)
-            end  
-          end
+        def on_invite(session)      
+          session.respond_with(200)     
         end
         
         
@@ -36,7 +28,7 @@ class TestDigestServer1 < DrivenSipTestCase
         
         def on_success_res(s)
           s.invalidate(true)
-          s.flow_completed_for("TestDigestServer1")
+          s.flow_completed_for("TestDigestServer3")
         end
         
         def order
@@ -45,7 +37,7 @@ class TestDigestServer1 < DrivenSipTestCase
         
       end
       
-      class UacDigestS1Controller < SIP::SipTestDriverController
+      class UacDigestS3Controller < SIP::SipTestDriverController
       
         transaction_usage :use_transactions=>true 
         
@@ -80,7 +72,7 @@ class TestDigestServer1 < DrivenSipTestCase
     end
     EOF
     define_controller_from(str)
-    set_controller("SipInline::UacDigestS1Controller")
+    set_controller("SipInline::UacDigestS3Controller")
   end
   
   

@@ -196,6 +196,22 @@ module SIP
     def self.get_pre_existing_route_set
       @pre_existing_rs
     end
+    
+    def self.authenticate_requests(*m)
+      @auth_methods = m  
+    end
+    
+    def self.get_authenticate_requests
+      @auth_methods  
+    end
+    
+    def self.authenticate_proxy_requests(*m)
+      @p_auth_methods = m  
+    end
+    
+    def self.get_authenticate_proxy_requests
+      @p_auth_methods  
+    end
     #---------------------------------------------------------------------------
     
     

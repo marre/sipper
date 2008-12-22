@@ -397,3 +397,4 @@ SipperConfigurator[:CommandlineBitmask] = 0
 SipperConfigurator[:HttpClientThreads] = 5
 SipperConfigurator[:ShowSessionIdInMessages] = true
 SipperConfigurator[:TcpRequestTimeout] = 32000
+SipperConfigurator[:SipperRealm] = "sipper.com"
