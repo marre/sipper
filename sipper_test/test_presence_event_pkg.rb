@@ -69,38 +69,38 @@ class TestPresenceEvent < DrivenSipTestCase
           session.send_request(notifyReq)
 
           dialog_info = session.call_id + "," + session.local_tag + "," + session.remote_tag  
-          dialog_store.put("appSession", dialog_info) 
+          dialog_store.put("watchSession", dialog_info) 
         end
 
         def on_register(session)
             session.respond_with(200)              
-            dialog_info = dialog_store.get("appSession")
+            dialog_info = dialog_store.get("watchSession")
             dialog = dialog_info.split(',')  
-            appSession = SessionManager.find_session(dialog[0], dialog[1], dialog[2])
+            watchSession = SessionManager.find_session(dialog[0], dialog[1], dialog[2])
             msg = CustomMessage.new
-            appSession.post_custom_message(msg)
+            watchSession.post_custom_message(msg)
             session.invalidate(true)
         end
         
-        def on_custom_msg(appSession, msg)
-          notifyReq = appSession.create_subsequent_request("NOTIFY")
-          subscription = appSession.get_subscription(appSession[:subs_req])
-          appSession.add_subscription_to_request(notifyReq, subscription)
+        def on_custom_msg(watchSession, msg)
+          notifyReq = watchSession.create_subsequent_request("NOTIFY")
+          subscription = watchSession.get_subscription(watchSession[:subs_req])
+          watchSession.add_subscription_to_request(notifyReq, subscription)
           notifyReq.expires = "3599"
           notifyReq.content_type = "application/pidf+xml"
           
           # contact_addr and contact_priority can be picked from registration store. 
           
           pidfdata = XmlDoc::PidfTuple.new("open", "sip:nasir@sipper.com", "0.2", "Welcome to SIPr World !!")
-          notifyReq.content = appSession.create_pidf_doc("sip:joe@example.com", pidfdata,"Registration done !!").to_s
-          appSession.send(notifyReq)  
+          notifyReq.content = watchSession.create_pidf_doc("sip:joe@example.com", pidfdata,"Registration done !!").to_s
+          watchSession.send(notifyReq)  
         end
         
         def on_success_res_for_notify(session)
           if !session['2xx']
             session['2xx'] =1 
           elsif session['2xx'] ==1
-            dialog_store.delete("appSession")
+            dialog_store.delete("watchSession")
             session.invalidate(true)
             session.flow_completed_for("TestPresenceEvent")  
           end
