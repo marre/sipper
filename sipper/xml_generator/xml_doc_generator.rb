@@ -66,7 +66,7 @@ module XmlDoc
     include REXML
     #creates the PIDF document (pidf+xml) defined in RFC 3863
     #this implementation supports any number of tuple and note elements.
-    #Arguments are the array of PidfTuple and array of presence_note.
+    #Arguments are the entity, array of PidfTuple and array of presence_note.
     def self.create(entity,pidftuple=nil,presence_note=nil)
       doc = Document.new
       doc << XMLDecl.new 
