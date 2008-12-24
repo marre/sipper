@@ -362,7 +362,7 @@ module SIP
         logi("Stopped the transport #{t}")
       end
       if SipperConfigurator[:SipperHttpServer]
-        @w.stop if @w
+        @w.shutdown if @w
       end  
       @smr.stop
       logi("Stopped the SIP Message Router")
