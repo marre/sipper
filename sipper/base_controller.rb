@@ -335,6 +335,13 @@ module SIP
       end  
     end
     
+    
+    def on_http_request(req, res, session)
+      logd("In base_controller on_request for HTTP request")
+      m = ("on_http_" + req.request_method.gsub(/-/, "_")).downcase.to_sym
+      return self.send(m, req, res, session)  
+    end 
+    
     def on_http_res(session)
     end
     
@@ -422,6 +429,16 @@ module SIP
          logd("No I #{name} is not interested")
          return false
        end
+    end
+    
+    def interested_http?(http_req)
+      if self.respond_to?(("on_http_" + http_req.request_method.gsub(/-/, "_")).downcase.to_sym)
+         logd("Yes I #{name} is interested")
+         return true
+       else
+         logd("No I #{name} is not interested")
+         return false
+       end  
     end
     
     # Returns a transport specified for the controller in the form

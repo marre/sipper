@@ -282,6 +282,17 @@ class SipperConfigurator
   #     Number of HTTP Client threads that will be used for asynchronous
   #     http request sending and response processing.
   #
+  # :SipperHttpServer:
+  #     Boolean flag, if set to true then HTTP Server is enabled otherwise not. 
+  # 
+  # :SipperHttpServerPort:
+  #     The port at which HTTP Server will listen to requests. If not configured and
+  #     Http server is enabled then the default value is 2000.
+  #
+  # :SipperHttpServerConfig:
+  #     A hash of config options that is passed on to the embedded webrick server.
+  #     This is an optional configuration.
+  #
   EOF
   
   def SipperConfigurator.all_keys()
@@ -398,3 +409,4 @@ SipperConfigurator[:HttpClientThreads] = 5
 SipperConfigurator[:ShowSessionIdInMessages] = true
 SipperConfigurator[:TcpRequestTimeout] = 32000
 SipperConfigurator[:SipperRealm] = "sipper.com"
+SipperConfigurator[:SipperHttpServer] = false

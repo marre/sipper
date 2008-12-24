@@ -10,6 +10,7 @@ require 'tcp_session'
 require 'util/timer/timer_task'
 require 'stray_message_manager'
 require 'sipper_http/sipper_http_response'
+require 'sipper_http/sipper_http_servlet_request_wrapper'
 
 class SipMessageRouter
 
@@ -216,6 +217,7 @@ class SipMessageRouter
               when SipperHttp::SipperHttpResponse
                 logd("Sipper HTTP response received")
                 r.dispatch
+                break
               else
                 logw("DONT KNOW WHAT YOU SENT")
                 break
@@ -227,6 +229,25 @@ class SipMessageRouter
     end
     @running = true
   end
+  
+  def handle_http_req(req, res)
+    ctrs = SIP::Locator[:Cs].get_controllers
+    logd("Initial HTTP request, total controllers returned are #{ctrs.size}")
+    s = nil
+    ctrs.each do |c| 
+      if c.interested_http?(req)   
+        logd("Controller #{c.name} is interested in #{req.request_method}")
+        s = c.create_session                                      
+        SessionManager.add_session(s, false)
+      end
+    end
+    if s
+      return s
+    else   
+      return nil
+    end
+  end
+  
   
   def stop
     @run = false

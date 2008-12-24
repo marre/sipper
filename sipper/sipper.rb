@@ -162,6 +162,7 @@ module SIP
       logi("Added #{ports.length} ports to transport manager")
       SipperConfigurator[:NumThreads] ||=  config[:NumThreads] || 5
       @smr = SipMessageRouter.new(@q, SipperConfigurator[:NumThreads])
+      SIP::Locator[:Smr] = @smr
       @running = false
       if SipperConfigurator[:TimerGranularity]
         @tm = SIP::TimerManager.new(@q, SipperConfigurator[:TimerGranularity])
@@ -186,6 +187,24 @@ module SIP
       # Sipper HTTP Client
       SIP::Locator[:HttpRequestDispatcher] = SipperHttpRequestDispatcher.new(@q, SipperConfigurator[:HttpClientThreads])
       
+      
+      # Sipper HTTP Server
+      if SipperConfigurator[:SipperHttpServer]
+        
+        require 'webrick'
+        
+        port = SipperConfigurator[:SipperHttpServerPort] 
+        if SipperConfigurator[:SipperHttpServerConfig]
+          port = SipperConfigurator[:SipperHttpServerConfig][:Port]
+        end
+        port = 2000 unless port
+        config = SipperConfigurator[:SipperHttpServerConfig] || {}
+        config[:Port] = port
+        @w = WEBrick::HTTPServer.new(config)
+        require 'sipper_http/sipper_http_servlet'
+        @w.mount("/", SipperHttp::SipperHttpServlet)
+      end
+      #-------------------
       SIP::Locator[:Sipper] = self
       
       # NK
@@ -266,6 +285,12 @@ module SIP
         #end
       end
       
+      if SipperConfigurator[:SipperHttpServer]
+        Thread.new do
+          @w.start  
+        end
+      end
+      
       if x = SipperConfigurator[:SipperRunFor]
         Thread.new do
           sleep x
@@ -336,6 +361,9 @@ module SIP
         t.stop_transport
         logi("Stopped the transport #{t}")
       end
+      if SipperConfigurator[:SipperHttpServer]
+        @w.stop if @w
+      end  
       @smr.stop
       logi("Stopped the SIP Message Router")
       @tm.stop

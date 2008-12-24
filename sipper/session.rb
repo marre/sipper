@@ -34,6 +34,8 @@ require 'sdp/sdp_generator'
 require 'custom_message'
 require 'registration'
 require 'xml_generator/xml_doc_generator'
+require 'sipper_http/sipper_http_servlet_request_wrapper'
+require 'sipper_http/sipper_http_servlet'
 
 class Session
   include SipLogger
@@ -931,9 +933,12 @@ class Session
         _on_media_event(msg)
       when SipperHttp::SipperHttpResponse
         _on_http_response(msg)
+      when SipperHttp::SipperHttpServletRequestWrapper
+        _on_http_request(msg)
       when CustomMessage
         _on_custom_message(msg)
       end
+      
     end 
   end
   
@@ -1413,6 +1418,16 @@ class Session
     on_message(http_res)
   end
   
+  
+  def on_http_request(servlet_req_obj)
+    if @controller && @controller.interested_http?(servlet_req_obj.req)
+      on_message(servlet_req_obj)
+    else
+      SipperHttp::SipperHttpServlet.send_no_match_err(servlet_req_obj.req, servlet_req_obj.res)
+    end
+  end
+  
+  
   # Invoked when either the Sipper media response or an actual media event
   # is received.
   def on_media_event(media_evt)
@@ -1452,6 +1467,23 @@ class Session
     else
       loge("No controller associated with this session")
     end  
+  end
+  
+  def _on_http_request(servlet_req_obj)
+    @ihttp_request = servlet_req_obj.req
+    result = false
+    if @controller
+      logd("Dispatching http request to controller #{@controller.name}")
+      begin
+        result = @controller.on_http_request(servlet_req_obj.req, servlet_req_obj.res, self)
+      rescue Exception => e
+        loge("Exception #{e} occured while http request processing by controller")
+        loge(e.backtrace.join("\n"))
+      end
+      logw("#{@controller} could not process the http request") if result == false
+    else
+      loge("No controller associated with this session")
+    end
   end
 
   def _on_custom_message(custom_msg)

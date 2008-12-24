@@ -22,6 +22,7 @@ class RunSipper1
     Signal.trap("INT") { puts; s.stop; exit }
     loop do 
       t.join(3)
+      Signal.trap("INT") { puts; s.stop; exit }
     end
   end
   
