@@ -65,6 +65,7 @@
   <logger name="siplog::media_sipperofferanswer" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::media_sipperdummymediaclient" level="DEBUG" additive="true" trace="false"/>
   <logger name="siplog::sipperhttprequestdispatcher" level="DEBUG" additive="true" trace="false"/>
+  <logger name="siplog::sipperhttp_sipperhttpservlet" level="DEBUG" additive="true" trace="false"/>
   
   <logger name="sipmsgtracelog" level="DEBUG" additive="false" trace="true">
     <outputters>sipmsgtrace</outputters>

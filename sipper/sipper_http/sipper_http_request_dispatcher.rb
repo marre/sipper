@@ -57,8 +57,9 @@ class SipperHttpRequestDispatcher
           end           
           req.set_form_data( url_context.params, '&') if url_context.params
           req.body = url_context.body if url_context.body
+          logsip("O", url.host, url.port, nil, nil, "HTTP", req.to_s)
           res = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }                   
-          
+          logsip("I", url.host, url.port, nil, nil, "HTTP", res.to_s)
           sipper_res = SipperHttp::SipperHttpResponse.new(res, url_context.session)
           @smq << sipper_res
         end  
