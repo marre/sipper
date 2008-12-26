@@ -22,8 +22,8 @@ echo $A >> ~/sipper.sh
 echo "export RUBYOPT=\"-rubygems\"" >> ~/sipper.sh
 echo 'PATH=$PATH:$SIPPER_HOME/bin' >> ~/sipper.sh
 check_status
-cp -r bin $A
-chmod +x $A/bin/s*
+sudo cp -r bin/* /usr/local/bin
+sudo chmod +x /usr/local/bin/s*
 check_status
 chmod 777 $A/sipper/logs
 check_status
