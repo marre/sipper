@@ -61,7 +61,7 @@ module SIP
       peer_session = get_or_create_peer_session(session, rip, rp)
       if peer_session.initial_state?
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
-        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path, :service_route, :privacy, :referred_by)
+        r.copy_from(orig_request, :from, :to, :route, :content, :content_type, :path, :service_route, :privacy, :referred_by, :p_asserted_identity)
         r.from.tag = "3"
       else
         if(orig_request.method == "CANCEL")
