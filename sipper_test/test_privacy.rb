@@ -73,6 +73,8 @@ class TestPrivacy < DrivenSipTestCase
           peer.name = "b2buac"
           r = create_b2bua_request(session)
           r = apply_privacy(r)
+          # Assuming element is not trusted, so removing the P-Asserted-Identity 
+          r.p_asserted_identity = nil           
           r.p_controller = "uas"
           r.p_session_record = 'msg-info'
           peer.send r
