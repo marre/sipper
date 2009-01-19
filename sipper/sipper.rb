@@ -176,10 +176,17 @@ module SIP
       end
       
       # Location service store / for registrar
-      SIP::Locator[:RegistrationStore] = SipperUtil::Persistence::PsSipperMap.new("registration_store")
-      
       # Location service store / for dialog store
-      SIP::Locator[:DialogInfoStore] = SipperUtil::Persistence::PsSipperMap.new("dialog_info_store")
+      if SipperConfigurator[:SipperPersistentStore] == 'db'
+        raise "This is a sipper installation and DB is not supported here. 
+        Upgrade to Goblet for DB support" unless SipperConfigurator[:GobletRelease]
+        require 'util/persistence/db_sipper_map'
+        SIP::Locator[:RegistrationStore] = SipperUtil::Persistence::DbSipperMap.new("registration_store")
+        SIP::Locator[:DialogInfoStore] = SipperUtil::Persistence::DbSipperMap.new("dialog_info_store")
+      else
+        SIP::Locator[:RegistrationStore] = SipperUtil::Persistence::PsSipperMap.new("registration_store")
+        SIP::Locator[:DialogInfoStore] = SipperUtil::Persistence::PsSipperMap.new("dialog_info_store")
+      end  
       
       # To be used for simple password DB
       SIP::Locator[:PasswordStore] = SipperUtil::Persistence::CsvSipperMap.new("passwd_store")
