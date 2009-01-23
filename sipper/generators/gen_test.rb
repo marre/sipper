@@ -5,10 +5,12 @@ require 'util/sipper_util'
 module SIP
   module Generators
     class GenTest
-      def initialize(tname, flow_str)
+      def initialize(tname, flow_str, pcap_arr=nil, filter=nil)
         @gen_class_name = SipperUtil.classify(tname)
         @gen_file_name = SipperUtil.filify(@gen_class_name)
         @flow_str = flow_str
+	      @pcap_arr = pcap_arr
+	      @filter = filter
         mod_flow_str = SipperUtil.make_expectation_parsable(flow_str)
         @flow = mod_flow_str.split("%").map {|str| str.strip}
         @direction = "neutral"
@@ -34,7 +36,7 @@ module SIP
         @str << "    super\n"
         @str << "    SipperConfigurator[:SessionRecord]='msg-info'\n"
         @str << "    SipperConfigurator[:WaitSecondsForTestCompletion] = 180\n"
-        controller_code = Generators::GenController.new(@gen_class_name+"Controller", @flow_str, "SIP::SipTestDriverController").generate_controller(false)
+        controller_code = Generators::GenController.new(@gen_class_name+"Controller", @flow_str, @pcap_arr, @filter, "SIP::SipTestDriverController").generate_controller(false)
         @str << "    str = <<-EOF\n"
         @str << controller_code
         @str << "    EOF\n"

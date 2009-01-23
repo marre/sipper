@@ -7,12 +7,12 @@ require 'fileutils'
 require 'util/sipper_util'
 require 'util/expectation_parser'
 require 'util/command_element'
-
+		  
 module SIP
   module Generators
     class GenController
     
-      def initialize(cname, flow_str, ctype="SIP::BaseController")
+      def initialize(cname, flow_str, pcap_arr=nil, filter=nil, ctype="SIP::BaseController")
         if cname =~ /^[A-Z]/
           _cname = cname
         else
@@ -26,6 +26,8 @@ module SIP
         end
         @gen_file_name = SipperUtil.filify(@gen_class_name)
         @flow_str = flow_str
+        @pcap_arr = pcap_arr
+        @filter = filter
         @ctype = ctype
         
         @d_in  = SipperUtil::ExpectationElement::Directions[0]  # < inward
@@ -72,11 +74,7 @@ module SIP
           if e.direction == @d_in  # have a new method defined for each incoming and repeat outgoing
             @current_method = []
             e.messages.each do |m| 
-              if m =~ /100/
-                k = m
-              else
-                k = m.sub(/^\d../, m[0,1]+"xx")
-              end
+              k = m.sub(/^\d../, m[0,1]+"xx")
               _get_message(k); 
               @current_method << k  
             end
@@ -84,7 +82,11 @@ module SIP
             @current_method.each do |c_method|
               # if there is a "|" condition for sending then generate a warning.
               puts "Warning: Sending optional messages is not permitted, taking #{e.messages[0]} only." if e.messages.length>1
-              _send_message(e.messages[0], c_method)
+	      if @pcap_arr == nil
+                _send_message(e.messages[0], c_method)
+	      else
+	        _send_pcap_message(e.messages[0], c_method, @pcap_arr, @filter)
+	      end	
             end
           elsif e.direction == @d_n # neutral
             @current_method.each do |c_method|
@@ -172,6 +174,57 @@ module SIP
         end
       end
       
+      def _send_pcap_message(msg, method, pcap_arr, filter)
+        system_headers = ["call_id","from","to","cseq","via","contact","max_forwards", "content", "p_sipper_session"]
+        pcap_request = pcap_arr.shift      
+        sp = self._spacing
+        if msg =~ /^[A-Z]/
+          if method == "start"
+            @method_code[method] << "#{sp}r = session.create_initial_request('#{msg}'"
+            @method_code[method] << ", 'sip:nasir@sipper.com')"
+          else
+            @method_code[method] << "#{sp}r = session.create_subsequent_request('#{msg}'"
+            @method_code[method] << ")"
+          end
+          @method_code[method] << "\n"
+        else
+          @method_code[method] << "#{sp}r = session.create_response(#{msg})\n"
+        end
+
+        pcap_request.each_header do |h|
+          exestr = "pcap_request." + h.to_s
+          if not system_headers.include?(h.to_s)
+            val = eval(exestr).to_s.gsub(filter,'SipperConfigurator[:LocalSipperIP]')
+            if val.index('SipperConfigurator[:LocalSipperIP]')!= nil
+              start_index = val.index('SipperConfigurator[:LocalSipperIP]') 
+              len = "SipperConfigurator[:LocalSipperIP]".length
+              if val.index('SipperConfigurator[:LocalSipperIP]')!= 0
+                if val.reverse.index('SipperConfigurator[:LocalSipperIP]'.reverse)!= 0 
+                  val = '"'+ val[0...start_index] + '" + SipperConfigurator[:LocalSipperIP] + "' + val[start_index+len..-1]+ '"'
+                else
+                  val = '"'+ val[0...start_index] + '" + SipperConfigurator[:LocalSipperIP]'
+                end
+              elsif val.reverse.index('SipperConfigurator[:LocalSipperIP]'.reverse)!= 0
+                val = val[0...start_index] + 'SipperConfigurator[:LocalSipperIP] + "' + val[start_index+len..-1]+ '"'
+              else 
+                val = val[0...start_index] + 'SipperConfigurator[:LocalSipperIP]'
+              end
+              @method_code[method] << "#{sp}r." + h.to_s + " = " +val
+              @method_code[method] << "\n"
+            else
+              @method_code[method] << "#{sp}r." + h.to_s + ' = "' + val + '"'
+              @method_code[method] << "\n"
+            end  
+          end
+        end
+        if pcap_request.content_length.to_s.to_i > 0
+          @method_code[method] << "#{sp}r.content" + ' = "' + pcap_request.contents.join("\n") + '"'
+          @method_code[method] << "\n"
+        end
+        @method_code[method] << "#{sp}session.send(r)"
+        @method_code[method] << "\n"
+      end
+		  
       def _log_message(msg, method)
         sp = self._spacing
         @method_code[method] << "#{sp}session.do_record('#{msg}')\n" 

@@ -28,6 +28,13 @@ Rake::TestTask.new(:generated_test) do |t|
   t.verbose = true
 end
 
+desc "Run generates tests"
+Rake::TestTask.new(:generated_pcap_test) do |t|
+  t.libs << "sipper_test"
+  t.test_files = ["sipper_test/test_pcap.rb"]
+  t.verbose = true
+end
+			 
 
 # order_tests.yaml file should be present
 # in the tests directory for this ordering

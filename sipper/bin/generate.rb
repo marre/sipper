@@ -4,7 +4,6 @@ $:.unshift File.join(File.dirname(__FILE__),"..")
 
 require 'sipper_configurator'
 require 'bin/common'
-
 dir = SipperUtil::Common.set_environment()
 
 require "generators/gen_controller"
@@ -28,6 +27,8 @@ def __print_usage
   puts "            controller or test."
   puts "         => <flow_str> is the actual call flow." 
   puts "            e.g. '< INVITE, > 100, > 200 {2,7}, < ACK'" 
+  puts "         => -p <Test name> <Pcap file> <IP>"
+  puts "            -p to generate test from pcap file"
   exit(0)
 end
 
@@ -36,9 +37,19 @@ if %w(--version -v).include? ARGV.first
   exit(0)
 end
 
-if ((ARGV.length < 3) || %w(--help -h).include?(ARGV.first) || !(%w(-t -c).include?(ARGV.first)))
+if ((ARGV.length < 3) || %w(--help -h).include?(ARGV.first) || !(%w(-t -c -p).include?(ARGV.first)))
   __print_usage
 end
+
+if %w(-p).include? ARGV.first
+  raise "This is a sipper installation and pcap test generator is not supported here. 
+  Upgrade to Goblet for pcap test genration support" unless SipperConfigurator[:GobletRelease]
+  require "generators/gen_pcap_test"
+  if ARGV.length < 4 
+    __print_usage
+  end
+end  
+    
 
 
 type = ARGV.shift
@@ -49,11 +60,16 @@ if ARGV.first == "-r"
 end
 
 gcls = ARGV.shift # class name
+if type == "-p"
+  pcap_file = ARGV.shift
+  filter = ARGV.shift
+else  
 flow = ARGV.shift.dup
-
 unless gcls && flow 
   __print_usage
 end
+end
+
 
 if reverse
   flow.gsub!("<", "~").gsub!(">", "<").gsub!("~", ">")
@@ -65,6 +81,9 @@ if type == "-c"
 elsif type == "-t"
   g = SIP::Generators::GenTest.new(gcls, flow)
   g.generate_test(true, dir.nil? ? nil : File.join(dir, "tests"))
+elsif type == "-p"
+  g = SIP::Generators::GenPcapTest.new(gcls,pcap_file, filter)
+  g.generate_pcap_test()
 else
   __print_usage
 end
