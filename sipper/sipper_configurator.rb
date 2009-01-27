@@ -361,12 +361,16 @@ class SipperConfigurator
           lspo = SipperConfigurator[:LocalSipperPort] if ((SipperConfigurator[:CommandlineBitmask] | 4) == SipperConfigurator[:CommandlineBitmask])
           rsip = SipperConfigurator[:DefaultRIP] if ((SipperConfigurator[:CommandlineBitmask] | 2) == SipperConfigurator[:CommandlineBitmask])
           rspo = SipperConfigurator[:DefaultRP] if ((SipperConfigurator[:CommandlineBitmask] | 1) == SipperConfigurator[:CommandlineBitmask])
+          crate = SipperConfigurator[:CallRate] if ((SipperConfigurator[:CommandlineBitmask] | 32) == SipperConfigurator[:CommandlineBitmask])  
+          ncalls = SipperConfigurator[:NumCalls] if ((SipperConfigurator[:CommandlineBitmask] | 16) == SipperConfigurator[:CommandlineBitmask]) 
         end
         @@cfg_hash = @@cfg_hash.merge(obj)
         SipperConfigurator[:LocalSipperIP] = lsip if lsip
         SipperConfigurator[:LocalSipperPort] = lspo if lspo
         SipperConfigurator[:DefaultRIP] = rsip if rsip
         SipperConfigurator[:DefaultRP] = rspo if rspo
+        SipperConfigurator[:CallRate] =crate.to_i if crate
+        SipperConfigurator[:NumCalls] =ncalls.to_i if ncalls
       else
         msg = "Object read from file #{file} is not a configuration"
         raise TypeError, msg
@@ -410,3 +414,6 @@ SipperConfigurator[:ShowSessionIdInMessages] = true
 SipperConfigurator[:TcpRequestTimeout] = 32000
 SipperConfigurator[:SipperRealm] = "sipper.com"
 SipperConfigurator[:SipperHttpServer] = false
+SipperConfigurator[:NumCalls] = 1
+SipperConfigurator[:CallRate] = 5
+

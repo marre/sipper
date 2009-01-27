@@ -12,7 +12,7 @@ def __print_usage
   puts " --version | -v  => print version information"
   puts " --help | -h  => print this message"
   puts ""
-  puts " [-i <local_ip>] [-p <local_port>] [-r <remote_ip>] [-o remote_port>]  [-c|-t <file_name>]"
+  puts " [-i <local_ip>] [-p <local_port>] [-r <remote_ip>] [-o <remote_port>] [-b <total_calls>] [-n <calls_per_second>]  [-c|-t <file_name>]"
   puts "  => -c for controller and -t for test generation"
   puts "  => <file_name> is the name of test or controller class to be run."
   puts " The default local port while running the controller is 5060 and the default remote port is "
@@ -48,6 +48,12 @@ else
   ARGV.each_with_index do |arg, i|  
     if arg == "-m" 
       SipperConfigurator[:SipperMediaDefaultControlPort] = Integer(ARGV[i+1])
+    elsif arg == "-n" 
+      SipperConfigurator[:CallRate] = ARGV[i+1]
+      SipperConfigurator[:CommandlineBitmask] |= 32    
+    elsif arg == "-b" 
+      SipperConfigurator[:NumCalls] = ARGV[i+1]
+      SipperConfigurator[:CommandlineBitmask] |= 16    
     elsif arg == "-i" 
       SipperConfigurator[:LocalSipperIP] = ARGV[i+1]
       SipperConfigurator[:CommandlineBitmask] |= 8

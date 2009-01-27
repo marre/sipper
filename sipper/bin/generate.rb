@@ -18,11 +18,13 @@ require File.dirname(__FILE__) + '/../version'
 def __print_usage
   puts "Options:   --version | -v  => print version information"
   puts "           --help | -h  => print this message"
-  puts "           -c|-t [-r] <class_name> <flow_str>"
+  puts "           -c|-t [-r -b] <class_name> <flow_str>"
   puts "         => -c for controller and -t for test generation"
   puts "         => -r to optionally generate the reverse or opposite"
   puts "            flow from flow_str."
   puts "            i.e if flow indicates UAS then generate a UAC etc."
+  puts "         => -b to be used in conjuction with -t to optionally generate test script"
+  puts "             with code for bulk calls"
   puts "         => <class_name> is the name of class to be generated, "
   puts "            controller or test."
   puts "         => <flow_str> is the actual call flow." 
@@ -51,11 +53,16 @@ if %w(-p).include? ARGV.first
 end  
     
 
-
 type = ARGV.shift
 reverse = false
 if ARGV.first == "-r"
   reverse = true
+  ARGV.shift  
+end
+
+bulk =false
+if ARGV.first == "-b"
+  bulk = true
   ARGV.shift  
 end
 
@@ -64,10 +71,10 @@ if type == "-p"
   pcap_file = ARGV.shift
   filter = ARGV.shift
 else  
-flow = ARGV.shift.dup
-unless gcls && flow 
-  __print_usage
-end
+  flow = ARGV.shift.dup
+  unless gcls && flow 
+    __print_usage
+  end
 end
 
 
@@ -80,7 +87,7 @@ if type == "-c"
   g.generate_controller(true, dir.nil? ? nil : File.join(dir, "controllers") )
 elsif type == "-t"
   g = SIP::Generators::GenTest.new(gcls, flow)
-  g.generate_test(true, dir.nil? ? nil : File.join(dir, "tests"))
+  g.generate_test(true, dir.nil? ? nil : File.join(dir, "tests"),bulk)
 elsif type == "-p"
   g = SIP::Generators::GenPcapTest.new(gcls,pcap_file, filter)
   g.generate_pcap_test()
