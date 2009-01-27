@@ -84,7 +84,7 @@ end
 
 if type == "-c"
   g = SIP::Generators::GenController.new(gcls, flow)
-  g.generate_controller(true, dir.nil? ? nil : File.join(dir, "controllers") )
+  g.generate_controller(true, dir.nil? ? nil : File.join(dir, "controllers"),bulk )
 elsif type == "-t"
   g = SIP::Generators::GenTest.new(gcls, flow)
   g.generate_test(true, dir.nil? ? nil : File.join(dir, "tests"),bulk)
