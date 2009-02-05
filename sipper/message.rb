@@ -12,6 +12,8 @@ class Message
   include SipLogger
   include Enumerable
   
+  @@slog = SipLogger['siplog::message']
+
   attr_accessor  :incoming, :rcvd_from_info, :rcvd_at_info, :transaction
   
   attr_reader :sdp
@@ -53,10 +55,10 @@ class Message
     raise ArgumentError, "Not a SIP message" unless idx
     case 
     when idx==0
-      SipLogger['siplog::message'].debug("Parsing received response")
+      @@slog.debug("Parsing received response") if @@slog.debug?
       r = Response.parse msg_arr
     when idx > 0
-      SipLogger['siplog::message'].debug("Parsing received request")
+      @@slog.debug("Parsing received request") if @@slog.debug?
       r = Request.parse( msg_arr, :received_ip=>msg[1][3], :received_port=>msg[1][1] )
     else
       raise ArgumentError, "Not a SIP message"
@@ -80,14 +82,14 @@ class Message
   end
   
   def define_from_hash(header_hash)
-    logi("Defining headers from hash #{header_hash}")
+    @@slog.info("Defining headers from hash #{header_hash}") if @@slog.info?
     header_hash.each { |k,v| self.send((k.to_s<<"=").to_sym, v)}
   end
   
   # The method to copy headers from a message.If you provide the particular headers,
   # it will copy only those headers, else will copy all the headers. 
   def copy_from(from_msg, *hdrs)
-    logd("copy_from: copying headers #{hdrs.join(",")}")
+    @@slog.debug("copy_from: copying headers #{hdrs.join(",")}") if @@slog.debug?
     if hdrs[0] == :_sipper_all
       from_msg.each {|k,v| self[k] = v}
     else
@@ -206,7 +208,7 @@ class Message
         
       end  #class_eval
 
-      logi("Adding header #{m}")
+      @@slog.info("Adding header #{m}") if @@slog.info?
       unless block_given?
         send(m, *a, &block)
       end
@@ -277,7 +279,7 @@ class Message
     end
     content_idx = -1
     arr.each_with_index do |str, idx|
-      logd("parsing header : "+str)
+      @@slog.debug("parsing header : "+str) if @@slog.debug?
       if !str || str.strip.length == 0  # \r\n\r\n before content
         content_idx = idx+1
         break  
@@ -338,7 +340,7 @@ class Message
     else  # lax compliance
       self[:content] = arr.map {|x| x.strip}
     end
-    logw "Actual content length #{content_len} different from Content-Length header #{content_length}" if content_len != content_length.to_s.to_i
+    @@slog.warn "Actual content length #{content_len} different from Content-Length header #{content_length}" if content_len != content_length.to_s.to_i && @@slog.warn?
   end
   
   # todo test this feature

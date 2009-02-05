@@ -42,7 +42,7 @@ class Session
   include SipperUtil
   include SIP::Validations
   include B2buaSessionMixin
-  
+
   attr_accessor :transport, :local_tag, :remote_tag, :prack_seq, :local_cseq, :remote_cseq,
   :call_id, :our_contact, :max_fwd,  :local_uri, 
   :remote_uri, :rip, :rp, :tp_flags, :imessage, :irequest, :iresponse, :imedia_event,
@@ -62,6 +62,7 @@ class Session
   # different transports for the same session.
   # Yes it is possible. UDP to TCP or TLS or back  to UDP etc.
   def initialize(*tipportrsl)
+    @ilog = logger
     @local_tag = nil
     @remote_tag = nil
     #todo fix the local_tag and local_cseq story for R/R
@@ -208,7 +209,7 @@ class Session
     end
     @local_uri, @remote_uri = begin 
       log_and_raise "Cannot send CANCEL as no response received so far" unless _check_cancel_state(msg) if (msg.method == "CANCEL" && SipperConfigurator[:ProtocolCompliance]=='strict')
-      logd("This is a request and is initial "+msg.initial.to_s)
+      @ilog.debug("This is a request and is initial "+msg.initial.to_s) if @ilog.debug?
       SipperUtil::MessageFill.fill(msg, :lctg=>_fixed_local_tag(msg.from.tag).to_s)
       if msg.initial 
         _increment_local_cseq  
@@ -288,7 +289,7 @@ class Session
         msg.transaction = nict
         if msg.method == "CANCEL"
           ctx = @transactions[branch]
-          logd("Sending CANCEL found a Ctx #{ctx} for branch #{branch}")
+          @ilog.debug("Sending CANCEL found a Ctx #{ctx} for branch #{branch}") if @ilog.debug?
           if ctx 
             ctx.cancel_ctxn = nict # ict or even nict
           else
@@ -324,7 +325,7 @@ class Session
   
   def send_response(msg, check_txn=true)
     if (@reliable_1xx_status == true && msg.get_request_method == "INVITE")
-      logd("Adding response message to pending queue as Reliable provision is in progress.")
+      @ilog.debug("Adding response message to pending queue as Reliable provision is in progress.") if @ilog.debug?
       @pending_response_queue << msg
       @pending_response_queue << check_txn
       return
@@ -343,7 +344,7 @@ class Session
       txn = @transactions[msg.via.branch] if msg.via
       if txn
         if msg.get_request_method != "CANCEL"
-          logd("Found transaction for branch #{msg.via.branch} giving it the response")
+          @ilog.debug("Found transaction for branch #{msg.via.branch} giving it the response") if @ilog.debug?
           msg.transaction = txn
         end      
       end
@@ -363,7 +364,7 @@ class Session
       @current_t2xx = @t2xx_retrans_timers[:Start]
       _schedule_timer_for_session(:t2xx_timer, @current_t2xx)
       _schedule_timer_for_session(:t2xx_limit_timer, @t2xx_retrans_timers[:Limit])
-      logd("Started the 2xx retransmission timer for #{self}")
+      @ilog.debug("Started the 2xx retransmission timer for #{self}") if @ilog.debug?
     end 
     if ((SipperUtil::RPROV_RANGE.include?msg.code) && (msg.get_request_method=="INVITE") && msg.rseq)
       @reliable_1xx_status = true
@@ -381,7 +382,7 @@ class Session
         @active_1xx_timer = _schedule_timer_for_session(:t1xx_timer, @current_t1xx)
       end
       _schedule_timer_for_session(:t1xx_limit_timer, @t1xx_retrans_timers[:Limit])
-      logd("Started the 1xx retransmission timer for #{self}")
+      @ilog.debug("Started the 1xx retransmission timer for #{self}") if @ilog.debug?
       @last_sent_reliable_response = msg
     end 
     
@@ -401,12 +402,12 @@ class Session
   def _send_common(msg)
     @call_id = msg.call_id.to_s unless @call_id
     @our_contact = msg.contact.to_s if msg.contact
-    logd("In send_common @local_uri=#{@local_uri.to_s}, @remote_uri=#{@remote_uri.to_s}, @call_id=#{@call_id.to_s}")
+    @ilog.debug("In send_common @local_uri=#{@local_uri.to_s}, @remote_uri=#{@remote_uri.to_s}, @call_id=#{@call_id.to_s}")if @ilog.debug?
     raise StandardError if transport.nil? 
     # Now set the content length
     msg.update_content_length()
     SessionManager.add_session self, ((msg.class == Response) && (SipperUtil::SUCC_RANGE.include?msg.code))
-    logd("Session map is #{@session_map}")
+    @ilog.debug("Session map is #{@session_map}") if @ilog.debug?
     if @header_order_arr
       msg.header_order = @header_order_arr   
     end
@@ -431,7 +432,7 @@ class Session
         sock = nil
       end
       m_s = transport.send(msg, @tp_flags, rd[1], rd[2], sock)
-      logd("Now record the outgoing message from session")
+      @ilog.debug("Now record the outgoing message from session") if @ilog.debug?
       _do_record_sip("out", msg, m_s)
     end
     msg
@@ -460,11 +461,11 @@ class Session
       req = txn.message
       r = Response.create(408, "Transaction Timeout")
       r.local = true
-      logd("In timeout, response now is #{r} and calling copy with request #{req}")
+      @ilog.debug("In timeout, response now is #{r} and calling copy with request #{req}") if @ilog.debug?
       r.copy_from(req, :call_id, :cseq, :via, :to, :from) unless req.nil?
       # note this thread is actually worker thread and not timer thread as
       # we had queued this timer on the transport queue. 
-      logd("Now sending 408 response locally for consumption to #{self}")
+      @ilog.debug("Now sending 408 response locally for consumption to #{self}") if @ilog.debug?
       self.on_message(r)
     end  
     
@@ -549,7 +550,7 @@ class Session
   end
   
   def create_prack(response = @iresponse)
-    logd("Creating a prack request ")
+    @ilog.debug("Creating a prack request ") if @ilog.debug?
     _increment_local_cseq 
     h = {
       :call_id => @call_id,
@@ -580,7 +581,7 @@ class Session
   # CANCEL request. However for generating a CANCEL use helper methods for it like create_cancel or
   # create_and_send_cancel_when_ready
   def create_subsequent_request(method, increment_cseq=true)
-    logd("Creating a subsequent request for #{method} and increment_cseq flag is #{increment_cseq}")
+    @ilog.debug("Creating a subsequent request for #{method} and increment_cseq flag is #{increment_cseq}") if @ilog.debug?
     log_and_raise "As call_id is not set, it is likely that no initial req was sent or recvd"  unless @call_id  
     if increment_cseq 
       _increment_local_cseq 
@@ -680,9 +681,9 @@ class Session
         @local_uri << ";tag=" << _fixed_local_tag.to_s unless @local_uri =~ /;tag=/  
       end
     end
-    logd("@local_uri is now #{@local_uri.to_s}")
+    @ilog.debug("@local_uri is now #{@local_uri.to_s}") if @ilog.debug?
     r = Response.create(code, phrase)
-    logd("Response now is #{r} and calling copy with request #{req}")
+    @ilog.debug("Response now is #{r} and calling copy with request #{req}") if @ilog.debug?
     r.copy_from(req, :call_id, :cseq, :via, :to, :from, :record_route) unless req.nil?
     r.to = @local_uri if @local_uri
     r.contact = (@our_contact ||= sprintf("<sip:%s:%s;transport=%s>", 
@@ -707,7 +708,7 @@ class Session
       end
       r.format_as_separate_headers_for_mv(:contact)    
     end
-    #logd("Response now is #{r}")
+    #@ilog.debug("Response now is #{r}") if @ilog.debug?
     return r
   end
   
@@ -834,7 +835,7 @@ class Session
         if SipperConfigurator[:ProtocolCompliance]=='strict'
           log_and_raise "As InviteClientTransaction is in use, you MUST not send non-2xx ACK from here"
         else
-          logw("As InviteClientTransaction is in use, you should not send non-2xx ACK from here")
+          @ilog.warn("As InviteClientTransaction is in use, you should not send non-2xx ACK from here") if @ilog.warn?
         end
       end
       a = create_non_2xx_ack
@@ -902,7 +903,7 @@ class Session
   
   # todo write tests for on_message, on_request, on_response when doing IT
   def on_message(r)
-    logd("session.on_message called for session #{self} and message #{r.short_to_s}")
+    @ilog.debug("session.on_message called for session #{self} and message #{r.short_to_s}") if @ilog.debug?
     @sq_lock.synchronize do
       @session_queue << r
       if @sq_lock[0] == "free"
@@ -913,7 +914,7 @@ class Session
     end
     msg = nil
     loop do
-      logd("Looking for a new message from session level queue")
+      @ilog.debug("Looking for a new message from session level queue") if @ilog.debug?
       @sq_lock.synchronize do
         msg = @session_queue.shift
         unless msg
@@ -921,7 +922,7 @@ class Session
           return
         end
       end
-      logd("In session.on_message now processing message #{msg}")
+      @ilog.debug("In session.on_message now processing message #{msg}") if @ilog.debug?
       case msg
       when Request
         _on_request(msg)
@@ -960,7 +961,7 @@ class Session
            @ok_to_retrans_1xx = false
            @active_1xx_timer.cancel if @active_1xx_timer
          else
-           logd("PRACK doesnt match the last sent reliable response.")
+           @ilog.debug("PRACK doesnt match the last sent reliable response.") if @ilog.debug?
          end
       end
     end
@@ -970,14 +971,14 @@ class Session
         branch = request.via.branch
         ist = @transactions[branch]
         if ist
-          logd("Found transaction #{ist} for branch #{request.via.branch} for INVITE retransmission")
+          @ilog.debug("Found transaction #{ist} for branch #{request.via.branch} for INVITE retransmission") if @ilog.debug?
         else
           # one final check for equal CSeq since this is not a retransmission now and therefore 
           # must be a bad request.
           _equal_cseq_check(request) unless request.attributes[:_sipper_rejection_response]
           # check for existing invite transactions
           _check_pending_invite_txns_on_invite_in(request)unless request.attributes[:_sipper_rejection_response] 
-          logd("Not found transaction for branch #{request.via.branch} for INVITE, creating a new IST")
+          @ilog.debug("Not found transaction for branch #{request.via.branch} for INVITE, creating a new IST") if @ilog.debug?
           klass = @transaction_handlers[:Ist] || @transaction_handlers[:Base]
           txn_handler = klass.new if klass
           ist = SIP::Transaction::InviteServerTransaction.new(self, branch, txn_handler, transport, 
@@ -988,18 +989,18 @@ class Session
         request.transaction = ist
         ist.txn_received(request)
         unless ist.consume?
-          logd("Not consuming this request #{request.method} as txn has taken care of it.")
+          @ilog.debug("Not consuming this request #{request.method} as txn has taken care of it.") if @ilog.debug?
           return
         end
       end # ist being used
     elsif request.method == "ACK"
       txn = @transactions[request.via.branch]
       if txn
-        logd("Found transaction for branch #{request.via.branch} for ACK")
+        @ilog.debug("Found transaction for branch #{request.via.branch} for ACK") if @ilog.debug?
         request.transaction = txn
         txn.txn_received(request)
         unless txn.consume?
-          logd("Not consuming this request #{request.method} as txn has taken care of it.")
+          @ilog.debug("Not consuming this request #{request.method} as txn has taken care of it.") if @ilog.debug?
           return
         end
       else  # no transaction found, this must be a ACK for 2xx as new branch
@@ -1012,11 +1013,11 @@ class Session
         if request.method == "CANCEL"
           if stxn
             nist = stxn.cancel_stxn
-            logd("Found CANCEL transaction #{nist} for branch #{request.via.branch} for CANCEL retransmission") if nist
+            @ilog.debug("Found CANCEL transaction #{nist} for branch #{request.via.branch} for CANCEL retransmission") if nist if @ilog.debug?
           end
         else
           nist = stxn
-          logd("Found NIST transaction #{nist} for branch #{request.via.branch} for non-INVITE retransmission") if nist
+          @ilog.debug("Found NIST transaction #{nist} for branch #{request.via.branch} for non-INVITE retransmission") if nist if @ilog.debug?
         end
         unless nist
           # one final check for equal CSeq since this is not a retransmission now and therefore 
@@ -1024,7 +1025,7 @@ class Session
           unless request.method == "CANCEL"
             _equal_cseq_check(request) unless request.attributes[:_sipper_rejection_response] 
           end
-          logd("Not found transaction for branch #{request.via.branch} for non-INVITE, creating a new NIST")
+          @ilog.debug("Not found transaction for branch #{request.via.branch} for non-INVITE, creating a new NIST") if @ilog.debug?
           klass = @transaction_handlers[:Nist] || @transaction_handlers[:Base]
           txn_handler = klass.new if klass
           nist = SIP::Transaction::NonInviteServerTransaction.new(self, branch, txn_handler, transport, 
@@ -1033,31 +1034,31 @@ class Session
         end
         request.transaction = nist
         if request.method == "CANCEL"
-          logd("Received CANCEL found a Stx #{stxn} for branch #{branch}")
+          @ilog.debug("Received CANCEL found a Stx #{stxn} for branch #{branch}") if @ilog.debug?
           if stxn 
             nist.transaction_being_canceled = stxn if nist
             forward_cancel_to_stxn = true
           else
             nist.ok_to_send_481_to_cancel = true if self.use_ist && self.use_nist
-            logd("Processing CANCEL, no stx found, check if 481 is to be sent")
+            @ilog.debug("Processing CANCEL, no stx found, check if 481 is to be sent") if @ilog.debug?
           end
         else
           @transactions[branch] = nist unless stxn
         end
         nist.txn_received(request)
         unless nist.consume?
-          logd("Not consuming this request #{request.method} as txn has taken care of it.")
+          @ilog.debug("Not consuming this request #{request.method} as txn has taken care of it.") if @ilog.debug?
           return
         end
       else  # nist not being used, but still look for IST for CANCEL
         if request.method == "CANCEL"
           branch = request.via.branch
           stxn = @transactions[branch]  # should be IST
-          logd("Received CANCEL found a Stx #{stxn} for branch #{branch}")
+          @ilog.debug("Received CANCEL found a Stx #{stxn} for branch #{branch}") if @ilog.debug?
           if stxn 
             forward_cancel_to_stxn = true
           else
-            logd("Processing CANCEL, no stx found, not using nist either")
+            @ilog.debug("Processing CANCEL, no stx found, not using nist either") if @ilog.debug?
           end
         end
       end
@@ -1065,7 +1066,7 @@ class Session
     
     # Check for the rejection response here
     if request.attributes[:_sipper_rejection_response]
-      logi("Found the rejection response, sending it and not invoking controller")
+      @ilog.info("Found the rejection response, sending it and not invoking controller") if @ilog.info?
       send_response(request.attributes[:_sipper_rejection_response])
       return 
     end 
@@ -1075,16 +1076,16 @@ class Session
     end
     
     if @controller
-      logd("Dispatching request to controller #{@controller.name}")
+      @ilog.debug("Dispatching request to controller #{@controller.name}") if @ilog.debug?
       begin
         result = @controller.on_request(self)
       rescue Exception => e
-        loge("Exception #{e} occured while request processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while request processing by controller") if @ilog.error? 
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
-      logw("#{@controller} could not process the request") if result == false
+      @ilog.warn("#{@controller} could not process the request") if result == false && @ilog.warn?
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end
     stxn.cancel_received(request, nist) if forward_cancel_to_stxn && stxn
   end
@@ -1104,7 +1105,7 @@ class Session
       # correspond to a value that the client transport is configured to insert 
       # into requests, the response MUST be silently discarded.
       if (transport.ip != response.via.sent_by_ip) || (transport.port.to_s != response.via.sent_by_port) && SipperConfigurator[:ProtocolCompliance] == 'strict' 
-        logw("Response via #{response.via} sent_by does not match our transport, dropping message")
+        @ilog.warn("Response via #{response.via} sent_by does not match our transport, dropping message") if @ilog.warn?
         return
       end
     end
@@ -1115,11 +1116,11 @@ class Session
       txn = txn.cancel_ctxn || txn  # for the case when NICT but not ICT in use
     end
     if (txn  && !(response.locally_generated?))
-      logd("Found transaction #{txn} for branch #{response.via.branch} giving it the response")
+      @ilog.debug("Found transaction #{txn} for branch #{response.via.branch} giving it the response") if @ilog.debug?
       response.transaction = txn
       txn.txn_received(response)
       unless txn.consume?
-        logd("Not consuming this response #{response.code} as txn has taken care of it.")
+        @ilog.debug("Not consuming this response #{response.code} as txn has taken care of it.") if @ilog.debug?
         return
       end
     end
@@ -1132,11 +1133,11 @@ class Session
       begin
         @controller.on_response(self)
       rescue Exception => e
-        loge("Exception #{e} occured while response processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while response processing by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end
   end
   
@@ -1146,7 +1147,7 @@ class Session
       msg.sdp = SDP::SdpParser.parse(msg.contents, true)  if msg[:content]
     end      
     @call_id = msg.call_id.to_s
-    logd("Now record the incoming message")
+    @ilog.debug("Now record the incoming message") if @ilog.debug?
     _do_record_sip("in", msg)
   end
   
@@ -1282,16 +1283,16 @@ class Session
   # this is internally called when the timer is acted upon
   def _on_timer(task)
     if @invalidated
-      logi("This session #{self.session_key} is invalidated, not firing timer #{task}")
+      @ilog.info("This session #{self.session_key} is invalidated, not firing timer #{task}") if @ilog.info?
       return
     end
-    logd("Timer task #{task} invoked")
+    @ilog.debug("Timer task #{task} invoked") if @ilog.debug?
     if task.type == :app
       begin
         @controller.on_timer(self, task) if @controller
       rescue Exception => e
-        loge("Exception #{e} occured while timer processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while timer processing by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
     elsif task.type == :subscription
       begin
@@ -1315,76 +1316,76 @@ class Session
     elsif task.type == :session
       if task.tid == :session_timer
         if @controller
-          logd("Invoking session listener for #{@controller.name}")
+          @ilog.debug("Invoking session listener for #{@controller.name}") if @ilog.debug?
           begin
             result = @controller.session_being_invalidated_ok_to_proceed?(self)
           rescue Exception => e
-            loge("Exception #{e} occured while callback processing by controller")
-            loge(e.backtrace.join("\n"))
+            @ilog.error("Exception #{e} occured while callback processing by controller") if @ilog.error?
+            @ilog.error(e.backtrace.join("\n")) if @ilog.error?
           end
           if result
-            logd("#{@controller} not interested in session invalidation") 
+            @ilog.debug("#{@controller} not interested in session invalidation")  if @ilog.debug?
           else
-            logd("#{@controller} decided to increase the lifetime of session")
+            @ilog.debug("#{@controller} decided to increase the lifetime of session") if @ilog.debug?
             if (@session_life_so_far+@session_timer < @session_limit)
               @invalidating = false # to force the timer to start
               self.invalidate
               return
             else
-              logw("Not increasing the lifetime of session, as upper session limit reached")
+              @ilog.warn("Not increasing the lifetime of session, as upper session limit reached") if @ilog.warn?
             end  
           end
         else
-          logd("No controller interested in session invalidation")
+          @ilog.debug("No controller interested in session invalidation") if @ilog.debug?
         end
         self.invalidate(true)
       elsif task.tid == :t2xx_timer
-        logd("2xx retransmission timer fired for #{self}")
+        @ilog.debug("2xx retransmission timer fired for #{self}") if @ilog.debug?
         if @ok_to_retrans_2xx
           _do_record_sip("out", @two_xx.response, @two_xx.response.to_s)
           transport.send(@two_xx.response, @two_xx.tp_flags, @two_xx.rip, @two_xx.rp) 
-          logd("Retransmitted the 2xx response from #{self}")
+          @ilog.debug("Retransmitted the 2xx response from #{self}") if @ilog.debug?
           @current_t2xx = [@t2xx_retrans_timers[:Start]*2, @t2xx_retrans_timers[:Cap]].min
           _schedule_timer_for_session(:t2xx_timer, @current_t2xx) 
         end  # still ok to retrans
       elsif task.tid == :t2xx_limit_timer
         @ok_to_retrans_2xx = false
         if @controller
-          logd("Invoking no_ack_received session listener for #{@controller.name}")
+          @ilog.debug("Invoking no_ack_received session listener for #{@controller.name}") if @ilog.debug?
           begin
             result = @controller.no_ack_received(self)
           rescue Exception => e
-            loge("Exception #{e} occured while callback processing by controller")
-            loge(e.backtrace.join("\n"))
+            @ilog.error("Exception #{e} occured while callback processing by controller") if @ilog.error?
+            @ilog.error(e.backtrace.join("\n")) if @ilog.error?
           end
         end # if controller
       elsif task.tid == :t1xx_timer
         if task.equal?@active_1xx_timer
-          logd("1xx retransmission timer fired for #{self}")
+          @ilog.debug("1xx retransmission timer fired for #{self}") if @ilog.debug?
           if @ok_to_retrans_1xx
             _do_record_sip("out", @one_xx.response, @one_xx.response.to_s)
             transport.send(@one_xx.response, @one_xx.tp_flags, @one_xx.rip, @one_xx.rp) 
-            logd("Retransmitted the 1xx response from #{self}")
+            @ilog.debug("Retransmitted the 1xx response from #{self}") if @ilog.debug?
             @current_t1xx = @current_t1xx*2
             @active_1xx_timer.cancel if @active_1xx_timer
             @active_1xx_timer = _schedule_timer_for_session(:t1xx_timer, @current_t1xx) 
           end  # still ok to retrans
         else
-           logd("Ignoring invalid 1xx timer #{task}")
+           @ilog.debug("Ignoring invalid 1xx timer #{task}") if @ilog.debug?
         end
       elsif task.tid == :t1xx_limit_timer
         @ok_to_retrans_1xx = false
         if @controller
-          logd("Invoking no_prack_received session listener for #{@controller.name}")
+          @ilog.debug("Invoking no_prack_received session listener for #{@controller.name}") if @ilog.debug?
           begin
             result = @controller.no_prack_received(self)
           rescue Exception => e
-            loge("Exception #{e} occured while callback processing by controller")
-            loge(e.backtrace.join("\n"))
+            @ilog.error("Exception #{e} occured while callback processing by controller") if @ilog.error?
+            @ilog.error(e.backtrace.join("\n")) if @ilog.error?
           end
         end # if controller
       elsif task.tid == :session_limit
-        logi("Upper limit of session time limit reached, now invalidating #{self}")
+        @ilog.info("Upper limit of session time limit reached, now invalidating #{self}") if @ilog.info?
         self.invalidate(true)
       end #type of session timer
     end   #session or app
@@ -1392,12 +1393,12 @@ class Session
   
   
   def schedule_timer_for(tid, duration, &block)
-    logd("Scheduling an app timer #{tid} for #{duration}")
+    @ilog.debug("Scheduling an app timer #{tid} for #{duration}") if @ilog.debug?
     SIP::Locator[:Sth].schedule_for(self, tid, block, :app, duration)
   end
   
   def _schedule_timer_for_session(tid, duration, &block)
-    logd("Scheduling a session level timer #{tid} for #{duration}")
+    @ilog.debug("Scheduling a session level timer #{tid} for #{duration}") if @ilog.debug?
     SIP::Locator[:Sth].schedule_for(self, tid, block, :session, duration)
   end
   
@@ -1440,32 +1441,32 @@ class Session
     @imedia_event = media_event
     
     if @controller
-      logd("Dispatching media event to controller #{@controller.name}")
+      @ilog.debug("Dispatching media event to controller #{@controller.name}") if @ilog.debug?
       begin
         result = @controller.on_media_event(self)
       rescue Exception => e
-        loge("Exception #{e} occured while media processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while media processing by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
-      logw("#{@controller} could not process the media event") if result == false
+      @ilog.warn("#{@controller} could not process the media event") if result == false && @ilog.warn?
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end  
   end
   
   def _on_http_response(http_res)
     @ihttp_response = http_res
     if @controller
-      logd("Dispatching http response to controller #{@controller.name}")
+      @ilog.debug("Dispatching http response to controller #{@controller.name}") if @ilog.debug?
       begin
         result = @controller.on_http_res(self)
       rescue Exception => e
-        loge("Exception #{e} occured while http response processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while http response processing by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
-      logw("#{@controller} could not process the http response") if result == false
+      @ilog.warn("#{@controller} could not process the http response") if result == false && @ilog.warn?
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end  
   end
   
@@ -1473,31 +1474,31 @@ class Session
     @ihttp_request = servlet_req_obj.req
     result = false
     if @controller
-      logd("Dispatching http request to controller #{@controller.name}")
+      @ilog.debug("Dispatching http request to controller #{@controller.name}") if @ilog.debug?
       begin
         result = @controller.on_http_request(servlet_req_obj.req, servlet_req_obj.res, self)
       rescue Exception => e
-        loge("Exception #{e} occured while http request processing by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while http request processing by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
-      logw("#{@controller} could not process the http request") if result == false
+      @ilog.warn("#{@controller} could not process the http request") if result == false && @ilog.warn?
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end
   end
 
   def _on_custom_message(custom_msg)
     if @controller
-      logd("Dispatching custom message to controller #{@controller.name}")
+      @ilog.debug("Dispatching custom message to controller #{@controller.name}") if @ilog.debug?
       begin
         result = @controller.on_custom_msg(self, custom_msg)
       rescue Exception => e
-        loge("Exception #{e} occured while processing custom message by controller")
-        loge(e.backtrace.join("\n"))
+        @ilog.error("Exception #{e} occured while processing custom message by controller") if @ilog.error?
+        @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
-      logw("#{@controller} could not process the custom message") if result == false
+      @ilog.warn("#{@controller} could not process the custom message") if result == false && @ilog.warn?
     else
-      loge("No controller associated with this session")
+      @ilog.error("No controller associated with this session") if @ilog.error?
     end
   end
 
@@ -1508,15 +1509,15 @@ class Session
   
   def invalidate(force=false)
     if @invalidated
-      logw("This session with key #{self.session_key} is already invalidated")
+      @ilog.warn("This session with key #{self.session_key} is already invalidated") if @ilog.warn?
       return
     end
     
     if force
-      logd("Now invalidating the session #{self} with key #{self.session_key}")
+      @ilog.debug("Now invalidating the session #{self} with key #{self.session_key}") if @ilog.debug?
       @offer_answer.close if @offer_answer
       @transactions.each_value do |t| 
-        logd("Invalidating the txn #{t} in session #{self}")
+        @ilog.debug("Invalidating the txn #{t} in session #{self}") if @ilog.debug?
         t.invalidate
       end
       @session_recorder.save if @session_recorder
@@ -1525,13 +1526,13 @@ class Session
       SIP::TestCompletionSignalingHelper.signal_waiting_test(@signal_test_complete_when_invalidated) if @signal_test_complete_when_invalidated
     else
       if @invalidating
-        logi("This session with key #{self.session_key} is already scheduled for invalidation")
+        @ilog.info("This session with key #{self.session_key} is already scheduled for invalidation") if @ilog.info?
         return
       end
       @invalidating = true
       tmr = _schedule_timer_for_session(:session_timer, @session_timer)
       @session_life_so_far += @session_timer
-      logd("Now scheduling the session #{self.session_key} for invalidation after #{@session_timer} #{tmr}")
+      @ilog.debug("Now scheduling the session #{self.session_key} for invalidation after #{@session_timer} #{tmr}") if @ilog.debug?
     end
   end
   
@@ -1551,18 +1552,18 @@ class Session
   
   def flow_completed_for(test_name)
     unless @invalidated
-      logd("Session not invalidated yet, setting flag signaling completion")
+      @ilog.debug("Session not invalidated yet, setting flag signaling completion") if @ilog.debug?
       @signal_test_complete_when_invalidated = test_name.to_s
       return true
     end
-    logd("In flow_completed_for() now siganling the waiting test")
+    @ilog.debug("In flow_completed_for() now siganling the waiting test") if @ilog.debug?
     SIP::TestCompletionSignalingHelper.signal_waiting_test(test_name.to_s)
   end
   
   # The first recording will create the recording file name using in or out
   # todo will it be enough for uniqueness? 
   def _do_record_sip(direction, msg, msg_s=nil)
-    logd("record() invoked for #{direction} and #{msg.call_id.to_s}")
+    @ilog.debug("record() invoked for #{direction} and #{msg.call_id.to_s}") if @ilog.debug?
     # maintain simple state in the session
     unless @user_defined_state
       if direction == "out"
@@ -1585,7 +1586,7 @@ class Session
       @session_recorder.record(direction, msg, msg_s)
     end
   rescue RuntimeError => e
-    loge("Unable to record the #{msg} as recorder is closed")
+    @ilog.error("Unable to record the #{msg} as recorder is closed") if @ilog.error?
   end
   
   
@@ -1608,7 +1609,7 @@ class Session
   def _increment_local_cseq
     @local_cseq_before_send ||= @local_cseq
     @local_cseq += 1
-    logd "Local cseq before send set to #{@local_cseq_before_send} and @local_cseq is #{@local_cseq}"
+    @ilog.debug "Local cseq before send set to #{@local_cseq_before_send} and @local_cseq is #{@local_cseq}" if @ilog.debug?
   end
   
   # Useful when you create a subsequent request but do not send it.
@@ -1635,16 +1636,16 @@ class Session
       @dialog_routes.restore_snapshot(@dialog_routes_snap)
       @dialog_routes_snap = nil
       request.session_state_snapshot = nil
-      logd("Restored to previous session state for request #{request.method}")
+      @ilog.debug("Restored to previous session state for request #{request.method}") if @ilog.debug?
     else
-      logd("No state to rollback.")
+      @ilog.debug("No state to rollback.") if @ilog.debug?
     end
   end
   
   # creates a failure response and also rolls back the session state, this is called 
   # when the request is rejected by Sipper itself. 
   def rejection_response_with(code, request)
-    logi("Rejecting the request #{request.method} with a #{code}")
+    @ilog.info("Rejecting the request #{request.method} with a #{code}") if @ilog.info?
     r = create_response(code, "SELECT", request)
     rollback_to_before_request_received_state(request)
     return r
@@ -1685,10 +1686,10 @@ class Session
     if SipperConfigurator[:ProtocolCompliance]=='strict' && 
       new_remote_cseq < @remote_cseq
       if @irequest.method == "ACK"
-        logd("Dropping an ACK for an out of CSeq rejected request")
+        @ilog.debug("Dropping an ACK for an out of CSeq rejected request") if @ilog.debug?
       else
         request.attributes[:_sipper_rejection_response] = rejection_response_with(500, @irequest)
-        logd("Rejected the request #{@irequest.method} for out of CSeq")
+        @ilog.debug("Rejected the request #{@irequest.method} for out of CSeq") if @ilog.debug?
       end
       return false
     end
@@ -1698,7 +1699,7 @@ class Session
     if request.method == 'NOTIFY'
       if @session_map == :half
         if get_subscription(request) != nil
-          logd("Moving the dialog to full on Subscription notify.")
+          @ilog.debug("Moving the dialog to full on Subscription notify.") if @ilog.debug?
           SessionManager.find_session(request.call_id, request.to_tag, request.from_tag, true)
         end
       end
@@ -1727,7 +1728,7 @@ class Session
     if SipperConfigurator[:ProtocolCompliance] == 'strict' && 
       SipperUtil.cseq_number(request.cseq) == request.attributes[:_sipper_old_cseq]
       request.attributes[:_sipper_rejection_response] = rejection_response_with(500, @irequest)
-      logd("Rejected the request #{request.method} for out of (equal) CSeq")
+      @ilog.debug("Rejected the request #{request.method} for out of (equal) CSeq") if @ilog.debug?
       false
     else
       true 
@@ -1823,7 +1824,7 @@ class Session
     key = sprintf("|%s|%d", event, id_val)
     subscription = @subscriptionMap[key]
     unless subscription 
-      logd("Creating new uas subscription object.")
+      @ilog.debug("Creating new uas subscription object.") if @ilog.debug?
       subscription = SubscriptionData.new
       subscription.key = key
       subscription.timer = nil
@@ -1849,7 +1850,7 @@ class Session
     key = sprintf("|%s|%d", event, id_val)
     subscription = @subscriptionMap[key]
     unless subscription
-      logd("Creating new uac subscription object.")
+      @ilog.debug("Creating new uac subscription object.") if @ilog.debug?
       subscription = SubscriptionData.new
       subscription.key = key
       subscription.timer = nil
@@ -1933,7 +1934,7 @@ class Session
   end
   
   def add_subscription_to_request(request, subscription)
-    logd(subscription.to_s)
+    @ilog.debug(subscription.to_s) if @ilog.debug?
 
     if subscription.event != "refer" || request.method != "REFER" || subscription.event_id != 0
        request.event = subscription.event
@@ -1949,38 +1950,38 @@ class Session
   end
   
   def _schedule_timer_for_subscription(duration, subscription)
-    logd("Scheduling a subscription timer for #{duration}")
+    @ilog.debug("Scheduling a subscription timer for #{duration}") if @ilog.debug?
     subscription.timer = SIP::Locator[:Sth].schedule_for(self, subscription, nil, :subscription, duration)
   end
   
   def start_subscription_expiry_timer(subscription, response)
-    logd('starting subscription expiry timer')
+    @ilog.debug('starting subscription expiry timer') if @ilog.debug?
     if subscription.state != "active" 
-      logd("Not scheduling timer as state is not active")
+      @ilog.debug("Not scheduling timer as state is not active") if @ilog.debug?
       return
     end
     
     expires = response.expires.header_value
     if expires == nil 
-      logd("Not scheduling timer as expires is empty")
+      @ilog.debug("Not scheduling timer as expires is empty") if @ilog.debug?
       return
     end
     
     expiresDuration = expires.to_i * 1000
     
-    logd("Scheduling timer for subscription")
+    @ilog.debug("Scheduling timer for subscription") if @ilog.debug?
     _schedule_timer_for_subscription(expiresDuration, subscription)
   end
   
   def start_subscription_refresh_timer(subscription, response)
     if subscription.state != "active" 
-      logd("Not starting refresh Timer as state is #{subscription.state}");
+      @ilog.debug("Not starting refresh Timer as state is #{subscription.state}")if @ilog.debug?
       return
     end
     
     expires = response.expires.header_value
     if expires == nil 
-      logd("Not starting refresh Timer as expires is nil")
+      @ilog.debug("Not starting refresh Timer as expires is nil") if @ilog.debug?
       return
     end
     
@@ -1990,7 +1991,7 @@ class Session
       expiresDuration = expires.to_i * 500
     end
     
-    logd("Starting refresh Timer for #{expiresDuration}");
+    @ilog.debug("Starting refresh Timer for #{expiresDuration}") if @ilog.debug?
     _schedule_timer_for_subscription(expiresDuration, subscription)
   end
   
@@ -2005,7 +2006,7 @@ class Session
     key = sprintf("%s", aor)
     reg_list = SIP::Locator[:RegistrationStore].get(key) if persist
     unless reg_list 
-      logd("Creating new registration object.")
+      @ilog.debug("Creating new registration object.") if @ilog.debug?
       reg_list =[]
       if message[:contact]
         message.contacts.each do|cn| 
@@ -2014,7 +2015,7 @@ class Session
         end  
       end
     else
-      logd("Updating registration object.")
+      @ilog.debug("Updating registration object.") if @ilog.debug?
       message.contacts.each do|cn| 
         updated = Registration.update_registration_data(cn, reg_list, message)
         if not updated
@@ -2034,7 +2035,7 @@ class Session
   end
   
   def _schedule_timer_for_registration(duration, registration)
-    logd("Scheduling a registration refresh timer for #{duration}")
+    @ilog.debug("Scheduling a registration refresh timer for #{duration}") if @ilog.debug?
     SIP::Locator[:Sth].schedule_for(self, registration, nil, :registration, duration)
   end
   
@@ -2044,7 +2045,7 @@ class Session
       expires = reg_data.expires if expires.to_i > reg_data.expires.to_i
     end
     if expires.to_i == 0 
-      logd("Not starting registration refresh Timer as expires is 0")
+      @ilog.debug("Not starting registration refresh Timer as expires is 0") if @ilog.debug?
       return
     end
    
@@ -2053,7 +2054,7 @@ class Session
     if (expiresDuration < 0)
       expiresDuration = expires.to_i * 500
     end
-    logd("Starting registration expiry Timer for #{expiresDuration}");
+    @ilog.debug("Starting registration expiry Timer for #{expiresDuration}") if @ilog.debug?
     _schedule_timer_for_registration(expiresDuration, @registrations)
   end
   
