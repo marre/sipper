@@ -23,6 +23,7 @@ module SIP
     # this goes off and creates the controlllers and maintain
     # the order map 
     def initialize dir
+      @ilog = logger
       @controllers = {} #  fqname=> instance 
       @load_dir = dir
       load_controllers dir  if @load_dir
@@ -36,7 +37,7 @@ module SIP
       dir.each do |f|
         next if File.directory?(f)
         path = File.join(dir.path, f)
-        logd("Path is #{path}")
+        @ilog.debug("Path is #{path}") if @ilog.debug?
         if f=~/order.yaml/
           @order_arr = SipperUtil.load_yaml(path)
         elsif f=~/controller.rb$/
@@ -44,7 +45,7 @@ module SIP
         end
       end
       create_controllers
-      logd("There are a total of #{@controllers.size} controllers, they are #{@controllers.keys.join(',')}")
+      @ilog.debug("There are a total of #{@controllers.size} controllers, they are #{@controllers.keys.join(',')}") if @ilog.debug?
     end
     
     
@@ -62,7 +63,7 @@ module SIP
     
     def get_controllers(request=nil)
       if @order_arr
-        logd("order_arr present with #{@order_arr.join(',')}")
+        @ilog.debug("order_arr present with #{@order_arr.join(',')}") if @ilog.debug?
         control_order = @controllers.sort do |x,y|
           # todo DRY it when you have tests
            (@order_arr.index(x[0])?@order_arr.index(x[0]):@order_arr.length) <=> (@order_arr.index(y[0])?@order_arr.index(y[0]):@order_arr.length)
@@ -87,7 +88,7 @@ module SIP
     
     
     def create_controllers
-      logd("Loading controller from ControllerClassFinder")
+      @ilog.debug("Loading controller from ControllerClassFinder") if @ilog.debug?
       SIP::ControllerClassLoader.controllers.each do |fqcname|
         create_controller(fqcname)  
       end

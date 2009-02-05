@@ -4,6 +4,10 @@ module SIP
 
   class B2buaController < SIP::BaseController
     
+    def initialize
+       @ilog = logger
+    end
+
     # Gets or creates a peer b2bua leg (session). The session passed in as the 
     # argument becomes the anchor leg which is the main leg. 
     def get_or_create_peer_session(session, rip=SipperConfigurator[:DefaultRIP], 
@@ -86,7 +90,7 @@ module SIP
         r.copy_from(orig_response,  :content, :content_type, :path, :service_route, :privacy, :warning)
         return r
       else
-        logw("No peer session found, cannot create the response")
+        @ilog.warn("No peer session found, cannot create the response") if @ilog.warn?
         raise "Unable to create response"
       end 
     end
@@ -107,7 +111,7 @@ module SIP
         r = create_b2bua_request(session)
         peer_session.send(r)
       else
-        logw("No peer session found, cannot relay the request")
+        @ilog.warn("No peer session found, cannot relay the request") if @ilog.warn?
         raise "Unable to relay the request" 
       end
     end
@@ -120,7 +124,7 @@ module SIP
         r = create_b2bua_response(session)
         peer_session.send(r)
       else
-        logw("No peer session found, cannot relay the response")
+        @ilog.warn("No peer session found, cannot relay the response") if @ilog.warn?
         raise "Unable to relay the response" 
       end
     end

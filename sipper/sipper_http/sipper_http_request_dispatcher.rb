@@ -25,6 +25,7 @@ class SipperHttpRequestDispatcher
   # this is where all the sip/timer/media and now http responses
   # are queued.
   def initialize(sipper_msg_queue, num_threads = 5)
+    @ilog = logger
     @num_threads = num_threads
     @request_queue = Queue.new 
     @run = false
@@ -73,17 +74,17 @@ class SipperHttpRequestDispatcher
   
   # params are a hash of POST parameters
   def request_post(url, session, params, user, passwd, hdr_arr, body)
-    logd('POST request called on dispatcher, now enquing request')
+    @ilog.debug('POST request called on dispatcher, now enquing request') if @ilog.debug?
     @request_queue << HttpUrlContext.new(url, 'post', session, params, user, passwd, hdr_arr, body)  
   end
   
   def request_put(url, session, user, passwd, hdr_arr, body)
-    logd('PUT request called on dispatcher, now enquing request')
+    @ilog.debug('PUT request called on dispatcher, now enquing request') if @ilog.debug?
     @request_queue << HttpUrlContext.new(url, 'put', session, nil, user, passwd, hdr_arr, body)
   end
   
   def request_get(url, session, user, passwd, hdr_arr, body)
-    logd('GET request called on dispatcher, now enquing request')
+    @ilog.debug('GET request called on dispatcher, now enquing request') if @ilog.debug?
     @request_queue << HttpUrlContext.new(url, 'get', session, nil, user, passwd, hdr_arr, body)
   end
   

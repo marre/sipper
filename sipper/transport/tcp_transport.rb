@@ -33,6 +33,7 @@ module Transport
     
     
     def initialize(ip, port, external_q)
+      @ilog = logger
       @tid = "TCP"
       if external_q
         @queue = external_q
@@ -43,7 +44,7 @@ module Transport
       @port = port
       @running = false
       @running_lock = Monitor.new 
-      logi("Created a new tcp transport with #{@ip} and #{@port}")
+      @ilog.info("Created a new tcp transport with #{@ip} and #{@port}") if @ilog.info?
     end
     
     
@@ -62,7 +63,7 @@ module Transport
     
     
     def start_transport
-      logi("Starting the tcp transport #{self}")
+      @ilog.info("Starting the tcp transport #{self}") if @ilog.info?
       #@running_lock.synchronize do
       fail "Already running" if @running
       @running = true
@@ -83,8 +84,8 @@ module Transport
             start_sock_thread(sock)
           end  # loop
         rescue  => detail
-          logd detail.backtrace.join("\n") 
-          loge("Exception #{detail} occured for #{self}")
+          @ilog.debug detail.backtrace.join("\n") if @ilog.debug?
+          @ilog.error("Exception #{detail} occured for #{self}")
           break
         end  # exception
       end 
@@ -97,17 +98,17 @@ module Transport
         begin
           begin
             addr = sock.peeraddr
-            logd "accept: #{addr[3]}:#{addr[1]}"
+            @ilog.debug "accept: #{addr[3]}:#{addr[1]}" if @ilog.debug?
           rescue SocketError
-            logd "accept: <address unknown>"
+            @ilog.debug "accept: <address unknown>" if @ilog.debug?
             raise
           end
           run(sock)
         rescue Errno::ENOTCONN
-          logd "Errno::ENOTCONN raised"
+          @ilog.debug "Errno::ENOTCONN raised" if @ilog.debug?
         rescue Exception => ex
-          loge "Exception2 raised "+ex
-          logd ex.backtrace.join("\n") 
+          @ilog.error "Exception2 raised "+ex
+          @ilog.debug ex.backtrace.join("\n")  if @ilog.debug?
         end
       }
     end
@@ -145,7 +146,7 @@ module Transport
           
           remaining_size = cl.to_i
           cl = nil
-          logd("Reading TCP message content, length is #{remaining_size}")
+          @ilog.debug("Reading TCP message content, length is #{remaining_size}") if @ilog.debug?
           while remaining_size > 0 
             sz = MAX_RECV_BUFFER < remaining_size ? MAX_RECV_BUFFER : remaining_size
             break unless buf = read_data(sock, sz)
@@ -162,22 +163,21 @@ module Transport
           # [msg, ["AF_INET", 49361, "ashirs-PC", "127.0.0.1"]]
           mesg = [msg, sock.peeraddr]  
           BaseTransport.in_filters.each do |in_filter|
-            logd("Ingress filter applied is #{in_filter.class.name}")
+            @ilog.debug("Ingress filter applied is #{in_filter.class.name}") if @ilog.debug?
             mesg[0] = in_filter.do_filter(mesg[0])
             break unless mesg[0]
           end
           #["msg", ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
-          if logger.debug?
-            logd("Message received is - ")
-            mesg.each_with_index {|x,i| logd(" > mesg[#{i}]=#{x}")}    
+          if @ilog.debug?
+            @ilog.debug("Message received is - ") if @ilog.debug?
+            mesg.each_with_index {|x,i| @ilog.debug(" > mesg[#{i}]=#{x}") if @ilog.debug? }    
           end
           if mesg[0]
             mesg << [@ip, @port, @tid, sock]
             #["msg", ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"], [our_ip, our_port, TCP, socket]]
             @queue << mesg
-            #logi("Message recvd on transport and enqueued on #{@queue}")
           else
-            logi("Message recvd on transport does not have the payload or is consumed by a filter, not enquing")
+            @ilog.info("Message recvd on transport does not have the payload or is consumed by a filter, not enquing") if @ilog.info?
           end     
         end
       end
@@ -206,7 +206,7 @@ module Transport
     end
     
     def stop_transport
-      logi("Stopping transport #{self}")
+      @ilog.info("Stopping transport #{self}") if @ilog.info?
       #@running_lock.synchronize do
       fail "Already stopped" unless @running
       @running = false
@@ -223,16 +223,16 @@ module Transport
       else
         smesg = mesg
       end 
-      logi("Sending message #{smesg} using #{self} to ip=#{rip} and port=#{rp}")
+      @ilog.info("Sending message #{smesg} using #{self} to ip=#{rip} and port=#{rp}") if @ilog.info?
       if smesg =~ /_PH_/
-        logd("Now filling in message of class #{smesg.class}")
+        @ilog.debug("Now filling in message of class #{smesg.class}") if @ilog.debug?
         SipperUtil::MessageFill.sub(smesg, :trans=>@tid, :lip=>@ip, :lp=>@port.to_s) 
       else
-        logd("Nothing to fill in message of class #{smesg.class}")
+        @ilog.debug("Nothing to fill in message of class #{smesg.class}") if @ilog.debug?
       end
       
       BaseTransport.out_filters.each do |out_filter|
-        logd("Outgress filter applied is #{out_filter.class.name}")
+        @ilog.debug("Outgress filter applied is #{out_filter.class.name}") if @ilog.debug?
         smesg = out_filter.do_filter(smesg)
         break unless smesg
       end
@@ -244,7 +244,7 @@ module Transport
         end
         sock.send(smesg, flags)
       else
-        logi("Not sending the message as it has probably been nilled out by a filter")
+        @ilog.info("Not sending the message as it has probably been nilled out by a filter") if @ilog.info?
       end
       smesg  # returns for recorder etc.
     end

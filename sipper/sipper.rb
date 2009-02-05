@@ -50,6 +50,7 @@ module SIP
     attr_reader :running
     
     def initialize( config={} )
+      @ilog = logger
       if RUBY_PLATFORM =~ /mswin/
         SipperConfigurator[:SipperPlatformRecordingSeparator] = "\r\n"
       elsif
@@ -157,9 +158,9 @@ module SIP
             log_and_raise "The transport #{tp} is not yet supported"
           end
         end
-        #logi("Created the transport #{ips[i]?ips[i]:ips[0]}, #{ports[i]}")
+        #@ilog.info("Created the transport #{ips[i]?ips[i]:ips[0]}, #{ports[i]}") if @ilog.info?
       end
-      logi("Added #{ports.length} ports to transport manager")
+      @ilog.info("Added #{ports.length} ports to transport manager") if @ilog.info?
       SipperConfigurator[:NumThreads] ||=  config[:NumThreads] || 5
       @smr = SipMessageRouter.new(@q, SipperConfigurator[:NumThreads])
       SIP::Locator[:Smr] = @smr
@@ -228,7 +229,7 @@ module SIP
         else
           DRb.start_service
         end
-        logd("Starting the client DRb service")
+        @ilog.debug("Starting the client DRb service") if @ilog.debug?
       end
       @tm.start  # starting the timer manager
       
@@ -256,7 +257,7 @@ module SIP
       t = Thread.new do
         SIP::Locator[:Tm].transports.each do |tr|
           tr.start_transport
-          #logi("Started the transport #{tr}")
+          #@ilog.info("Started the transport #{tr}") if @ilog.info?
         end
         
         @smr.start       
@@ -266,12 +267,12 @@ module SIP
           if c.class.start_on_load?
             Thread.new do
               Thread.current[:name] = "StarterThread-"+i.to_s
-              logd("Starting controller #{c.name}")
+              @ilog.debug("Starting controller #{c.name}") if @ilog.debug?
               c.start  
             end
           end
         end
-        logi("Sipper now started. Server version #{SIP::VERSION::STRING}")
+        @ilog.info("Sipper now started. Server version #{SIP::VERSION::STRING}") if @ilog.info?
         
         @smr.tg.list.each {|th| th.join} #law of demeter VVV
         
@@ -366,13 +367,13 @@ module SIP
     def stop
       SIP::Locator[:Tm].transports.each do |t|
         t.stop_transport
-        logi("Stopped the transport #{t}")
+        @ilog.info("Stopped the transport #{t}") if @ilog.info?
       end
       if SipperConfigurator[:SipperHttpServer]
         @w.shutdown if @w
       end  
       @smr.stop
-      logi("Stopped the SIP Message Router")
+      @ilog.info("Stopped the SIP Message Router") if @ilog.info?
       @tm.stop
       # stop the DRb server on this node
       DRb.stop_service

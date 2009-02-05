@@ -231,7 +231,7 @@ module SIP
           @ilog.debug "Sending the last response #{@last_sent_response.code} from Ist #{self}" if @ilog.debug?
           _send_to_transport(@last_sent_response, @sock)
         else
-          @ilog.warn("No last response available, not sending anything from #{self}")
+          @ilog.warn("No last response available, not sending anything from #{self}") if @ilog.warn?
         end
       end
       
@@ -292,7 +292,7 @@ module SIP
       end
       
       def __timeout
-        @ilog.warn("Transaction timeout happened")
+        @ilog.warn("Transaction timeout happened") if @ilog.warn?
         @tu.transaction_timeout(self) if @tu
         @txn_handler.timeout(self) if @txn_handler && @txn_handler.respond_to?(:timeout)
       end

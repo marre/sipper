@@ -17,6 +17,7 @@ module SIP
     MAX_TIME = Time.local(2038, "jan", 1).to_f*1000  # a long time
     
     def initialize(msg_q=nil, granularity=50)
+      @ilog = logger
       @msg_q = msg_q 
       #@pqueue = PQueue.new() {|x,y| x<y}
       @pqueue = PQueue.new(lambda {|x,y| x<y})
@@ -31,7 +32,7 @@ module SIP
     def schedule(task)
       log_and_raise "Timer Manager not running", RuntimeError unless @running
       if task.canceled?
-        logw("TimerTask #{task} is canceled, will not be scheduled")
+        @ilog.warn("TimerTask #{task} is canceled, will not be scheduled") if @ilog.warn?
         return  
       end
       @lock.synchronize do
@@ -46,7 +47,7 @@ module SIP
     end
     
     def start
-      logi "Starting the TimerManager"
+      @ilog.info "Starting the TimerManager" if @ilog.info?
       @running = true
       Thread.new do
         @lock.synchronize do
@@ -71,7 +72,7 @@ module SIP
     
     
     def stop
-      logi "Stopping the TimerManager"
+      @ilof.info "Stopping the TimerManager" if @ilog.info?
       @running = false
     end
     

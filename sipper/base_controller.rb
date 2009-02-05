@@ -219,30 +219,32 @@ module SIP
       self.class.name
     end
     
+    @@slog = SipLogger['siplog::sip_basecontroller']
+
     def logi(m)
-      SipLogger['siplog::sip_basecontroller'].info("[#{name}] "+m)
+      @@slog.info("[#{name}] "+m) if @@slog.info?
     end
     
     def logd(m)
-      SipLogger['siplog::sip_basecontroller'].debug("[#{name}] "+m)
+      @@slog.debug("[#{name}] "+m) if @@slog.debug?
     end
     
     def logw(m)
-      SipLogger['siplog::sip_basecontroller'].warn("[#{name}] "+m)
+      @@slog.warn("[#{name}] "+m) if @@slog.warn?
     end
    
     def loge(m)
-      SipLogger['siplog::sip_basecontroller'].error("[#{name}] "+m)
+      @@slog.error("[#{name}] "+m) if @@slog.error?
     end
     
     def logf(m)
-      SipLogger['siplog::sip_basecontroller'].fatal("[#{name}] "+m)
+      @@slog.fatal("[#{name}] "+m) if @@slog.fatal?
     end
    
    # start method
    
     def start
-      logd("Nothing to start")
+      @@slog.debug("Nothing to start") if @@slog.debug?
       return false
     end
     
@@ -290,7 +292,7 @@ module SIP
     end
     
     def unknown_response(code)
-      loge("I do not handle response with code #{code}")
+      @@slog.error("I do not handle response with code #{code}") if @@slog.error?
     end
    
     # response_method is the string "on_success_res" etc.
@@ -314,7 +316,7 @@ module SIP
     # But perhaps it is still OK to return a boolean from here as we may use it
     # for some other purposes.
     def on_request(session)
-      logd("In base_controller on_request for call #{session.call_id}")
+      @@slog.debug("In base_controller on_request for call #{session.call_id}") if @@slog.debug?
       m = ("on_" + session.irequest.method.downcase).to_sym
       return self.send(m, session)
     end 
@@ -337,7 +339,7 @@ module SIP
     
     
     def on_http_request(req, res, session)
-      logd("In base_controller on_request for HTTP request")
+      @@slog.debug("In base_controller on_request for HTTP request") if @@slog.debug?
       m = ("on_http_" + req.request_method.gsub(/-/, "_")).downcase.to_sym
       return self.send(m, req, res, session)  
     end 
@@ -356,7 +358,7 @@ module SIP
     
     
     def unknown_request(m)
-      logw("I do not handle request with method #{m}")
+      @@slog.warn("I do not handle request with method #{m}") if @@slog.warn?
       return false
     end
   
@@ -423,20 +425,20 @@ module SIP
     # enables chaining by detecting interest early
     def interested?(initial_request)
        if self.respond_to?(("on_" + initial_request.method.downcase).to_sym)
-         logd("Yes I #{name} is interested")
+         @@slog.debug("Yes I #{name} is interested") if @@slog.debug?
          return true
        else
-         logd("No I #{name} is not interested")
+         @@slog.debug("No I #{name} is not interested") if @@slog.debug?
          return false
        end
     end
     
     def interested_http?(http_req)
       if self.respond_to?(("on_http_" + http_req.request_method.gsub(/-/, "_")).downcase.to_sym)
-         logd("Yes I #{name} is interested")
+         @@slog.debug("Yes I #{name} is interested") if @@slog.debug?
          return true
        else
-         logd("No I #{name} is not interested")
+         @@slog.debug("No I #{name} is not interested") if @@slog.debug?
          return false
        end  
     end

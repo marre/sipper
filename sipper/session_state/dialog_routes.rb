@@ -4,7 +4,7 @@ require 'sipper_configurator'
 require 'util/sipper_util'
 require 'sip_headers/header'
 
-# Maintains the route set and remote target for the dialog, also encapsulating the logic for 
+# Maintains the route set and remote target for the dialog, also encapsulating the reason for 
 # target refresh and strict router manipulation. 
 
 class DialogRoutes

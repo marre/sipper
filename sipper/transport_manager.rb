@@ -14,7 +14,7 @@ class TransportManager
   
   #["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]
   def get_transport_for(transport_info)
-    @transports[0]   #todo have the MH logic here
+    @transports[0]   #todo have the MH algo here
   end
   
   # todo find a way to return a different
