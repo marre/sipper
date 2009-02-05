@@ -56,9 +56,12 @@ module SipLogger
   def logf(arg)
     logger.fatal(arg) if logger.fatal?  
   end
+  
+  @@msgTrace = SipLogger['sipmsgtracelog']
+
   # Direction I/O (incoming/outgoing), remore ip, remote port, message
   def logsip(direction, rip, rp, lip, lp, tp, msg)
-    SipLogger['sipmsgtracelog'].debug("\nremote #{rip}:#{rp}\nlocal #{lip}:#{lp} #{tp}\n----------#{direction}----------\n#{msg}\n---------------------\n")
+    @@msgTrace.debug("\nremote #{rip}:#{rp}\nlocal #{lip}:#{lp} #{tp}\n----------#{direction}----------\n#{msg}\n---------------------\n") if @@msgTrace.debug?
   end
   
   

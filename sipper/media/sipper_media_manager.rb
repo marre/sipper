@@ -9,6 +9,7 @@ module Media
     include Singleton
 
     def initialize()
+       @ilog = logger
        @cal = Monitor.new # command send lock
 
        @csl = Monitor.new # command status lock
@@ -41,7 +42,7 @@ module Media
             msg_len = s.readpartial(4).unpack("N")[0]
             r = s.readpartial(msg_len)
 
-            logd("Message received on socket Len[#{msg_len}] Msg[#{r}]")
+            @ilog.debug("Message received on socket Len[#{msg_len}] Msg[#{r}]") if @ilog.debug?
 
             if r.include?'TYPE=Result;'
               cm = rs = md = rn = ri = rp = nil
@@ -92,7 +93,7 @@ module Media
               end
 
               if event_client == nil
-                 logd("Stray event received.#{r}")
+                 @ilog.debug("Stray event received.#{r}") if @ilog.debug?
               else
                  evt = Media::SmEvent.new(event_client.session, md, cd, ev, dt)
                  enqueue_event(evt)
@@ -114,7 +115,7 @@ module Media
     def send_command(mediaClient, commandStr)
       @cal.synchronize do
         @csl.synchronize do
-           logd("Sending media Len[#{commandStr.length}] Command[#{commandStr}]") 
+           @ilog.debug("Sending media Len[#{commandStr.length}] Command[#{commandStr}]") if @ilog.debug?
            @t << [commandStr.length].pack("N") << commandStr
 
            5.times do
@@ -136,7 +137,7 @@ module Media
                  return returnVal
               end
            end
-           logd("Unable to get result after 5 retries 50Sec. Command: #{commandStr}")
+           @ilog.debug("Unable to get result after 5 retries 50Sec. Command: #{commandStr}") if @ilog.debug?
            Process.exit(1)
         end
       end

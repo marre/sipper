@@ -35,6 +35,7 @@ module SIP
       #       i.e a message is either received or being tried to send out in a state where it is
       #       illegal to do so. 
       def initialize(tu, branch_id, txn_handler, transport, tp_flags, sock=nil, &block)
+        @ilog = logger
         @transaction_name = :Ict # need to have this name defined for every transaction
         @tu = tu
         @branch_id = branch_id
@@ -47,7 +48,7 @@ module SIP
         #@sm = Ict_sm.new(self)
         SIP::Transaction::StateMachineWrapper.bootstrap_machine(self, Ict_sm)
         @sm = SIP::Transaction::StateMachineWrapper.new(self, @txn_handler, Ict_sm)
-        logd("Created the Invite Client Transcation with #{@transport}")
+        @ilog.debug("Created the Invite Client Transcation with #{@transport}") if @ilog.debug?
       end
       
       
@@ -109,7 +110,7 @@ module SIP
         @sm.invite
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Cannot send invite in #{self.state} state for #{self}"
+        @ilog.error "Cannot send invite in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -119,7 +120,7 @@ module SIP
         @sm.provisional
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Received a provisional in #{self.state} state for #{self}"
+        @ilog.error "Received a provisional in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -131,7 +132,7 @@ module SIP
         @sm.non_success_final
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Received an non 2xx response in #{self.state} state for #{self}"
+        @ilog.error "Received an non 2xx response in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -141,7 +142,7 @@ module SIP
         @sm.success_final
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Received a 2xx response in #{self.state} state for #{self}"
+        @ilog.error "Received a 2xx response in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -164,7 +165,7 @@ module SIP
           @sm.timer_Y if @ok_to_run_timerY
         end
       rescue Statemap::TransitionUndefinedException => e
-        loge "Timer #{timer_task.tid} got fired for #{self}"
+        @ilog.error "Timer #{timer_task.tid} got fired for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -175,31 +176,31 @@ module SIP
       #------SM Callbacks <start>--------
       
       def __send_invite
-        logd "Sending INVITE from the Ict #{self}"
+        @ilog.debug "Sending INVITE from the Ict #{self}" if @ilog.debug?
         _send_to_transport(@invite, @sock) 
       end
       
       def __start_A
         return unless @ok_to_run_timerA
         task = SIP::Locator[:Sth].schedule_for(self, :ta, nil, :transaction, self.ta)
-        logd("Starting Timer A #{task} from Ict #{self}")
+        @ilog.debug("Starting Timer A #{task} from Ict #{self}") if @ilog.debug?
       end
       
       def __start_B
         return unless @ok_to_run_timerB
         task = SIP::Locator[:Sth].schedule_for(self, :tb, nil, :transaction, self.tb)
-        logd("Starting Timer B #{task} from Ict #{self}")
+        @ilog.debug("Starting Timer B #{task} from Ict #{self}") if @ilog.debug?
       end
       
       def __start_D
         task = SIP::Locator[:Sth].schedule_for(self, :td, nil, :transaction, self.td)
-        logd("Starting Timer D #{task} from Ict #{self}")
+        @ilog.debug("Starting Timer D #{task} from Ict #{self}") if @ilog.debug?
       end
       
       def __start_Y
         return unless @ok_to_run_timerY
         task = SIP::Locator[:Sth].schedule_for(self, :ty, nil, :transaction, self.ty)
-        logd("Starting Timer Y #{task} from Ict #{self}")
+        @ilog.debug("Starting Timer Y #{task} from Ict #{self}") if @ilog.debug?
       end
       
       def __reset_A(t)
@@ -208,23 +209,23 @@ module SIP
       end
       
       def __timeout
-        logw("Transaction timeout happened")
+        @ilog.warn("Transaction timeout happened") if @ilog.warn?
         @txn_handler.timeout(self) if @txn_handler && @txn_handler.respond_to?(:timeout)
         @tu.transaction_timeout(self) if @tu
       end
       
       def __cancel_A
-        logd "canceling timer A"
+        @ilog.debug "canceling timer A" if @ilog.debug?
         @ok_to_run_timerA = false
       end
       
       def __cancel_B
-        logd "canceling timer B"
+        @ilog.debug "canceling timer B" if @ilog.debug?
         @ok_to_run_timerB = false
       end
       
       def __cancel_Y
-        logd "canceling timer Y"
+        @ilog.debug "canceling timer Y" if @ilog.debug?
         @ok_to_run_timerY = false
       end
       
@@ -236,28 +237,28 @@ module SIP
       # this is ACK only for non 2xx final responses. 
       def __create_ack()
         return if @ack
-        logd("Creating a ACK request for txn #{self}")
+        @ilog.debug("Creating a ACK request for txn #{self}") if @ilog.debug?
         @ack = @tu.create_non_2xx_ack(@invite, @response)  # tu is Session
-        logd "The ACK for the Txn #{self} is #{@ack}"
+        @ilog.debug "The ACK for the Txn #{self} is #{@ack}" if @ilog.debug?
       end 
       
       def __send_ack()
-        logd "Sending ACK from the Ict"
+        @ilog.debug "Sending ACK from the Ict" if @ilog.debug?
         if @ack
           _send_to_transport(@ack, @sock)  
         else
-          loge "Cannot send ACK from #{self} as no ACK is created so far"
+          @ilog.error "Cannot send ACK from #{self} as no ACK is created so far" if @ilog.error?
         end
       end
       
       def __transport_err
-        loge "A transport error was encountered for #{self} calling TU"
+        @ilog.error "A transport error was encountered for #{self} calling TU" if @ilog.error?
         @txn_handler.transport_err(self) if @txn_handler && @txn_handler.respond_to?(:transport_err)
         @tu.transaction_transport_err(self) if @tu
       end
       
       def __cleanup
-        logd "Cleanup called for #{self}"
+        @ilog.debug "Cleanup called for #{self}" if @ilog.debug?
         @tu.transaction_cleanup(self) if @tu
         @txn_handler.cleanup(self) if @txn_handler && @txn_handler.respond_to?(:cleanup)
       end

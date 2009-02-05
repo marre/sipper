@@ -58,6 +58,7 @@ class SessionRecorder
   
   
   def initialize(f, io, l="msg-info")
+    @ilog = logger
     @messages = []
     @io = io
     @level = l
@@ -142,7 +143,7 @@ class SessionRecorder
   
   def save
     ensure_recordable
-    logd("Trying to save the recording in #{@io.path||@io}")
+    @ilog.debug("Trying to save the recording in #{@io.path||@io}") if @ilog.debug?
     @recordable = false
     begin
       @io.write(YAML::dump(self)) 
@@ -151,11 +152,13 @@ class SessionRecorder
       @io.flock(File::LOCK_UN) if @io.class == File if SipperConfigurator[:EnableRecordingLock]
       @io.close unless @io.class == StringIO
     end
-    logd("Saved the recording in #{@io.path||@io}")
+    @ilog.debug("Saved the recording in #{@io.path||@io}") if @ilog.debug?
   end
   
+  @@slog = SipLogger['siplog::sessionrecorder']
+
   def SessionRecorder.load(f)
-    SipLogger['siplog::sessionrecorder'].debug("Reading the recording from #{f}")
+    @@slog.debug("Reading the recording from #{f}") if @@slog.debug?
     begin
       case f
       when String
@@ -169,12 +172,12 @@ class SessionRecorder
         return obj
       else
         msg = "Object read from file #{f} is not a recording"
-        SipLogger['siplog::sessionrecorder'].error(msg)
+        @@slog.error(msg) if @@slog.error?
         raise TypeError, msg
       end
     rescue IOError
       msg = "#{f} is not a proper file"
-      SipLogger['siplog::sessionrecorder'].error(msg)
+      @@slog.error(msg) if @@slog.error?
       raise TypeError, msg
     ensure
       io.flock(File::LOCK_UN) if io.class == File if SipperConfigurator[:EnableRecordingLock]

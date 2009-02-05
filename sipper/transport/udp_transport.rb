@@ -25,6 +25,7 @@ module Transport
     
     
     def initialize(ip, port, external_q)
+      @ilog = logger
       @tid = "UDP"
       if external_q
         @queue = external_q
@@ -35,7 +36,7 @@ module Transport
       @port = port
       @running = false
       @running_lock = Monitor.new 
-      logi("Created a new udptransport with #{@ip} and #{@port}")
+      @ilog.info("Created a new udptransport with #{@ip} and #{@port}") if @ilog.info?
     end
     
     
@@ -54,7 +55,7 @@ module Transport
     
     
     def start_transport
-      logi("Starting the transport #{self}")
+      @ilog.info("Starting the transport #{self}") if @ilog.info?
       #@running_lock.synchronize do
         fail "Already running" if @running
         @running = true
@@ -64,34 +65,34 @@ module Transport
         UDPSocket.do_not_reverse_lookup = true
         @sock = UDPSocket.new
         @sock.bind(@ip, @port)
-        logd "binded ..#{@port}"
+        @ilog.debug "binded ..#{@port}" if @ilog.debug?
         begin 
           loop do
             #puts "starting the select loop.."
             IO.select([@sock])
             mesg = @sock.recvfrom_nonblock(MAX_RECV_BUFFER)
             BaseTransport.in_filters.each do |in_filter|
-              logd("Ingress filter applied is #{in_filter.class.name}")
+              @ilog.debug("Ingress filter applied is #{in_filter.class.name}") if @ilog.debug?
               mesg[0] = in_filter.do_filter(mesg[0])
               break unless mesg[0]
             end
             #["msg", ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
-            if logger.debug?
-              logd("Message received is - ")
-              mesg.each_with_index {|x,i| logd(" > mesg[#{i}]=#{x}")}    
+            if @ilog.debug?
+              @ilog.debug("Message received is - ")
+              mesg.each_with_index {|x,i| @ilog.debug(" > mesg[#{i}]=#{x}")}    
             end
             if mesg[0]
               mesg << [@ip, @port, @tid]
               @queue << mesg
-              #logi("Message recvd on transport and enqueued on #{@queue}")
+              #@ilog.info("Message recvd on transport and enqueued on #{@queue}") if @ilog.info?
             else
-              logi("Message recvd on transport does not have the payload or is consumed by a filter, not enquing")
+              @ilog.info("Message recvd on transport does not have the payload or is consumed by a filter, not enquing") if @ilog.info?
             end
             break if mesg[0] =~ /poison dart/
           end  # loop
           rescue  => detail
-            logd detail.backtrace.join("\n") 
-            loge("Exception #{detail} occured for #{self}")
+            @ilog.debug detail.backtrace.join("\n") if @ilog.debug?
+            @ilog.error("Exception #{detail} occured for #{self}") if @ilog.error?
             @sock.close
             break
         end  # exception
@@ -101,7 +102,7 @@ module Transport
     end 
     
     def stop_transport
-      logi("Stopping transport #{self}")
+      @ilog.info("Stopping transport #{self}") if @ilog.info?
       #@running_lock.synchronize do
         fail "Already stopped" unless @running
         @running = false
@@ -119,16 +120,16 @@ module Transport
       else
         smesg = mesg
       end 
-      logi("Sending message #{smesg} using #{self} to ip=#{ipport[0]} and port=#{ipport[1]}")
+      @ilog.info("Sending message #{smesg} using #{self} to ip=#{ipport[0]} and port=#{ipport[1]}") if @ilog.info?
       if smesg =~ /_PH_/
-        logd("Now filling in message of class #{smesg.class}")
+        @ilog.debug("Now filling in message of class #{smesg.class}") if @ilog.debug?
         SipperUtil::MessageFill.sub(smesg, :trans=>@tid, :lip=>@ip, :lp=>@port.to_s) 
       else
-        logd("Nothing to fill in message of class #{smesg.class}")
+        @ilog.debug("Nothing to fill in message of class #{smesg.class}") if @ilog.debug?
       end
       
       BaseTransport.out_filters.each do |out_filter|
-        logd("Outgress filter applied is #{out_filter.class.name}")
+        @ilog.debug("Outgress filter applied is #{out_filter.class.name}") if @ilog.debug?
         smesg = out_filter.do_filter(smesg)
         break unless smesg
       end
@@ -136,7 +137,7 @@ module Transport
       if smesg
         @sock.send(smesg, flags, ipport[0], ipport[1])
       else
-        logi("Not sending the message as it has probably been nilled out by a filter")
+        @ilog.info("Not sending the message as it has probably been nilled out by a filter") if @ilog.info?
       end
       smesg  # returns for recorder etc.
     end

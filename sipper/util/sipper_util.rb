@@ -14,7 +14,7 @@ module SipperUtil
   BOOL_MAP = { :true=>true, :false=>false }
   
   def log_and_raise(err_msg, ex=RuntimeError)
-    loge(err_msg)
+    loge(err_msg) 
     raise ex, err_msg
   end
   
@@ -129,6 +129,7 @@ module SipperUtil
   end
   
   
+  @@slog = SipLogger['siplog::message'];
   def SipperUtil.find_parser_and_parse(hname, val, parse_option)
     if val.class <= SipHeaders::Header
       return val.dup
@@ -140,7 +141,7 @@ module SipperUtil
       klass = SipHeaders.const_get(SipperUtil.classify(hname.to_s))
     else
       str = "Not a header, cannot parse"
-      SipLogger['siplog::message'].warn(str)
+      @@slog.warn(str) if @@slog.warn?
       raise TypeError, str
     end
     obj = klass.new    
@@ -148,7 +149,6 @@ module SipperUtil
     obj.assign(val, parse_option)
     return obj
   rescue  NameError => e
-    #SipLogger['siplog::message'].warn("No parser for header #{hname} using default parser")
     SipperUtil.find_parser_and_parse("Header", val, parse_option)
   end
   

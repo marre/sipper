@@ -41,13 +41,14 @@ class Request < Message
   
   def initialize(method, uri, *hh)
     super(*hh)
+    @ilog = logger
     @method = method.to_s.upcase
     if uri.class == URI::SipUri
       @uri = uri.dup
     else
       @uri = URI::SipUri.new.assign(uri.to_s)
     end
-    logi("Creating a new #{method} request for #{uri}")
+    @ilog.info("Creating a new #{method} request for #{uri}") if @ilog.info?
   end
 
   # This is a low level method and allows the caller to custom 

@@ -16,15 +16,16 @@ class SipperOfferAnswer
 =end
 
    def initialize(session)
+      @ilog = logger
       @session = session
       @state = 0
       @client = []
    end
 
    def close()
-      logd("Media close called.")
+      @ilog.debug("Media close called.") if @ilog.debug?
       @client.each do |curr|
-         logd("Calling close on #{curr}")
+         @ilog.debug("Calling close on #{curr}") if @ilog.debug?
          curr.destroy_media if curr
       end
    end
@@ -70,7 +71,7 @@ class SipperOfferAnswer
    end
 
    def _make_our_answer()
-      logd("Client making new answer")
+      @ilog.debug("Client making new answer") if @ilog.debug?
       peerMediaLines = @peerSdp.media_lines
       unless @client[0]
          @client[0] = SipperMediaClient.new(@session) if SipperConfigurator[:SipperMedia]
@@ -144,7 +145,7 @@ class SipperOfferAnswer
    def update_sipper_media()
       return unless SipperConfigurator[:SipperMedia]
 
-      logd("update_sipper_media PeerSDP:\n#{@peerSdp}\nOurSDP:\n#{ourSdp}\n")
+      @ilog.debug("update_sipper_media PeerSDP:\n#{@peerSdp}\nOurSDP:\n#{ourSdp}\n") if @ilog.debug?
       peerMediaLines = @peerSdp.media_lines
       ourMediaLines = @ourSdp.media_lines
 
@@ -268,7 +269,7 @@ class SipperOfferAnswer
          return unless response.require.to_s.include?("100rel")
       end
 
-      logd("Outgoing response checking state #{@state}")
+      @ilog.debug("Outgoing response checking state #{@state}") if @ilog.debug?
       case @state
       when 0
          return

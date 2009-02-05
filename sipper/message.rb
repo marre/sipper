@@ -273,10 +273,6 @@ class Message
    
   
   def parse_headers arr
-    if logger.debug?
-      #logd("In parse headers with array :")
-      #arr.each_with_index {|x,i| logd("## arr[#{i}] = #{x}")}
-    end
     content_idx = -1
     arr.each_with_index do |str, idx|
       @@slog.debug("parsing header : "+str) if @@slog.debug?
@@ -297,7 +293,6 @@ class Message
       end
     end
     @headers[:content_length][0].freeze if @headers[:content_length]
-    #logd("content_idx = #{content_idx} and arr.length = #{arr.length}")
     parse_content arr[content_idx..-1]   if ((content_idx>0) && (content_idx< arr.length))
   end
   

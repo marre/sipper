@@ -20,6 +20,7 @@ module SIP
       
       
       def initialize(&block)
+        @ilog = logger
         instance_eval(&block) if block_given? 
       end
       
@@ -92,7 +93,7 @@ module SIP
       # Timer callback
       def on_timer_expiration(timer_task)
         if @invalidated
-         logi("This txn #{self} is invalidated, not firing timer #{timer_task}")
+         @ilog.info("This txn #{self} is invalidated, not firing timer #{timer_task}") if @ilog.info?
          return
         end
       end
@@ -201,7 +202,7 @@ module SIP
         end
         @transport = rd[0] if rd[0]
         @msg_sent = @transport.send(msg, @tp_flags, rd[1], rd[2], sock)
-        logd("Now record the outgoing message from #{self.transaction_name}") 
+        @ilog.debug("Now record the outgoing message from #{self.transaction_name}") if @ilog.debug?
         @tu.transaction_record("out", msg)
       rescue 
         @transport_err = true

@@ -45,10 +45,12 @@ class SessionManager
   # For requests without to tag a new session is created and when 
   # responded to, it transitions to full_dialogs from half dialogs
   # 
+  @@slog = SipLogger['siplog::sessionmanager'];
+
   def SessionManager.find_session call_id, local, remote, final=false
-    SipLogger['siplog::sessionmanager'].info("Finding session for key |#{local}|#{call_id}|#{remote}|")
-    #SipLogger['siplog::sessionmanager'].debug("Half map at this time is #{@@half_dialogs.keys.join(',')}")
-    #SipLogger['siplog::sessionmanager'].debug("Full map at this time is #{@@full_dialogs.keys.join(',')}")
+    @@slog.info("Finding session for key |#{local}|#{call_id}|#{remote}|") if @@slog.info?
+    #@@slog.debug("Half map at this time is #{@@half_dialogs.keys.join(',')}") if @@slog.debug?
+    #@@slog.debug("Full map at this time is #{@@full_dialogs.keys.join(',')}") if @@slog.debug?
     s = nil
     key = sprintf("|%s|%s|%s|",local, call_id, remote)
     @@sm_lock.synchronize do
@@ -56,7 +58,7 @@ class SessionManager
         if local 
           s = @@full_dialogs[key]
           unless s
-            SipLogger['siplog::sessionmanager'].info("Not found in full dialog map looking in half")
+            @@slog.info("Not found in full dialog map looking in half") if @@slog.info?
             key_l = sprintf("|%s|%s|%s|",local, call_id, nil)
             if (s = @@half_dialogs[key_l])
               if final
@@ -64,14 +66,14 @@ class SessionManager
                 s.half_dialog_key = key_l
                 s.session_map = :full
                 s.session_key = key 
-                SipLogger['siplog::sessionmanager'].info("Found in half copying to full")
+                @@slog.info("Found in half copying to full") if @@slog.info?
               else
-                SipLogger['siplog::sessionmanager'].info("Found in half NOT copying to full")
+                @@slog.info("Found in half NOT copying to full") if @@slog.info?
               end
               @@full_dialogs[key] = s
             end
           else
-            SipLogger['siplog::sessionmanager'].info("Found in the full dialogs map")
+            @@slog.info("Found in the full dialogs map") if @@slog.info?
             # cleaning up in case a NOTIFY came before 2xx and now we have 2xx
             if final
               key_l = sprintf("|%s|%s|%s|",local, call_id, nil)
@@ -79,7 +81,7 @@ class SessionManager
               s.half_dialog_key = key_l
               s.session_map = :full
               s.session_key = key
-              SipLogger['siplog::sessionmanager'].info("Found in full NOW moving to full")
+              @@slog.info("Found in full NOW moving to full") if @@slog.info?
             end
           end
         else  #local not present but remote present
@@ -101,15 +103,15 @@ class SessionManager
   # from HD Map. If the session is already in full then do not do anything.
   
   def SessionManager.add_session session, final=false
-    SipLogger['siplog::sessionmanager'].debug("Trying to add session with session.session_map #{session.session_map} local_tag=#{session.local_tag} and remote_tag=#{session.remote_tag}")
+    @@slog.debug("Trying to add session with session.session_map #{session.session_map} local_tag=#{session.local_tag} and remote_tag=#{session.remote_tag}") if @@slog.debug?
     if session.session_map == :full && !session.force_update_session_map
-        SipLogger['siplog::sessionmanager'].info("Already in full map")
+        @@slog.info("Already in full map") if @@slog.info?
       return
     end
     if ((session.session_map == :half) && 
         !(session.remote_tag && session.local_tag)) && 
         !session.force_update_session_map
-      SipLogger['siplog::sessionmanager'].info("Already in half map, nothing new")
+      @@slog.info("Already in half map, nothing new") if @@slog.info?
       return  
     end
     key = sprintf("|%s|%s|%s|", session.local_tag, session.call_id, session.remote_tag)
@@ -133,7 +135,7 @@ class SessionManager
       end
       session.session_map = :half
     end
-    SipLogger['siplog::sessionmanager'].debug("Setting the session_key as #{key}")
+    @@slog.debug("Setting the session_key as #{key}") if @@slog.debug?
     session.session_key = key
   end
   
@@ -141,21 +143,21 @@ class SessionManager
   def SessionManager.remove_session session, half_only=false
     @@sm_lock.synchronize do
       @@half_dialogs[session.half_dialog_key] = nil if session.half_dialog_key
-      SipLogger['siplog::sessionmanager'].info("Removed session with key #{session.half_dialog_key} from half_dialogs map")
+      @@slog.info("Removed session with key #{session.half_dialog_key} from half_dialogs map") if @@slog.info?
       return if half_only
     end
     if session.session_map == :full
       @@sm_lock.synchronize do
         @@full_dialogs[session.session_key] = nil
       end    
-      SipLogger['siplog::sessionmanager'].info("Removed session with key #{session.session_key} from full_dialogs map")
+      @@slog.info("Removed session with key #{session.session_key} from full_dialogs map") if @@slog.info?
     elsif session.session_map == :half
       @@sm_lock.synchronize do
         @@half_dialogs[session.session_key] = nil
       end 
-      SipLogger['siplog::sessionmanager'].info("Removed session with key #{session.session_key} from half_dialogs map")
+      @@slog.info("Removed session with key #{session.session_key} from half_dialogs map") if @@slog.info?
     else
-      SipLogger['siplog::sessionmanager'].warn("Session with call_id #{session.call_id } does not have any map information")
+      @@slog.warn("Session with call_id #{session.call_id } does not have any map information") if @@slog.warn?
     end
   end
   

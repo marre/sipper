@@ -9,6 +9,7 @@ module Media
     attr_reader :controller_port
     
     def initialize(controller_port=nil)
+      @ilog = logger
       @controller_port = controller_port || SipperConfigurator[:SipperMediaDefaultControlPort]
 
       return if SipperConfigurator[:SipperMediaProcessReuse] && self.ping
@@ -51,7 +52,7 @@ module Media
       t << [command.length].pack("N") << command
       len = t.readpartial(4).unpack("N")[0]
       reply = t.readpartial(len)
-      logd ("Received media shutdown Reply #{reply}")
+      @ilog.debug("Received media shutdown Reply #{reply}") if @ilog.debug?
       t.close
     end
         

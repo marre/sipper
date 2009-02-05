@@ -20,6 +20,7 @@ class SipMessageRouter
   attr_reader :tg, :running
   
   def initialize(queue, num_threads=5)
+    @ilog = logger
     @q = queue
     @num_threads = num_threads
     @tg = ThreadGroup.new
@@ -38,13 +39,13 @@ class SipMessageRouter
           Thread.current[:name] = "WorkerThread-"+i.to_s
           while @run
             msg = @q.pop
-            #logd("Message #{msg} picked up from queue")
-            logi("Message picked from queue, now parsing")
+            #@ilog.debug("Message #{msg} picked up from queue") if @ilog.debug?
+            @ilog.info("Message picked from queue, now parsing") if @ilog.info?
             r = Message.parse(msg)
             2.times do  # one optional retry
               case r
               when Request
-                logd("REQUEST RECEIVED #{r}")
+                @ilog.debug("REQUEST RECEIVED #{r}") if @ilog.debug?
                 logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1], r.rcvd_at_info[0], r.rcvd_at_info[1], r.rcvd_at_info[2], r)
                 if r.to_tag && !r.attributes[:_sipper_initial]
                   # call_id, local, remote
@@ -54,41 +55,41 @@ class SipMessageRouter
                     break
                   else
                     if hndlr = SIP::StrayMessageManager.stray_message_handler
-                      logd("Found a stray message handler for the request, invoking it")
+                      @ilog.debug("Found a stray message handler for the request, invoking it") if @ilog.debug?
                       ret = hndlr.handle(r)
                       case ret[0]
                       when SIP::StrayMessageHandler::SMH_DROP
-                        logw("A stray request #{r.method} being dropped by SMH")
+                        @ilog.warn("A stray request #{r.method} being dropped by SMH") if @ilog.warn?
                         break
                       when SIP::StrayMessageHandler::SMH_HANDLED
-                        logd("A stray request #{r.method} handled by SMH")
+                        @ilog.debug("A stray request #{r.method} handled by SMH") if @ilog.debug?
                         break
                       when SIP::StrayMessageHandler::SMH_RETRY
-                        logd("A stray request #{r.method} received, SMH retries")
+                        @ilog.debug("A stray request #{r.method} received, SMH retries") if @ilog.debug?
                         r = ret[1] if ret[1]
                         if r.attributes[:_sipper_retried]
-                          logw("Already retried request now dropping")
+                          @ilog.warn("Already retried request now dropping") if @ilog.warn?
                           break
                         else
                           r.attributes[:_sipper_retried] = true
                           next
                         end
                       when SIP::StrayMessageHandler::SMH_TREAT_INITIAL
-                        logd("A stray request #{r.method} received, SMH treating as initial")
+                        @ilog.debug("A stray request #{r.method} received, SMH treating as initial") if @ilog.debug?
                         r = ret[1] if ret[1]
                         if r.attributes[:_sipper_initial]
-                          logw("Already retried request now dropping")
+                          @ilog.warn("Already retried request now dropping") if @ilog.warn?
                           break
                         else
                           r.attributes[:_sipper_initial] = true
                           next
                         end
                       else
-                        logw("A stray request #{r.method} SMH response not understood, dropping")
+                        @ilog.warn("A stray request #{r.method} SMH response not understood, dropping") if @ilog.warn?
                         break
                       end
                     else
-                      logw("A stray request #{r.method} received, dropping as no handler")
+                      @ilog.warn("A stray request #{r.method} received, dropping as no handler") if @ilog.warn?
                       break
                     end  
                   end
@@ -96,20 +97,20 @@ class SipMessageRouter
                   # call_id, local, remote
                   s = SessionManager.find_session(r.call_id, r.to_tag, r.from_tag)
                   if s
-                    logd("Matched session #{s}")
+                    @ilog.debug("Matched session #{s}") if @ilog.debug?
                     s.on_message r
                     break
                   else  # create a new session
-                    logd("No matching session found")
+                    @ilog.debug("No matching session found") if @ilog.debug?
                     ctrs = SIP::Locator[:Cs].get_controllers(r)
-                    logd("Initial request, total controllers returned are #{ctrs.size}")
+                    @ilog.debug("Initial request, total controllers returned are #{ctrs.size}") if @ilog.debug?
                     ctrs.each do |c| 
                       if c.interested?(r)
-                        logd("Controller #{c.name} is interested in #{r.method}")
+                        @ilog.debug("Controller #{c.name} is interested in #{r.method}") if @ilog.debug?
                         #["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]
                         # todo tcp support here
                         if stp = c.specified_transport
-                          logd("Controller #{c.name} specified #{stp} transport")
+                          @ilog.debug("Controller #{c.name} specified #{stp} transport") if @ilog.debug?
                           unless (stp[0] == r.rcvd_at_info[0] &&  
                                   stp[1] == r.rcvd_at_info[1])
                             next        
@@ -121,7 +122,7 @@ class SipMessageRouter
                         elsif (r.rcvd_at_info[2] == "TCP")
                           s = c.create_tcp_session(r.rcvd_from_info[3], r.rcvd_from_info[1], nil, r.rcvd_at_info[3])
                         else
-                          loge("Unknown type of transport #{r.rcvd_at_info[2]} cannot create session")
+                          @ilog.error("Unknown type of transport #{r.rcvd_at_info[2]} cannot create session") if @ilog.error?
                         end
                         s.pre_set_dialog_id(r)  # to facilitate addition in session manager 
                         SessionManager.add_session(s, false)
@@ -132,32 +133,32 @@ class SipMessageRouter
                     # if no controller on initial request then respond with 502
                     unless s
                       if hndlr = SIP::StrayMessageManager.stray_message_handler
-                        logd("Found a stray message handler for the init request, invoking it")
+                        @ilog.debug("Found a stray message handler for the init request, invoking it") if @ilog.debug?
                         ret = hndlr.handle(r) 
                         case ret[0]
                         when SIP::StrayMessageHandler::SMH_DROP
-                          logw("A stray init request #{r.method} being dropped by SMH")
+                          @ilog.warn("A stray init request #{r.method} being dropped by SMH") if @ilog.warn?
                           break
                         when SIP::StrayMessageHandler::SMH_HANDLED
-                          logd("A stray init request #{r.method} handled by SMH")
+                          @ilog.debug("A stray init request #{r.method} handled by SMH") if @ilog.debug?
                           break
                         when SIP::StrayMessageHandler::SMH_RETRY
-                          logd("A stray init request #{r.method} received, SMH retries")
+                          @ilog.debug("A stray init request #{r.method} received, SMH retries") if @ilog.debug?
                           r = ret[1] if ret[1]
                           if r.attributes[:_sipper_retried]
-                            logw("Already retried init request now dropping")
+                            @ilog.warn("Already retried init request now dropping") if @ilog.warn?
                             break
                           else
                             r.attributes[:_sipper_retried] = true
                             next
                           end
                         else
-                          logw("A stray init request #{r.method} SMH response not understood, dropping")
+                          @ilog.warn("A stray init request #{r.method} SMH response not understood, dropping") if @ilog.warn?
                           break
                         end
                       else
                         # todo either send a 502 or cleanup the log
-                        logw("A stray init request #{r.method} received, sending 502")
+                        @ilog.warn("A stray init request #{r.method} received, sending 502") if @ilog.warn?
                         break
                       end
                     else
@@ -167,59 +168,59 @@ class SipMessageRouter
                 end  # r.to-tag
   
               when Response
-                logd("RESPONSE RECEIVED #{r}")
+                @ilog.debug("RESPONSE RECEIVED #{r}") if @ilog.debug?
                 logsip("I", r.rcvd_from_info[3], r.rcvd_from_info[1],  r.rcvd_at_info[0], r.rcvd_at_info[1], r.rcvd_at_info[2], r)
                 # call_id, local, remote
                 s = SessionManager.find_session(r.call_id, r.from_tag, r.to_tag, (SipperUtil::SUCC_RANGE.include?r.code))
                 if s
-                  logd("Session found, sending response to session")
+                  @ilog.debug("Session found, sending response to session") if @ilog.debug?
                   s.on_message r
                   break
                 else
                   if hndlr = SIP::StrayMessageManager.stray_message_handler
-                    logd("Found a stray message handler for the response, invoking it")
+                    @ilog.debug("Found a stray message handler for the response, invoking it") if @ilog.debug?
                     ret = hndlr.handle(r)
                     case ret[0]
                     when SIP::StrayMessageHandler::SMH_DROP
-                      logw("A stray response #{r.code} being dropped by SMH")
+                      @ilog.warn("A stray response #{r.code} being dropped by SMH") if @ilog.warn?
                       break
                     when SIP::StrayMessageHandler::SMH_HANDLED
-                      logd("A stray response #{r.code} handled by SMH")
+                      @ilog.debug("A stray response #{r.code} handled by SMH") if @ilog.debug?
                       break
                     when SIP::StrayMessageHandler::SMH_RETRY
-                      logd("A stray response #{r.code} received, SMH retries")
+                      @ilog.debug("A stray response #{r.code} received, SMH retries") if @ilog.debug?
                       r = ret[1] if ret[1]
                       if r.attributes[:_sipper_retried]
-                        logw("Already retried response now dropping")
+                        @ilog.warn("Already retried response now dropping") if @ilog.warn?
                         break
                       else
                         r.attributes[:_sipper_retried] = true
                         next
                       end
                     else
-                      logw("A stray response #{r.code} SMH response not understood, dropping")
+                      @ilog.warn("A stray response #{r.code} SMH response not understood, dropping") if @ilog.warn?
                       break
                     end
                   else
-                    logw("A stray response #{r.code} received, dropping")
+                    @ilog.warn("A stray response #{r.code} received, dropping") if @ilog.warn?
                     break
                   end
                 end
                 
               when SIP::TimerTask
-                logd("TIMER RECEIVED #{r}")
+                @ilog.debug("TIMER RECEIVED #{r}") if @ilog.debug?
                 r.invoke
                 break
               when Media::SipperMediaEvent
-                logd("Media Response/Event received")
+                @ilog.debug("Media Response/Event received") if @ilog.debug?
                 r.session.on_message r
                 break
               when SipperHttp::SipperHttpResponse
-                logd("Sipper HTTP response received")
+                @ilog.debug("Sipper HTTP response received") if @ilog.debug?
                 r.dispatch
                 break
               else
-                logw("DONT KNOW WHAT YOU SENT")
+                @ilog.warn("DONT KNOW WHAT YOU SENT") if @ilog.warn?
                 break
               end
             end
@@ -232,11 +233,11 @@ class SipMessageRouter
   
   def handle_http_req(req, res)
     ctrs = SIP::Locator[:Cs].get_controllers
-    logd("Initial HTTP request, total controllers returned are #{ctrs.size}")
+    @ilog.debug("Initial HTTP request, total controllers returned are #{ctrs.size}") if @ilog.debug?
     s = nil
     ctrs.each do |c| 
       if c.interested_http?(req)   
-        logd("Controller #{c.name} is interested in #{req.request_method}")
+        @ilog.debug("Controller #{c.name} is interested in #{req.request_method}") if @ilog.debug?
         s = c.create_session                                      
         SessionManager.add_session(s, false)
       end

@@ -37,7 +37,8 @@ module Media
      end
      
      def initialize(session)
-        logd("Dummy media client created.")
+        @ilog = logger
+        @ilog.debug("Dummy media client created.") if @ilog.debug?
      end
 
      def set_dtmf_command(cmd)

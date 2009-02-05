@@ -19,6 +19,10 @@ module SipHeaders
     
     ASSIGN = /=$/.freeze
     
+    def initialize
+      @ilog = logger
+    end
+
     def dup
       obj = self.old_dup  
       obj.frozen_str = self.frozen_str.dup 
@@ -115,7 +119,7 @@ module SipHeaders
       meta.send(:define_method, :"#{name}=") { |x| self.header_params[name] = x }
       self.send m, *a
     rescue => e
-      loge(e.backtrace.join("\n"))
+      @ilog.error(e.backtrace.join("\n")) if @ilog.error?
     end
     
     def [](param)

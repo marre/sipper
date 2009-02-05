@@ -5,6 +5,8 @@ module SipperUtil
     
     include SipLogger
     
+    @@slog = SipLogger['siplog::messagefill']
+
     SUBS = {
       :lip => /_PH_LIP_/,
       :lp => /_PH_LP_/,
@@ -28,7 +30,7 @@ module SipperUtil
     end
     
     def MessageFill.fill(msg, h)
-      SipLogger['siplog::messagefill'].debug("msg is a #{msg.class}")
+      @@slog.debug("msg is a #{msg.class}") if @@slog.debug?
       return MessageFill.sub(msg, h) if msg.is_a?(String)
       msg.each do |k, v|
         #SipLogger['siplog::messagefill'].debug("Processing for #{k} the value is #{v}")
@@ -49,7 +51,7 @@ module SipperUtil
             end   # case
           end     # map
         end       # v.nil?
-        SipLogger['siplog::messagefill'].debug("Processed for #{k} the value is #{msg[k]}")
+        @@slog.debug("Processed for #{k} the value is #{msg[k]}") if @@slog.debug?
       end         # each
     end
     

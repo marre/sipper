@@ -36,6 +36,7 @@ module SIP
       #       i.e a message is either received or being tried to send out in a state where it is
       #       illegal to do so. 
       def initialize(tu, branch_id, txn_handler, transport, tp_flags, sock = nil, &block)
+        @ilog = logger
         @transaction_name = :Nict # need to have this name defined for every transaction
         @tu = tu
         @branch_id = branch_id
@@ -48,7 +49,7 @@ module SIP
         #@sm = Ict_sm.new(self)
         SIP::Transaction::StateMachineWrapper.bootstrap_machine(self, Nict_sm)
         @sm = SIP::Transaction::StateMachineWrapper.new(self, @txn_handler, Nict_sm)
-        logd("Created the Non Invite Client Transcation with #{@transport}")
+        @ilog.debug("Created the Non Invite Client Transcation with #{@transport}") if @ilog.debug?
       end
       
       
@@ -101,7 +102,7 @@ module SIP
         @sm.request
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Cannot send request in #{self.state} state for #{self}"
+        @ilog.error "Cannot send request in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -111,7 +112,7 @@ module SIP
         @sm.provisional
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Received a provisional in #{self.state} state for #{self}"
+        @ilog.error "Received a provisional in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -123,7 +124,7 @@ module SIP
         @sm.final
         _check_transport_err
       rescue Statemap::TransitionUndefinedException => e
-        loge "Received a final response in #{self.state} state for #{self}"
+        @ilog.error "Received a final response in #{self.state} state for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -144,7 +145,7 @@ module SIP
           @sm.timer_K
         end
       rescue Statemap::TransitionUndefinedException => e
-        loge "Timer #{timer_task.tid} got fired for #{self}"
+        @ilog.error "Timer #{timer_task.tid} got fired for #{self}" if @ilog.error?
         @tu.transaction_wrong_state(self) if @tu
         @txn_handler.wrong_state(self) if @txn_handler && @txn_handler.respond_to?(:wrong_state)
       end
@@ -155,25 +156,25 @@ module SIP
       #------SM Callbacks <start>--------
       
       def __send_request
-        logd "Sending Non-INVITE from the Nict #{self}"
+        @ilog.debug "Sending Non-INVITE from the Nict #{self}" if @ilog.debug?
         _send_to_transport(@request, @sock)  
       end
       
       def __start_E
         return unless @ok_to_run_timerE
         task = SIP::Locator[:Sth].schedule_for(self, :te, nil, :transaction, self.te)
-        logd("Starting Timer E #{task} from Nict #{self}")
+        @ilog.debug("Starting Timer E #{task} from Nict #{self}") if @ilog.debug?
       end
       
       def __start_F
         return unless @ok_to_run_timerF
         task = SIP::Locator[:Sth].schedule_for(self, :tf, nil, :transaction, self.tf)
-        logd("Starting Timer F #{task} from Nict #{self}")
+        @ilog.debug("Starting Timer F #{task} from Nict #{self}") if @ilog.debug?
       end
       
       def __start_K
         task = SIP::Locator[:Sth].schedule_for(self, :tk, nil, :transaction, self.tk)
-        logd("Starting Timer K #{task} from Nict #{self}")
+        @ilog.debug("Starting Timer K #{task} from Nict #{self}") if @ilog.debug?
       end
       
       def __reset_E(t=self.t2)
@@ -186,18 +187,18 @@ module SIP
       end
       
       def __timeout
-        logw("Transaction timeout happened")
+        @ilog.warn("Transaction timeout happened") if @ilog.warn?
         @txn_handler.timeout(self) if @txn_handler && @txn_handler.respond_to?(:timeout)
         @tu.transaction_timeout(self) if @tu
       end
       
       def __cancel_E
-        logd "canceling timer E"
+        @ilog.debug "canceling timer E" if @ilog.debug?
         @ok_to_run_timerE = false
       end
       
       def __cancel_F
-        logd "canceling timer F"
+        @ilog.debug "canceling timer F" if @ilog.debug?
         @ok_to_run_timerF = false
       end
       
@@ -207,13 +208,13 @@ module SIP
       
       
       def __transport_err
-        loge "A transport error was encountered for #{self} calling TU"
+        @ilog.error "A transport error was encountered for #{self} calling TU" if @ilog.error?
         @txn_handler.transport_err(self) if @txn_handler && @txn_handler.respond_to?(:transport_err)
         @tu.transaction_transport_err(self) if @tu
       end
       
       def __cleanup
-        logd "Cleanup called for #{self}"
+        @ilog.debug "Cleanup called for #{self}" if @ilog.debug?
         @tu.transaction_cleanup(self) if @tu
         @txn_handler.cleanup(self) if @txn_handler && @txn_handler.respond_to?(:cleanup)
       end

@@ -65,6 +65,7 @@ class Response < Message
   
   def initialize(code, status=nil, *hh)
     super(*hh)
+    @ilog = logger
     @code = code
     if status && status != "SELECT"
       @status = status
@@ -74,7 +75,7 @@ class Response < Message
         @status = STATUS_MESSAGES[(code/100)*100]
       end
     end
-    logi("Creating a new #{code} response")
+    @ilog.info("Creating a new #{code} response") if @ilog.info?
   end
   
   # A low level method that allows to custom create the responses.
