@@ -18,7 +18,7 @@ SipperMediaFileLoader::SipperMediaFileLoader()
    _emptyFileHolder.setObj(new SipperMediaFileContent());
    SipperMediaFileContent *currobj = dynamic_cast<SipperMediaFileContent *>(_emptyFileHolder.getObj());
 
-   currobj->data = new char[4000];
+   currobj->data = new unsigned char[4000];
    currobj->len = 4000;
    memset(currobj->data, 0xFF, 4000);
 }
@@ -67,7 +67,7 @@ void SipperMediaFileLoader::_loadData(const std::string &filename)
 
             if(data[2] != 0xFFFFFFFF)
             {
-               newInfo->data = new char[4000];
+               newInfo->data = new unsigned char[4000];
                newInfo->len = 0;
 
                while(true)
@@ -80,7 +80,7 @@ void SipperMediaFileLoader::_loadData(const std::string &filename)
                      break;
                   }
                   
-                  char *tmp = new char[newInfo->len + 4000];
+                  unsigned char *tmp = new unsigned char[newInfo->len + 4000];
                   memcpy(tmp, newInfo->data, newInfo->len);
 
                   delete []newInfo->data;
@@ -89,7 +89,7 @@ void SipperMediaFileLoader::_loadData(const std::string &filename)
             }
             else
             {
-               newInfo->data = new char[data[2] ];
+               newInfo->data = new unsigned char[data[2] ];
                newInfo->len = 0;
                newInfo->len = fread(newInfo->data, 1, data[2], fp);
             }

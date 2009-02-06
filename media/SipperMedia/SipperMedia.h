@@ -98,7 +98,7 @@ public:
    virtual std::string setMediaStatus(const std::string &status);
    virtual std::string getRecvInfo();
 
-   virtual void sendRTPPacket(SipperMediaRTPHeader &header, char *dataptr, unsigned int len);
+   virtual void sendRTPPacket(SipperMediaRTPHeader &header, unsigned char *dataptr, unsigned int len);
 
 public:
 

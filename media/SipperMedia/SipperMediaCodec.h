@@ -23,6 +23,12 @@ class SipperMediaCodec
 {
 public:
 
+   static unsigned int silentThreshold;
+   static unsigned int silentDuration;
+   static unsigned int audioStopDuration;
+
+public:
+
    int recvPayloadNum;
    int sendPayloadNum;
 
@@ -35,8 +41,8 @@ public:
    }
    virtual void handleTimer(struct timeval &currtime) = 0;
    virtual void checkActivity(struct timeval &currtime) = 0;
-   virtual void processReceivedRTPPacket(struct timeval &currtime, const char *payload, unsigned int payloadlen) = 0;
-   virtual void processReceviedPacket(struct timeval &currtime, const char *data, unsigned int datalen)
+   virtual void processReceivedRTPPacket(struct timeval &currtime, const unsigned char *payload, unsigned int payloadlen) = 0;
+   virtual void processReceviedPacket(struct timeval &currtime, const unsigned char *data, unsigned int datalen)
    {
    }
 };
@@ -48,6 +54,9 @@ class SipperMediaG711Codec : public SipperMediaCodec
 {
 private:
 
+   struct timeval _lastVoiceTime;
+   bool _voiceMode;
+
    struct timeval _lastrecvTime;
    int _lastTimestamp;
 
@@ -55,6 +64,11 @@ private:
 
    int _offset;
 
+   static unsigned int u2linear[256];
+   static unsigned char a2ulaw[256];
+   static unsigned char u2alaw[256];
+
+#if 0
    static unsigned char a2u[128];
    static unsigned char u2a[128];
 
@@ -72,6 +86,31 @@ private:
       return ((uval & 0x80) ? (0xD5 ^ (u2a[0xFF ^ uval] - 1)) :
          (0x55 ^ (u2a[0x7F ^ uval] - 1)));
    }
+
+   static int ulaw2linear(int u_val)
+   {
+      #define BIAS       (0x84)
+      #define SIGN_BIT   (0x80) 
+      #define QUANT_MASK (0xf)   
+      #define NSEGS      (8)      
+      #define SEG_SHIFT  (4)      
+      #define SEG_MASK   (0x70)      
+
+      int t;
+
+      /* Complement to obtain normal u-law value. */
+      u_val = ~u_val;
+
+      /*
+      * Extract and bias the quantization bits. Then
+      * shift up by the segment number and subtract out the bias.
+      */
+      t = ((u_val & QUANT_MASK) << 3) + BIAS;
+      t <<= (u_val & SEG_MASK) >> SEG_SHIFT;
+
+      return ((u_val & SIGN_BIT) ? (BIAS - t) : (t - BIAS));
+   }
+#endif
 
 public:
 
@@ -101,7 +140,7 @@ public:
 
    void handleTimer(struct timeval &currtime);
    void checkActivity(struct timeval &currtime);
-   void processReceivedRTPPacket(struct timeval &currtime, const char *payload, unsigned int payloadlen);
+   void processReceivedRTPPacket(struct timeval &currtime, const unsigned char *payload, unsigned int payloadlen);
 };
 
 class SipperMediaDTMFCodec : public SipperMediaCodec
@@ -130,7 +169,7 @@ public:
    void sendDtmf(const std::string & command, bool checkFlag = 1);
    void handleTimer(struct timeval &currtime);
    void checkActivity(struct timeval &currtime);
-   void processReceivedRTPPacket(struct timeval &currtime, const char *payload, unsigned int payloadlen);
+   void processReceivedRTPPacket(struct timeval &currtime, const unsigned char *payload, unsigned int payloadlen);
 };
 
 #endif

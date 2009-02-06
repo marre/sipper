@@ -53,6 +53,24 @@ int main(int argc, char**argv)
    SipperMediaConfig &config = SipperMediaConfig::getInstance();
    config.loadConfigFile(configFile);
 
+   unsigned int threshold = atoi(config.getConfig("Global", "SilentThreshold", "256").c_str());
+   threshold &= 0xffff;
+   SipperMediaCodec::silentThreshold = threshold;
+
+   unsigned int silentDuration = atoi(config.getConfig("Global", "SilentDuration", "5").c_str());
+   if(silentDuration > 10)
+   {
+      silentDuration = 10;
+   }
+   SipperMediaCodec::silentDuration = silentDuration;
+
+   unsigned int audioStopDuration = atoi(config.getConfig("Global", "AudioStopDuration", "5").c_str());
+   if(audioStopDuration > 10)
+   {
+      audioStopDuration = 10;
+   }
+   SipperMediaCodec::audioStopDuration = audioStopDuration;
+
    SipperMediaListener listener;
    if(port == 0) {
      port = atoi(config.getConfig("Global", "ListenPort", "4680").c_str());

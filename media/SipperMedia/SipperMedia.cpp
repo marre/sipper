@@ -192,7 +192,7 @@ void SipperRTPMedia::checkData(struct timeval &currtime, fd_set &readfds)
    if(FD_ISSET(_recvSocket, &readfds))
    {
       //Read the RTP packet and give to codecs.
-      char buf[4000];
+      unsigned char buf[4000];
       struct sockaddr_in client_addr;
 
       memset(&client_addr, 0, sizeof(sockaddr_in));
@@ -243,7 +243,7 @@ void SipperRTPMedia::checkData(struct timeval &currtime, fd_set &readfds)
          }
       }
 
-      char *payload = buf + (12 + (incomingHeader.getCSRCCount() * 4));
+      unsigned char *payload = buf + (12 + (incomingHeader.getCSRCCount() * 4));
       unsigned int payloadlen = len - (12 + (incomingHeader.getCSRCCount() * 4));
 
       int payloadnum = incomingHeader.getPayloadNum();
@@ -258,11 +258,11 @@ void SipperRTPMedia::checkData(struct timeval &currtime, fd_set &readfds)
    }
 }
 
-void SipperRTPMedia::sendRTPPacket(SipperMediaRTPHeader &header, char *dataptr, unsigned int len)
+void SipperRTPMedia::sendRTPPacket(SipperMediaRTPHeader &header, unsigned char *dataptr, unsigned int len)
 {
    lastSentHeader = header;
 
-   char data[1000];
+   unsigned char data[1000];
    int tmp = lastSentHeader.first;
    tmp = htonl(tmp);
    memcpy(data, &tmp, 4);

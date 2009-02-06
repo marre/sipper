@@ -19,11 +19,11 @@ class SipperMediaFileContent : public SipperMediaRef
 #ifndef __UNIX__
       struct _stat filestat;
 #else
-	  struct stat filestat;
+      struct stat filestat;
 #endif
 
       std::string filename;
-      char *data;
+      unsigned char *data;
       int  len;
 
    public:
@@ -50,7 +50,7 @@ private:
 
    static SipperMediaFileLoader *_instance;
 
-    SipperFileContentMap _contentMap;
+   SipperFileContentMap _contentMap;
    pthread_mutex_t _mutex;
 
    SipperMediaRefObjHolder _emptyFileHolder;
