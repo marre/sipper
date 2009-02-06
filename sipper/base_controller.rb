@@ -333,6 +333,10 @@ module SIP
           self.on_media_audio_stopped(session)
         when 'DTMFRECEIVED'
           self.on_media_dtmf_received(session)
+        when 'VOICE_ACTIVITY_DETECTED'
+          self.on_media_voice_activity_detected(session)
+        when 'VOICE_ACTIVITY_STOPPED'
+          self.on_media_voice_activity_stopped(session)
         end
       end  
     end
@@ -347,6 +351,12 @@ module SIP
     def on_http_res(session)
     end
     
+    def on_media_voice_activity_detected(session)
+    end
+
+    def on_media_voice_activity_stopped(session)
+    end
+
     def on_media_audio_started(session)
     end
     
