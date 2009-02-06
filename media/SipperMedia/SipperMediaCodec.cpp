@@ -526,8 +526,8 @@ void SipperMediaDTMFCodec::handleTimer(struct timeval &currtime)
          _commandList.pop_front();
          _listLen--;
 
-		 SipperMediaPortable::toUpper(currcommand);
-		 SipperMediaPortable::trim(currcommand);
+         SipperMediaPortable::toUpper(currcommand);
+         SipperMediaPortable::trim(currcommand);
 
          char *command = (char *)currcommand.c_str();
          char dummy[100];
@@ -549,6 +549,20 @@ void SipperMediaDTMFCodec::handleTimer(struct timeval &currtime)
          else
          {
             int toSend = atoi(command);
+
+            const char firstChar = *command;
+
+            if(toSend == 0)
+            {
+               if(firstChar == '*') toSend = 10;
+               else if(firstChar == '#') toSend = 11;
+               else if(firstChar == 'A') toSend = 12;
+               else if(firstChar == 'B') toSend = 13;
+               else if(firstChar == 'C') toSend = 14;
+               else if(firstChar == 'D') toSend = 15;
+               else if(firstChar == 'F') toSend = 16;
+            }
+
             logger.logMsg(TRACE_FLAG, 0, 
                           "Processing DTMF Digit[%d] command[%s].\n", 
                           toSend, currcommand.c_str());
@@ -627,8 +641,29 @@ void SipperMediaDTMFCodec::processReceivedRTPPacket(struct timeval &currtime, co
 
       media->lastDtmfTimestamp = header.getTimeStamp();
 
+      unsigned char dtmfval = payload[0];
+      dtmfval &= 0x1F;
+      char digit = '0' + dtmfval;
+
+      if(digit > '9')
+      {
+         if(dtmfval == 10) digit = '*';
+         else if(dtmfval == 11) digit = '#';
+         else if(dtmfval == 12) digit = 'A';
+         else if(dtmfval == 13) digit = 'B';
+         else if(dtmfval == 14) digit = 'C';
+         else if(dtmfval == 15) digit = 'D';
+         else if(dtmfval == 16) digit = 'F';
+         else 
+         {
+            logger.logMsg(ERROR_FLAG, 0, 
+                          "Invalid dtmf digit received. [%d]\n", payload[0]);
+            return;
+         }
+      }
+
       char evt[200];
-      sprintf(evt, "CODEC=%d;EVENT=DTMFRECEIVED;DTMF=%d", this->recvPayloadNum, payload[0]);
+      sprintf(evt, "CODEC=%d;EVENT=DTMFRECEIVED;DTMF=%c", this->recvPayloadNum, digit);
       _media->sendEvent(evt);
    }
 }
