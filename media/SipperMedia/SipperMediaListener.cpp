@@ -56,13 +56,25 @@ int main(int argc, char**argv)
    unsigned int threshold = atoi(config.getConfig("Global", "SilentThreshold", "256").c_str());
    threshold &= 0xffff;
    SipperMediaCodec::silentThreshold = threshold;
+   logger.logMsg(ALWAYS_FLAG, 0, "Using SilentThreshold [%d]\n", SipperMediaCodec::silentThreshold);
 
-   unsigned int silentDuration = atoi(config.getConfig("Global", "SilentDuration", "5").c_str());
-   if(silentDuration > 10)
+   unsigned int silentDuration = atoi(config.getConfig("Global", "SilentDurationMSecs", "2000").c_str());
+   if(silentDuration > 10000)
    {
-      silentDuration = 10;
+      silentDuration = 10000;
    }
    SipperMediaCodec::silentDuration = silentDuration;
+   logger.logMsg(ALWAYS_FLAG, 0, "Using SilentDurationMSecs [%d]\n", SipperMediaCodec::silentDuration);
+   SipperMediaCodec::silentDuration *= 1000;
+
+   unsigned int voiceDuration = atoi(config.getConfig("Global", "VoiceDurationMSecs", "200").c_str());
+   if(voiceDuration > 3000)
+   {
+      voiceDuration = 3000;
+   }
+   SipperMediaCodec::voiceDuration = voiceDuration;
+   logger.logMsg(ALWAYS_FLAG, 0, "Using VoiceDurationMSecs [%d]\n", SipperMediaCodec::voiceDuration);
+   SipperMediaCodec::voiceDuration *= 1000;
 
    unsigned int audioStopDuration = atoi(config.getConfig("Global", "AudioStopDuration", "5").c_str());
    if(audioStopDuration > 10)
@@ -70,6 +82,7 @@ int main(int argc, char**argv)
       audioStopDuration = 10;
    }
    SipperMediaCodec::audioStopDuration = audioStopDuration;
+   logger.logMsg(ALWAYS_FLAG, 0, "Using AudioStopDuration [%d]\n", SipperMediaCodec::audioStopDuration);
 
    SipperMediaListener listener;
    if(port == 0) {

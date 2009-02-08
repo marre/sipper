@@ -25,6 +25,7 @@ public:
 
    static unsigned int silentThreshold;
    static unsigned int silentDuration;
+   static unsigned int voiceDuration;
    static unsigned int audioStopDuration;
 
 public:
@@ -55,6 +56,7 @@ class SipperMediaG711Codec : public SipperMediaCodec
 private:
 
    struct timeval _lastVoiceTime;
+   struct timeval _lastSilentTime;
    bool _voiceMode;
 
    struct timeval _lastrecvTime;

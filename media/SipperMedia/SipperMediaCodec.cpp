@@ -5,9 +5,11 @@ LOG("SipperMediaCodec");
 #include "SipperMediaTokenizer.h"
 #include "SipperMediaPortable.h"
 #include "vector"
+#include "stdlib.h"
 
 unsigned int SipperMediaCodec::silentThreshold = 0xff;
-unsigned int SipperMediaCodec::silentDuration = 5;
+unsigned int SipperMediaCodec::silentDuration = 2;
+unsigned int SipperMediaCodec::voiceDuration = 2;
 unsigned int SipperMediaCodec::audioStopDuration = 5;
 
 #if 0
@@ -102,7 +104,7 @@ unsigned int SipperMediaG711Codec::u2linear[256] = {
 0xfe8c,0xfe9c,0xfeac,0xfebc,0xfecc,0xfedc,0xfeec,0xfefc,
 0xff0c,0xff1c,0xff2c,0xff3c,0xff4c,0xff5c,0xff6c,0xff7c,
 0xff88,0xff90,0xff98,0xffa0,0xffa8,0xffb0,0xffb8,0xffc0,
-0xffc8,0xffd0,0xffd8,0xffe0,0xffe8,0xfff0,0xfff8,0xffff,
+0xffc8,0xffd0,0xffd8,0xffe0,0xffe8,0xfff0,0xfff8,0x0,
 0x7d7c,0x797c,0x757c,0x717c,0x6d7c,0x697c,0x657c,0x617c,
 0x5d7c,0x597c,0x557c,0x517c,0x4d7c,0x497c,0x457c,0x417c,
 0x3e7c,0x3c7c,0x3a7c,0x387c,0x367c,0x347c,0x327c,0x307c,
@@ -125,6 +127,8 @@ SipperMediaG711Codec::SipperMediaG711Codec(CodecType type, const std::string &se
 {
    _lastVoiceTime.tv_sec = 0;
    _lastVoiceTime.tv_usec = 0;
+   _lastSilentTime.tv_sec = 0;
+   _lastSilentTime.tv_usec = 0;
    _voiceMode = false;
 
    _lastrecvTime.tv_sec = 0;
@@ -407,16 +411,48 @@ void SipperMediaG711Codec::checkActivity(struct timeval &currtime)
 
    if(_voiceMode)
    {
-      tolerance = _lastVoiceTime;
-      tolerance.tv_sec += silentDuration;
-
-      if(SipperMediaPortable::isGreater(&currtime, &tolerance))
+      if(SipperMediaPortable::isGreater(&_lastSilentTime, &_lastVoiceTime))
       {
-         _voiceMode = false;
+         tolerance = _lastVoiceTime;
+         tolerance.tv_usec += silentDuration;
+         if(tolerance.tv_usec >= 1000000)
+         {
+            tolerance.tv_sec += (tolerance.tv_usec / 1000000);
+            tolerance.tv_usec %= 1000000;
+         }
 
-         char evt[200];
-         sprintf(evt, "CODEC=%d;EVENT=VOICE_ACTIVITY_STOPPED", this->recvPayloadNum);
-         _media->sendEvent(evt);
+         if(SipperMediaPortable::isGreater(&currtime, &tolerance))
+         {
+            _voiceMode = false;
+            _lastSilentTime = currtime;
+
+            char evt[200];
+            sprintf(evt, "CODEC=%d;EVENT=VOICE_ACTIVITY_STOPPED", this->recvPayloadNum);
+            _media->sendEvent(evt);
+         }
+      }
+   }
+   else
+   {
+      if(SipperMediaPortable::isGreater(&_lastVoiceTime, &_lastSilentTime))
+      {
+         tolerance = _lastSilentTime;
+         tolerance.tv_usec += voiceDuration;
+         if(tolerance.tv_usec >= 1000000)
+         {
+            tolerance.tv_sec += (tolerance.tv_usec / 1000000);
+            tolerance.tv_usec %= 1000000;
+         }
+
+
+         if(SipperMediaPortable::isGreater(&currtime, &tolerance))
+         {
+            _voiceMode = true;
+
+            char evt[200];
+            sprintf(evt, "CODEC=%d;EVENT=VOICE_ACTIVITY_DETECTED", this->recvPayloadNum);
+            _media->sendEvent(evt);
+         }
       }
    }
 }
@@ -444,10 +480,14 @@ void SipperMediaG711Codec::processReceivedRTPPacket(struct timeval &currtime, co
       }
    }
 
+   unsigned int maxval = 0;
    int silentCount = 0;
    for(unsigned int idx = 0; idx < payloadlen; idx++)
    {
-      if(u2linear[newpayload[idx]] <= silentThreshold)
+      signed short currval = u2linear[newpayload[idx]];
+      currval = abs(currval);
+
+      if(currval <= silentThreshold)
       {
          silentCount++;
       }
@@ -456,20 +496,12 @@ void SipperMediaG711Codec::processReceivedRTPPacket(struct timeval &currtime, co
    if(silentCount > (payloadlen * 9 /10))
    {
       //Current packet is silent.
+      _lastSilentTime = currtime;
    }
    else
    {
       //Current packet is having voice.
       _lastVoiceTime = currtime;
-
-      if(_voiceMode == false)
-      {
-         _voiceMode = true;
-
-         char evt[200];
-         sprintf(evt, "CODEC=%d;EVENT=VOICE_ACTIVITY_DETECTED", this->recvPayloadNum);
-         _media->sendEvent(evt);
-      }
    }
 
    if(_outfile != NULL)
