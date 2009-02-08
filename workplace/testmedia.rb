@@ -3,6 +3,7 @@ require 'driven_sip_test_case'
 
 class Testuas < DrivenSipTestCase 
 
+  SipperConfigurator[:SipperMedia]='true'
   def self.description
     "Callflow is < INVITE, > 100, > 200, < ACK, < BYE, > 200" 
   end
@@ -63,12 +64,12 @@ class TestuasController < SIP::SipTestDriverController
     
   
   def on_media_dtmf_received(session)
-      num = session.imedia_event.dtmf.to_i
+      num = session.imedia_event.dtmf
       puts "NK*********DTMF key received****"+session.imedia_event.dtmf
 
-      session.update_dtmf_spec(:dtmf_spec => "3,sleep 2,4,sleep 2, 5") if num == 0
-      session.update_audio_spec(:play_spec=>'', :rec_spec=>'suriya.au') if num == 1
-      session.update_audio_spec(:play_spec=>'PLAY suriya.au,SLEEP 2,PLAY_REPEAT suriya.au 2', :rec_spec=>'') if num == 2
+      session.update_dtmf_spec(:dtmf_spec => "3,sleep 2,4,sleep 2, 5") if num == '0'
+      session.update_audio_spec(:play_spec=>'', :rec_spec=>'suriya.au') if num == '1'
+      session.update_audio_spec(:play_spec=>'PLAY suriya.au,SLEEP 2,PLAY_REPEAT suriya.au 2', :rec_spec=>'') if num == '2'
   end
 end
     EOF
