@@ -21,8 +21,8 @@ module SIP
       def self.bootstrap_machine(ctxt, sm_name)
         unless @@machines_covered[sm_name]
           ctxt.state_machine_transitions.each do |m|
-            before = ("before_"+m).to_sym
-            after  = ("after_"+m).to_sym
+            before = ("before_"+m.to_s).to_sym
+            after  = ("after_"+m.to_s).to_sym
             self.class_eval do
               define_method(before) do
                 if @txn_callback && @txn_callback.respond_to?(before)
@@ -36,12 +36,12 @@ module SIP
                   @txn_callback.send(after, @ctxt)
                 end
               end
-              define_method(m.to_sym) do
+              define_method(m.to_sym) do |*args|
                 ret = self.send(before)
                 return if ret == SIP::Transaction::SM_DO_NOT_PROCEED
                 @ctxt.mask_actions if ret == SIP::Transaction::SM_PROCEED_NO_ACTION
                 self.synchronize do  # all transitions are lock protected
-                  super
+                  super(*args)
                 end
                 @ctxt.unmask_actions if ret == SIP::Transaction::SM_PROCEED_NO_ACTION
                 self.send(after)

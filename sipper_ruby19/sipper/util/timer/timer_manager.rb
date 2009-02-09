@@ -56,7 +56,8 @@ module SIP
               diff = t.abs_msec - Time.ctm
               if diff >= @granularity 
                 @next_schedule = t.abs_msec
-                @cond.wait(diff/1000.0)
+                #@cond.wait(diff/1000.0)
+                @cond.wait()
               else
                 @msg_q << @pqueue.pop
               end
