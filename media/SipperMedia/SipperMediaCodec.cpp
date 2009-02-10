@@ -242,6 +242,7 @@ void SipperMediaG711Codec::_startCommandProcessing()
       return;
    }
 
+   std::string loccommand = playcommand[0];
    SipperMediaPortable::toUpper(playcommand[0]);
 
    if(playcommand[0] == "SLEEP")
@@ -259,7 +260,6 @@ void SipperMediaG711Codec::_startCommandProcessing()
    }
    else if((playcommand[0] != "PLAY") && (playcommand[0] != "PLAY_REPEAT"))
    {
-      std::string loccommand = playcommand[0];
       playcommand.clear();
       playcommand.push_back("PLAY_REPEAT");
       playcommand.push_back(loccommand);
