@@ -41,9 +41,7 @@ module SIP
           SipLogger['siplog::sip_testcompletionsignalinghelper'].debug "Now waiting for the signal"
           k = 0
           while k < SipperConfigurator[:WaitSecondsForTestCompletion]
-            #signal_data.cond.wait(3)
-            k = k + 1
-            sleep 1
+            signal_data.cond.wait()
             break if signal_data.lock.count{|i| !i.nil?} > 0
           end
         end
@@ -66,12 +64,12 @@ module SIP
       end
       signal_data.lock.synchronize do 
         signal_data.lock << "signal"
-        if signal_data.cond.count_waiters > 0
-          SipLogger['siplog::sip_testcompletionsignalinghelper'].debug("Signaling the waiting test driver")
+        #if signal_data.cond.count_waiters > 0
+        #  SipLogger['siplog::sip_testcompletionsignalinghelper'].debug("Signaling the waiting test driver")
           signal_data.cond.signal
-        else
-          SipLogger['siplog::sip_testcompletionsignalinghelper'].debug "Queueing the signal"
-        end
+        #else
+        #  SipLogger['siplog::sip_testcompletionsignalinghelper'].debug "Queueing the signal"
+        #end
       end
     end
      
