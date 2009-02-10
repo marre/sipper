@@ -50,7 +50,7 @@ class Session
   :use_nict, :use_ist, :use_nist, :session_timer, :session_limit, :tmr_hash,
   :use_2xx_retrans, :use_1xx_retrans, :t2xx_retrans_timers, :t1xx_retrans_timers, 
   :dialog_routes, :force_update_session_map, :reliable_1xx_status, :ihttp_response, 
-  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm
+  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm, :dtmf_collected_digits
   
   class SubscriptionData
     attr_accessor :key, :timer, :source, :event, :event_id, :state, :method
@@ -121,6 +121,9 @@ class Session
     _schedule_timer_for_session(:session_limit, @session_limit)
     @offer_answer = Media::SipperOfferAnswer.new(self) 
     @behind_nat = SipperConfigurator[:BehindNAT] || false
+    @dtmf_collect_till = nil
+    @dtmf_collected_digits = ""
+    @dtmf_collect_timer = nil
   end
   
   def get_state_array
@@ -905,6 +908,17 @@ class Session
      set_media_attributes(mattr)
      @offer_answer.refresh_sipper_media if @offer_answer
   end
+
+  def set_dtmf_collect_spec(collect_till = "#", timeoutmsec=0)
+     @dtmf_collect_till = collect_till
+     @dtmf_collected_digits = ""
+     @dtmf_collect_timer = nil
+
+     if timeoutmsec > 0
+       @ilog.debug("Scheduling a DTMF collect timer for #{timeoutmsec}") if @ilog.debug?
+       @dtmf_collect_timer = SIP::Locator[:Sth].schedule_for(self, nil, nil, :dtmf_collect_timer, timeoutmsec)
+     end
+  end
   
   
   # todo write tests for on_message, on_request, on_response when doing IT
@@ -1300,6 +1314,28 @@ class Session
         @ilog.error("Exception #{e} occured while timer processing by controller") if @ilog.error?
         @ilog.error(e.backtrace.join("\n")) if @ilog.error?
       end
+    elsif task.type == :dtmf_collect_timer
+      begin
+         if @dtmf_collect_timer
+            if task.equal?@dtmf_collect_timer
+               if @controller
+                 @ilog.debug("Dispatching collected digits to controller #{@controller.name}") if @ilog.debug?
+                 begin
+                   result = @controller.on_media_collected_digits(self, true)
+                 rescue Exception => e
+                   @ilog.error("Exception #{e} occured while collect digit processing by controller") if @ilog.error?
+                   @ilog.error(e.backtrace.join("\n")) if @ilog.error?
+                 end
+                 @ilog.warn("#{@controller} could not process the media event") if result == false && @ilog.warn?
+               else
+                 @ilog.error("No controller associated with this session") if @ilog.error?
+               end  
+               @dtmf_collect_till = nil
+               @dtmf_collect_timer = nil
+               @dtmf_collected_digits = ""
+            end
+         end
+      end
     elsif task.type == :subscription
       begin
         subscription = task.tid
@@ -1445,7 +1481,7 @@ class Session
   
   def _on_media_event(media_event)
     @imedia_event = media_event
-    
+
     if @controller
       @ilog.debug("Dispatching media event to controller #{@controller.name}") if @ilog.debug?
       begin
@@ -1458,6 +1494,31 @@ class Session
     else
       @ilog.error("No controller associated with this session") if @ilog.error?
     end  
+
+    if media_event.class == Media::SmEvent
+       if media_event.event == 'DTMFRECEIVED'
+          if media_event.dtmf == @dtmf_collect_till
+             if @controller
+               @ilog.debug("Dispatching collected digits to controller #{@controller.name}") if @ilog.debug?
+               begin
+                 result = @controller.on_media_collected_digits(self, false)
+               rescue Exception => e
+                 @ilog.error("Exception #{e} occured while collect digit processing by controller") if @ilog.error?
+                 @ilog.error(e.backtrace.join("\n")) if @ilog.error?
+               end
+               @ilog.warn("#{@controller} could not process the media event") if result == false && @ilog.warn?
+             else
+               @ilog.error("No controller associated with this session") if @ilog.error?
+             end  
+             @dtmf_collect_till = nil
+             @dtmf_collect_timer = nil
+             @dtmf_collected_digits = ""
+          else
+             @dtmf_collected_digits += media_event.dtmf
+          end
+       end
+    end
+
   end
   
   def _on_http_response(http_res)

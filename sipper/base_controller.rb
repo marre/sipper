@@ -365,7 +365,9 @@ module SIP
     
     def on_media_dtmf_received(session)
     end
-    
+
+    def on_media_collected_digits(session, timeoutflag)
+    end
     
     def unknown_request(m)
       @@slog.warn("I do not handle request with method #{m}") if @@slog.warn?
