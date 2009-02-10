@@ -888,6 +888,12 @@ class Session
         play_spec << " " << play[:duration] if play[:duration]
       end
     end
+
+    unless rec_spec
+       recfile = mattr[:record_file]
+       rec_spec = recfile if recfile
+    end
+
     @offer_answer.setup_media_spec(play_spec, rec_spec, dtmf_spec) if @offer_answer
   end
 
