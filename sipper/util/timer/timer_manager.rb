@@ -12,7 +12,7 @@ module SIP
     include SipLogger
     include SipperUtil
   
-    attr_reader :granularity
+    attr_reader :granularity, :lock
     
     MAX_TIME = Time.local(2038, "jan", 1).to_f*1000  # a long time
     
@@ -59,7 +59,8 @@ module SIP
                 @next_schedule = t.abs_msec
                 @cond.wait(diff/1000.0)
               else
-                @msg_q << @pqueue.pop
+                task = @pqueue.pop
+                @msg_q << task unless task.canceled?
               end
             else
               @next_schedule = MAX_TIME

@@ -9,6 +9,8 @@ require 'sip_logger'
 
 module SIP
   class TimerTask
+    @@slog = SipLogger['siplog::sip_timermanager']
+
     include Comparable
     attr_reader :abs_msec, :tid, :task, :target, :type, :duration
     
@@ -34,7 +36,7 @@ module SIP
     
     def invoke
       if @canceled 
-        SipLogger['siplog::sip_timermanager'].info("Not invoking timer #{self} as it is canceled")
+        @@slog.info("Not invoking timer #{self} as it is canceled") if @@slog.info?
         return 
       end
       @target.on_timer_expiration self
@@ -46,7 +48,12 @@ module SIP
     
     def cancel
       @canceled = true
-      SipLogger['siplog::sip_timermanager'].info("Canceled the timer #{self}")
+      @tid = nil;
+      @task = nil;
+      @target = nil;
+      @type = nil;
+
+      @@slog.info("Canceled the timer #{self}") if @@slog.info?
     end
     
     def short_to_s

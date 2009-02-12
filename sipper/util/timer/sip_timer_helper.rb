@@ -20,7 +20,11 @@ module SIP
     def granularity
       @tm.granularity
     end
-    
-        
+
+    def cancel_timer(task)
+       @tm.lock.synchronize do
+          task.cancel
+       end
+    end
   end
 end

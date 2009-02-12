@@ -63,6 +63,8 @@ class Session
   # Yes it is possible. UDP to TCP or TLS or back  to UDP etc.
   def initialize(*tipportrsl)
     @ilog = logger
+    @timer_helper = SIP::Locator[:Sth]
+    @timer_list = []
     @local_tag = nil
     @remote_tag = nil
     #todo fix the local_tag and local_cseq story for R/R
@@ -379,7 +381,7 @@ class Session
       @one_xx.rip = rd[1]
       @one_xx.rp = rd[2]
       @current_t1xx = @t1xx_retrans_timers[:Start]
-      @active_1xx_timer.cancel if @active_1xx_timer
+      @timer_helper.cancel_timer(@active_1xx_timer) if @active_1xx_timer
 
       if @use_1xx_retrans
         @active_1xx_timer = _schedule_timer_for_session(:t1xx_timer, @current_t1xx)
@@ -912,11 +914,13 @@ class Session
   def set_dtmf_collect_spec(collect_till = "#", timeoutmsec=0)
      @dtmf_collect_till = collect_till
      @dtmf_collected_digits = ""
+     @timer_helper.cancel_timer(@dtmf_collect_timer) if @dtmf_collect_timer
      @dtmf_collect_timer = nil
 
      if timeoutmsec > 0
        @ilog.debug("Scheduling a DTMF collect timer for #{timeoutmsec}") if @ilog.debug?
-       @dtmf_collect_timer = SIP::Locator[:Sth].schedule_for(self, nil, nil, :dtmf_collect_timer, timeoutmsec)
+       @dtmf_collect_timer = @timer_helper.schedule_for(self, nil, nil, :dtmf_collect_timer, timeoutmsec)
+       @timer_list << @dtmf_collect_timer
      end
   end
   
@@ -1409,7 +1413,7 @@ class Session
             transport.send(@one_xx.response, @one_xx.tp_flags, @one_xx.rip, @one_xx.rp) 
             @ilog.debug("Retransmitted the 1xx response from #{self}") if @ilog.debug?
             @current_t1xx = @current_t1xx*2
-            @active_1xx_timer.cancel if @active_1xx_timer
+            @timer_helper.cancel_timer(@active_1xx_timer) if @active_1xx_timer
             @active_1xx_timer = _schedule_timer_for_session(:t1xx_timer, @current_t1xx) 
           end  # still ok to retrans
         else
@@ -1436,12 +1440,16 @@ class Session
   
   def schedule_timer_for(tid, duration, &block)
     @ilog.debug("Scheduling an app timer #{tid} for #{duration}") if @ilog.debug?
-    SIP::Locator[:Sth].schedule_for(self, tid, block, :app, duration)
+    task = @timer_helper.schedule_for(self, tid, block, :app, duration)
+    @timer_list << task
+    task
   end
   
   def _schedule_timer_for_session(tid, duration, &block)
     @ilog.debug("Scheduling a session level timer #{tid} for #{duration}") if @ilog.debug?
-    SIP::Locator[:Sth].schedule_for(self, tid, block, :session, duration)
+    task = @timer_helper.schedule_for(self, tid, block, :session, duration)
+    @timer_list << task
+    task
   end
   
   def send_http_post_to(url, params, user=nil, passwd=nil, hdr_arr=nil, body=nil)
@@ -1582,6 +1590,7 @@ class Session
     
     if force
       @ilog.debug("Now invalidating the session #{self} with key #{self.session_key}") if @ilog.debug?
+      @timer_list.each { |timer_task| @timer_helper.cancel_timer(timer_task)}
       @offer_answer.close if @offer_answer
       @transactions.each_value do |t| 
         @ilog.debug("Invalidating the txn #{t} in session #{self}") if @ilog.debug?
@@ -2018,7 +2027,12 @@ class Session
   
   def _schedule_timer_for_subscription(duration, subscription)
     @ilog.debug("Scheduling a subscription timer for #{duration}") if @ilog.debug?
-    subscription.timer = SIP::Locator[:Sth].schedule_for(self, subscription, nil, :subscription, duration)
+
+    @timer_helper.cancel_timer(subscription.timer) if subscription.timer
+
+    subscription.timer = @timer_helper.schedule_for(self, subscription, nil, :subscription, duration)
+    @timer_list << subscription.timer
+    subscription.timer
   end
   
   def start_subscription_expiry_timer(subscription, response)
@@ -2103,7 +2117,9 @@ class Session
   
   def _schedule_timer_for_registration(duration, registration)
     @ilog.debug("Scheduling a registration refresh timer for #{duration}") if @ilog.debug?
-    SIP::Locator[:Sth].schedule_for(self, registration, nil, :registration, duration)
+    task=@timer_helper.schedule_for(self, registration, nil, :registration, duration)
+    @timer_list << task
+    task
   end
   
   def start_registration_expiry_timer
