@@ -63,7 +63,7 @@ module SIP
       # controlle path, this further ensures that even in project settings
       
       file_given = true if SipperConfigurator[:ControllerPath] == :file_given
-      SipperUtil::Common.set_environment()
+      #SipperUtil::Common.set_environment()
       SipperConfigurator[:ControllerPath] = :file_given if file_given
       if config[:Ips]
         ips = config[:Ips]
