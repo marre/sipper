@@ -142,18 +142,18 @@ class SessionManager
   
   def SessionManager.remove_session session, half_only=false
     @@sm_lock.synchronize do
-      @@half_dialogs[session.half_dialog_key] = nil if session.half_dialog_key
+      @@half_dialogs.delete(session.half_dialog_key) if session.half_dialog_key
       @@slog.info("Removed session with key #{session.half_dialog_key} from half_dialogs map") if @@slog.info?
       return if half_only
     end
     if session.session_map == :full
       @@sm_lock.synchronize do
-        @@full_dialogs[session.session_key] = nil
+        @@full_dialogs.delete(session.session_key) 
       end    
       @@slog.info("Removed session with key #{session.session_key} from full_dialogs map") if @@slog.info?
     elsif session.session_map == :half
       @@sm_lock.synchronize do
-        @@half_dialogs[session.session_key] = nil
+        @@half_dialogs.delete(session.session_key)
       end 
       @@slog.info("Removed session with key #{session.session_key} from half_dialogs map") if @@slog.info?
     else
