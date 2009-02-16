@@ -47,6 +47,7 @@ class TestStrayResAcked < DrivenSipTestCase
         end
       
         def on_invite(session)
+          sleep 1
           session.respond_with(200)
         end
       

@@ -56,7 +56,8 @@ class TestDigestChallenge2 < DrivenSipTestCase
           if session.iresponse.code == 407
             r = session.create_request_with_response_to_challenge(session.iresponse.proxy_authenticate, true,
                  "sipper_user", "sipper_passwd")
-            session.send r
+            r.proxy_authorization.cnonce = nil
+            session.send(r)
           end
         end
         

@@ -1,6 +1,6 @@
 <log4r_config>
   <pre_config>
-    <global level="ERROR"/>
+    <global level="DEBUG"/>
   </pre_config>
 
   <!-- Outputters -->
@@ -12,7 +12,7 @@
     </formatter>
   </outputter>
   
-  <outputter name="sipmsgtrace" type="FileOutputter" level="ERROR">
+  <outputter name="sipmsgtrace" type="FileOutputter" level="DEBUG">
     <filename>#{logpath}/#{pid}#{udfname}_sipmsgtrace.log</filename>
     <formatter name="aformat" type="PatternFormatter" pattern="[%d]:[%h]:: %m">
       <date_method>to_f</date_method>
@@ -27,7 +27,7 @@
 
   <!-- Loggers -->
 
-  <logger name="siplog" level="ERROR" additive="false" trace="true">
+  <logger name="siplog" level="DEBUG" additive="false" trace="true">
     <outputters>sipout, console</outputters>
   </logger>
 
@@ -67,7 +67,7 @@
   <logger name="siplog::sipperhttprequestdispatcher" level="ERROR" additive="true" trace="false"/>
   <logger name="siplog::sipperhttp_sipperhttpservlet" level="ERROR" additive="true" trace="false"/>
   
-  <logger name="sipmsgtracelog" level="ERROR" additive="false" trace="true">
+  <logger name="sipmsgtracelog" level="DEBUG" additive="false" trace="true">
     <outputters>sipmsgtrace</outputters>
   </logger>
  

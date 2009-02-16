@@ -5,7 +5,7 @@ module SIP
   class B2buaController < SIP::BaseController
     
     def initialize
-       @ilog = logger
+       @ilog = SipLogger['siplog::sip_basecontroller']
     end
 
     # Gets or creates a peer b2bua leg (session). The session passed in as the 
