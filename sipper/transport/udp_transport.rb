@@ -64,6 +64,8 @@ module Transport
         Thread.current[:name] = "UDPThread-"+@ip.to_s+"-"+@port.to_s
         UDPSocket.do_not_reverse_lookup = true
         @sock = UDPSocket.new
+        @sock.setsockopt(Socket::SOL_SOCKET,Socket::SO_REUSEADDR, true)
+
         @sock.bind(@ip, @port)
         @ilog.debug "binded ..#{@port}" if @ilog.debug?
         begin 
