@@ -10,7 +10,7 @@ gem install flexmock-0.7.1.gem -l
 gem install log4r-1.0.5.gem -l
 gem install rake-0.7.2.gem -l
 check_status
-gem install Sipper-1.1.3.gem -l
+gem install Sipper-2.0.0.gem -l
 check_status
 ruby i.rb
 check_status

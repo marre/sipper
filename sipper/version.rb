@@ -1,9 +1,9 @@
 module SIP
   module VERSION #:nodoc:
     unless defined? MAJOR
-      MAJOR = 1
-      MINOR = 1
-      TINY  = 3
+      MAJOR = 2
+      MINOR = 0
+      TINY  = 0
       STRING = [MAJOR, MINOR, TINY].join('.')
     end
   end
