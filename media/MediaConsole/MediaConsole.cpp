@@ -425,6 +425,8 @@ int main(int argc, char* argv[])
 	  fgets(command, 7999, stdin);
 
 	  int len = strlen(command);
+	  command[len - 1] = '\0';
+	  len--;
 	  int newlen = htonl(len);
 	  if(sendSocket(sock, &newlen, 4) == -1)
 	  {
