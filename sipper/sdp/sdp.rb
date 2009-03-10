@@ -54,7 +54,15 @@ module SDP
   class Sdp
     
     def session_lines=(h)
-      @sa = h
+      if @sa 
+        @sa[:v] = h[:v] if h[:v]
+        @sa[:o] = h[:o] if h[:o]
+        @sa[:s] = h[:s] if h[:s]
+        @sa[:c] = h[:c] if h[:c]
+        @sa[:t] = h[:t] if h[:t]
+      else
+        @sa=h        
+      end
     end
     
     # media lines are an ordered array 

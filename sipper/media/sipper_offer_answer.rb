@@ -68,6 +68,7 @@ class SipperOfferAnswer
       end
 
       @state = 4
+      @ourSdp
    end
 
    def _make_our_answer()
