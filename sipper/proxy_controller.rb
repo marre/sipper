@@ -33,7 +33,7 @@ module SIP
         Thread.current[:proxy_initiated] = true
         r = peer_session.create_initial_request(orig_request.method, orig_request.uri)
         if self.class.get_record_route && orig_request.method != 'REGISTER'
-          r.push_record_route = "<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>"  
+          r.push_record_route("<sip:" + SipperConfigurator[:LocalSipperIP]+":"+ SipperConfigurator[:LocalSipperPort].to_s+";lr>")  
         end
         if self.class.get_record_path && orig_request.method == 'REGISTER'
           if SipperConfigurator[:ProtocolCompliance] != 'strict' || orig_request[:supported].to_s.include?('path')
