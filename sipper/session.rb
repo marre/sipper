@@ -647,7 +647,7 @@ class Session
   
   # Challenge response is created by UAS when it wants to authenticate the UAC.
   def create_challenge_response(req = @irequest, proxy=false, realm=nil, 
-    domain=nil, add_opaque=false, stale=false)
+    domain=nil, add_opaque=false, stale=false, qop=true)
     if proxy
       res = create_response(407)
     else  
@@ -659,10 +659,10 @@ class Session
     end
     if proxy
       res.proxy_authenticate = 
-        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy)
+        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy, qop)
     else
       res.www_authenticate = 
-        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy)
+        @da.create_authentication_header(realm, domain, add_opaque, stale, proxy, qop)
     end
     return res
   end
