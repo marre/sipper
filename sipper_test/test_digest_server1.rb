@@ -31,7 +31,8 @@ class TestDigestServer1 < DrivenSipTestCase
         
         
         def on_ack(session)
-          session.request_with 'BYE'  
+          last_sent = session.get_state_array[-2]
+          session.request_with 'BYE' if last_sent == "sent_200" 
         end
         
         def on_success_res(s)

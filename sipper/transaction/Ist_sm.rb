@@ -55,6 +55,9 @@ class IstState < Statemap::State
     end
 
     def Default(fsm)
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : Default\n")
+        end
         msg = "\nState: " + fsm.getState.getName +
             "\nTransition: " + fsm.getTransition + "\n"
         raise Statemap::TransitionUndefinedException, msg
@@ -70,11 +73,16 @@ class IstMap_Initial < IstMap_Default
 
     def invite(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Initial.invite\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__send_trying()
             ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Proceeding)
             fsm.getState.Entry(fsm)
@@ -83,10 +91,15 @@ class IstMap_Initial < IstMap_Default
 
     def transport_err(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Initial.transport_err\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__transport_err()
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Terminated)
             fsm.getState.Entry(fsm)
@@ -99,11 +112,16 @@ class IstMap_Proceeding < IstMap_Default
 
     def cancel(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.cancel\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__create_and_send_487()
             ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Completed)
             fsm.getState.Entry(fsm)
@@ -112,11 +130,16 @@ class IstMap_Proceeding < IstMap_Default
 
     def invite(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.invite\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__send_last_response()
             ctxt.__consume_msg(false)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -124,10 +147,15 @@ class IstMap_Proceeding < IstMap_Default
 
     def non_success_final(fsm, r)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.non_success_final(r)\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__send_non_success_final_response(r)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Completed)
             fsm.getState.Entry(fsm)
@@ -136,10 +164,15 @@ class IstMap_Proceeding < IstMap_Default
 
     def provisional(fsm, r)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.provisional(r)\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__send_provisional_response(r)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -147,10 +180,15 @@ class IstMap_Proceeding < IstMap_Default
 
     def success_final(fsm, r)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.success_final(r)\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__send_success_response(r)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Finished)
             fsm.getState.Entry(fsm)
@@ -159,10 +197,15 @@ class IstMap_Proceeding < IstMap_Default
 
     def transport_err(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Proceeding.transport_err\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__transport_err()
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Terminated)
             fsm.getState.Entry(fsm)
@@ -187,10 +230,15 @@ class IstMap_Completed < IstMap_Default
 
     def ack(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.ack\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
-            ctxt.__consume_msg(false)
+            ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Confirmed)
             fsm.getState.Entry(fsm)
@@ -199,10 +247,15 @@ class IstMap_Completed < IstMap_Default
 
     def cancel(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.cancel\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -210,11 +263,16 @@ class IstMap_Completed < IstMap_Default
 
     def invite(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.invite\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__send_last_response()
             ctxt.__consume_msg(false)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -222,11 +280,16 @@ class IstMap_Completed < IstMap_Default
 
     def timer_G(fsm, t)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.timer_G(t)\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__send_last_response()
             ctxt.__reset_G(t)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -234,10 +297,15 @@ class IstMap_Completed < IstMap_Default
 
     def timer_H(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.timer_H\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__timeout()
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Terminated)
             fsm.getState.Entry(fsm)
@@ -246,10 +314,15 @@ class IstMap_Completed < IstMap_Default
 
     def transport_err(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Completed.transport_err\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__transport_err()
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Terminated)
             fsm.getState.Entry(fsm)
@@ -267,10 +340,15 @@ class IstMap_Confirmed < IstMap_Default
 
     def ack(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Confirmed.ack\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
-            ctxt.__consume_msg(false)
+            ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -278,10 +356,15 @@ class IstMap_Confirmed < IstMap_Default
 
     def cancel(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Confirmed.cancel\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -289,11 +372,16 @@ class IstMap_Confirmed < IstMap_Default
 
     def invite(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Confirmed.invite\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__send_last_response()
             ctxt.__consume_msg(false)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -301,10 +389,15 @@ class IstMap_Confirmed < IstMap_Default
 
     def timer_I(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Confirmed.timer_I\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.clearState
         begin
             ctxt.__timeout()
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(IstMap::Terminated)
             fsm.getState.Entry(fsm)
@@ -322,10 +415,15 @@ class IstMap_Finished < IstMap_Default
 
     def cancel(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Finished.cancel\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__consume_msg(true)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
@@ -333,16 +431,24 @@ class IstMap_Finished < IstMap_Default
 
     def invite(fsm)
         ctxt = fsm.getOwner
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Finished.invite\n")
+        end
         endState = fsm.getState
         fsm.clearState
         begin
             ctxt.__consume_msg(false)
+        rescue RuntimeError => e
+            fsm.getDebugStream.write e
         ensure
             fsm.setState(endState)
         end
     end
 
     def timer_Z(fsm)
+        if fsm.getDebugFlag then
+            fsm.getDebugStream.write("TRANSITION   : IstMap::Finished.timer_Z\n")
+        end
         fsm.getState.Exit(fsm)
         fsm.setState(IstMap::Terminated)
         fsm.getState.Entry(fsm)

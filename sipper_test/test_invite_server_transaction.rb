@@ -136,7 +136,7 @@ class TestInviteServerTransaction < SipTestCase
     ist.txn_send r # should now be in Completed state
     a = SipMockTester::MockRequest.new("ACK")  
     ist.txn_received(a)
-    assert(!ist.consume?)
+    assert(ist.consume?)
     assert_equal("IstMap.Confirmed", ist.state)
   end
   
@@ -152,7 +152,7 @@ class TestInviteServerTransaction < SipTestCase
     assert(!ist.consume?)
     a = SipMockTester::MockRequest.new("ACK")  
     ist.txn_received(a)
-    assert(!ist.consume?)
+    assert(ist.consume?)
     assert_equal("IstMap.Confirmed", ist.state)
   end
   

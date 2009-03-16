@@ -39,6 +39,7 @@ class SipperHttpRequestDispatcher
         Thread.current[:name] = "HttpClientThread-"+i.to_s
         while @run
           url_context = @request_queue.pop
+          return unless @run
           url = URI.parse(url_context.url)
           res = nil
           if url_context.req_method == 'get'
@@ -70,6 +71,8 @@ class SipperHttpRequestDispatcher
   
   def stop
     @run = false
+    @request_queue.clear
+    @request_queue = nil
   end
   
   # params are a hash of POST parameters

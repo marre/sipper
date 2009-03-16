@@ -377,6 +377,10 @@ module SIP
       @tm.stop
       # stop the DRb server on this node
       DRb.stop_service
+      
+      # now stop the http client request dispatcher
+      SIP::Locator[:HttpRequestDispatcher].stop
+      
       @running = false
       SipperConfigurator[:ControllerLibPath] = nil  
       @q.clear

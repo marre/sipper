@@ -73,7 +73,7 @@ module SIP
     
     
     def stop
-      @ilof.info "Stopping the TimerManager" if @ilog.info?
+      @ilog.info "Stopping the TimerManager" if @ilog.info?
       @running = false
     end
     

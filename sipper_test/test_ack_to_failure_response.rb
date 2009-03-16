@@ -17,9 +17,14 @@ class TestAckToFailureResponse < DrivenSipTestCase
         def on_invite(session)
           session.respond_with(404)
           logd("Received INVITE sent a 200 from "+name)
-          session.invalidate(true)
+          #session.invalidate(true)
         end
              
+       
+        def on_ack(session)
+          session.invalidate(true)
+          session.flow_completed_for("TestAckToFailureResponse")
+        end
         
         def order
           0
@@ -42,7 +47,7 @@ class TestAckToFailureResponse < DrivenSipTestCase
         
         def on_failure_res(session)
           session.invalidate(true)
-          session.flow_completed_for("TestAckToFailureResponse")
+          #session.flow_completed_for("TestAckToFailureResponse")
         end
          
       end
@@ -53,7 +58,7 @@ class TestAckToFailureResponse < DrivenSipTestCase
   end
   
   
-  def test_smoke_controllers
+  def test_atf_controllers
     self.expected_flow = ["> INVITE", "< 100", "< 404", "> ACK"]
     start_controller
     verify_call_flow(:out)

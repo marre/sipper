@@ -34,7 +34,7 @@ Exit  { __cancel_H(); __cancel_G(); }
   timer_G(t: ltime)  nil        { __send_last_response(); __reset_G(t); }
   timer_H            Terminated { __timeout(); }
   transport_err      Terminated { __transport_err(); }  
-  ack                Confirmed  { __consume_msg(false); }                          //i
+  ack                Confirmed  { __consume_msg(true); }                          //i
   invite             nil        { __send_last_response(); __consume_msg(false); }  //i
   cancel             nil        { __consume_msg(true); }                           //i
 }
@@ -46,7 +46,7 @@ Entry { __start_I(); }
 {
   timer_I            Terminated { __timeout(); }
   cancel             nil        { __consume_msg(true); }                          //i consume to send 200
-  ack                        nil    { __consume_msg(false); }                     //i
+  ack                        nil    { __consume_msg(true); }                     //i
   invite                     nil    { __send_last_response(); __consume_msg(false); }  //i
 }
 

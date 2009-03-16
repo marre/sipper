@@ -20,7 +20,8 @@ class TestReplaceFailure < DrivenSipTestCase
         end
         
         def on_ack(session)
-          session.request_with("bye")
+          last_resp = session.get_state_array[-2]
+          session.request_with("bye") if last_resp == "sent_200"
         end
         
         def on_success_res_for_bye(session)
