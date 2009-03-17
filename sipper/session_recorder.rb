@@ -37,7 +37,7 @@ class SessionRecorder
     end
   end
   
-  def SessionRecorder.create_and_record(io, msg, msg_s, direction, session_setting=nil)
+  def SessionRecorder.create_and_record(io, msg, msg_s, direction, session_setting=nil, emit_console=false)
     if msg[:p_session_record]
       level = msg.p_session_record.to_s
     elsif session_setting
@@ -52,7 +52,7 @@ class SessionRecorder
         sr = new(SessionRecorder.get_new_count.to_s+"-"+msg.call_id.to_s+"_"+direction , nil, level) 
       end 
     end
-    sr.record(direction, msg, msg_s) if sr
+    sr.record(direction, msg, msg_s, emit_console) if sr
     return sr
   end
   
@@ -85,7 +85,7 @@ class SessionRecorder
   # message. The string representation is the final string that goes out from the 
   # transport. 
   
-  def record(direction, msg, msg_s=nil )
+  def record(direction, msg, msg_s=nil, emit_console=false )
     ensure_recordable
     open_file_if_unopened
     case @level
@@ -111,6 +111,7 @@ class SessionRecorder
     else
       m = "UNKNOWN DIRECTION " + m
     end
+    print "#{m}  " if emit_console
     @messages << m
   end 
   

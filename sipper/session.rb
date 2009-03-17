@@ -50,7 +50,8 @@ class Session
   :use_nict, :use_ist, :use_nist, :session_timer, :session_limit, :tmr_hash,
   :use_2xx_retrans, :use_1xx_retrans, :t2xx_retrans_timers, :t1xx_retrans_timers, 
   :dialog_routes, :force_update_session_map, :reliable_1xx_status, :ihttp_response, 
-  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm, :dtmf_collected_digits
+  :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm, 
+  :dtmf_collected_digits, :emit_console
   
   class SubscriptionData
     attr_accessor :key, :timer, :source, :event, :event_id, :state, :method
@@ -1673,9 +1674,9 @@ class Session
       end
     end
     unless @session_recorder
-      @session_recorder = SessionRecorder.create_and_record(@rio, msg, msg_s, direction, @session_record)  
+      @session_recorder = SessionRecorder.create_and_record(@rio, msg, msg_s, direction, @session_record, @emit_console)  
     else
-      @session_recorder.record(direction, msg, msg_s)
+      @session_recorder.record(direction, msg, msg_s, @emit_console)
     end
   rescue RuntimeError => e
     @ilog.error("Unable to record the #{msg} as recorder is closed") if @ilog.error?

@@ -9,7 +9,7 @@ module WEBrick
   class Session
     public
 
-    NoSession = Class.new(StandardError)
+    NoSession = Class.new(StandardError) unless defined? NoSession
 
     attr_reader(:session_id, :new_session)
 
