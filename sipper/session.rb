@@ -542,6 +542,10 @@ class Session
     return r
   end
   
+  def make_new_offer
+    @offer_answer.make_new_offer
+  end
+  
   # A helper method to create the right REGISTER request, though you can create
   # the REGISTER like any other request, this just simplifies the process.
   # Note that for 3rd party registration you may have to change the From 

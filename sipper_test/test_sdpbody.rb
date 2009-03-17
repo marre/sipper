@@ -61,7 +61,7 @@ class TestSdpBody < DrivenSipTestCase
                 
         def start
           session = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
-          session.offer_answer.make_new_offer
+          session.make_new_offer
           r = session.create_initial_request("INVITE", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           
           # adding two new media lines with attributes

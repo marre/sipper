@@ -22,7 +22,7 @@ class TestPrackSdp < DrivenSipTestCase
 
         def on_invite(session)
           logd("Received INVITE in #{name}")
-          session.offer_answer.make_new_offer unless session.irequest.sdp
+          session.make_new_offer unless session.irequest.sdp
           session[:inviteReq] = session.irequest
           session.respond_with(100)
           
