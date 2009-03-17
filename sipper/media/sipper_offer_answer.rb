@@ -68,8 +68,12 @@ class SipperOfferAnswer
       end
 
       @state = 4
-      @ourSdp
    end
+
+   def get_sdp()
+      return @ourSdp if (@state==4 || @state==2)
+   end     
+    
 
    def _make_our_answer()
       @ilog.debug("Client making new answer") if @ilog.debug?
@@ -237,7 +241,6 @@ class SipperOfferAnswer
    end
 
    def handle_outgoing_request(request)
-      return if request.sdp 
       return unless (request.method == "INVITE" || request.method == "PRACK" || request.method == "UPDATE" || request.method == "ACK")
 
       case @state
@@ -260,7 +263,6 @@ class SipperOfferAnswer
 
    def handle_outgoing_response(response)
       
-      return if response.sdp 
       return unless (response.get_request_method == "INVITE" || response.get_request_method == "PRACK" || response.get_request_method == "UPDATE")
 
       return if response.code <= 100

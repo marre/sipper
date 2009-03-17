@@ -535,6 +535,10 @@ class Session
     r = Request.create_initial(method, rrt[0], *rest)
     r = _add_route_headers_if_present(r, rrt)
     r.via.rport = '' if @behind_nat
+    if @offer_answer
+      ourSdp = @offer_answer.get_sdp() 
+      r.sdp = ourSdp if ourSdp!=nil    
+    end  
     return r
   end
   
@@ -622,6 +626,10 @@ class Session
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_subsequent(method, rrt[0], h)
     r = _add_route_headers_if_present(r, rrt)
+    if (@offer_answer && (method == "ACK" || method == "UPDATE" || method == "PRACK" || method == "INVITE"))
+      ourSdp = @offer_answer.get_sdp() 
+      r.sdp = ourSdp if ourSdp!=nil    
+    end 
     return r
   end
   
@@ -714,6 +722,10 @@ class Session
       r.format_as_separate_headers_for_mv(:contact)    
     end
     #@ilog.debug("Response now is #{r}") if @ilog.debug?
+    if @offer_answer
+      ourSdp = @offer_answer.get_sdp()
+      r.sdp = ourSdp if (ourSdp!=nil && (code==200||reliability))    
+    end
     return r
   end
   
