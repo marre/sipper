@@ -47,7 +47,7 @@ module SIP
   class Sipper 
     include SipLogger  
     
-    attr_reader :running
+    attr_reader :running, :exit_now
     
     def initialize( config={} )
       @ilog = logger
@@ -395,6 +395,11 @@ module SIP
         ObjectSpace.each_object(Object) {|x| a[x.class.name] += 1}
         a.each {|k,v| puts "#{k}  #{v}" }
       end
+    end
+    
+    def sipper_exit
+      @exit_now = true
+      exit
     end
     
     private :_check_running
