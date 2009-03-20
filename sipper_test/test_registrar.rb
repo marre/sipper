@@ -37,16 +37,13 @@ class TestRegistrationController < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def start
-          r = Request.create_initial("register", "sip:sipper.com", 
-               :from=>"sip:bob@sipper.com", :to=>"sip:bob@sipper.com",
-               :contact=>"sip:abc@abc.com",
-               :expires=>"400",
-               :p_session_record=>"msg-info")
-          r.contact.expires='500'
-          r.add_contact('mailto:abc@sipper.com')
-          r.format_as_separate_headers_for_mv(:contact)
-          
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
+          r = u.create_register_request("sip:sipper.com", "sip:bob@sipper.com", "sip:abc@abc.com")
+          r.p_session_record = "msg-info"
+          r.expires = '400'
+          r.contact.expires='500'
+          r.add_contact('<mailto:abc@sipper.com>')
+          r.format_as_separate_headers_for_mv(:contact)  
           u.send(r)
           logd("Sent a new REGISTER from #{name}")
         end
@@ -55,6 +52,7 @@ class TestRegistrationController < DrivenSipTestCase
           if !session['2xx'] 
             session['2xx'] =1
             logd("Received response in #{name}")
+            puts session.iresponse.contacts.to_s
             if session.iresponse.contacts.to_s.include?("<sip:abc@abc.com>;expires=500<mailto:abc@sipper.com>;expires=400")
               session.do_record('register_success')
             end

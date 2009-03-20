@@ -3,6 +3,10 @@ require 'driven_sip_test_case'
 # 
 # A very simple inlined smoke test.
 #
+
+require 'transport/base_transport'
+
+
 class TestSmoke < DrivenSipTestCase
 
   def setup
@@ -17,6 +21,7 @@ class TestSmoke < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
+          session.make_new_offer
           session.respond_with(200)
           logd("Received INVITE sent a 200 from "+name)
         end
@@ -43,7 +48,8 @@ class TestSmoke < DrivenSipTestCase
         def start
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           r = u.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
-          r.sdp = SDP::SdpGenerator.make_no_media_sdp
+          u.offer_answer.make_new_offer
+          #r.sdp = SDP::SdpGenerator.make_no_media_sdp
           u.send(r)
           logd("Sent a new INVITE from "+name)
         end
