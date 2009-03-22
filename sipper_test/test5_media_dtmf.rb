@@ -97,4 +97,10 @@ class Test5Mediadtmf < DrivenSipTestCase
     verify_call_flow(:in)
   end
   
+  def teardown
+    SipperConfigurator[:SipperMediaProcessReuse] = false
+    SipperConfigurator[:SipperMedia] = false
+    super
+  end
+  
 end

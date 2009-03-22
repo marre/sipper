@@ -916,7 +916,10 @@ class Session
        rec_spec = recfile if recfile
     end
 
-    @offer_answer.setup_media_spec(play_spec, rec_spec, dtmf_spec) if @offer_answer
+    if @offer_answer
+      @offer_answer.setup_media_spec(play_spec, rec_spec, dtmf_spec) 
+      @offer_answer.refresh_sipper_media
+    end
   end
 
   def update_dtmf_spec(mattr)
@@ -925,7 +928,7 @@ class Session
 
   def update_audio_spec(mattr)
      set_media_attributes(mattr)
-     @offer_answer.refresh_sipper_media if @offer_answer
+     #@offer_answer.refresh_sipper_media if @offer_answer
   end
 
   def set_dtmf_collect_spec(collect_till = "#", timeoutmsec=0)

@@ -26,24 +26,26 @@ class TestMediaPlayAndRecord < DrivenSipTestCase
             session.do_record("rec.au_not_present")
           end   
           session.offer_answer.make_new_offer
+          #session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
           session.respond_with(200)
           logd("Received INVITE sent a 200 from "+name)
         end
-        
-        
-        
-        def on_media_voice_activity_stopped(session)
-          session.request_with("bye")
-        end
+  
 
         def on_ack(session)
           session.update_audio_spec(:play_spec=>'',:rec_spec=>'rec.au')
         end
         
-        def on_success_res(session)
+        def on_media_voice_activity_stopped(session)
+          session.request_with("bye")
+        end
+        
+        def on_success_res_for_bye(session)
           session.invalidate(true)
           session.flow_completed_for("TestMediaPlayAndRecord")
         end
+        
+        
         
         def order
           0
@@ -63,11 +65,11 @@ class TestMediaPlayAndRecord < DrivenSipTestCase
         end
      
         
-        def on_success_res(session)
-          session.set_media_attributes(:play_spec =>'PLAY hello_sipper.au')
+        def on_success_res_for_invite(session)
+          session.update_audio_spec(:play_spec =>'PLAY hello_sipper.au')
           session.request_with('ACK')
         end
-        
+       
         def on_bye(session)
           session.respond_with(200)
           if File.exists?("rec.au")
@@ -84,7 +86,7 @@ class TestMediaPlayAndRecord < DrivenSipTestCase
   end
   
   
-  def test2_media_controllers
+  def test_media_controllers
     self.expected_flow = ["> INVITE", "< 100", "< 200", "> ACK", "< BYE", "> 200", "! rec.au_found"]
     start_controller
     verify_call_flow(:out)
