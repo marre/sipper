@@ -187,7 +187,7 @@ class Message
           if @headers[m_name.to_sym]
             p = @headers[m_name.to_sym].shift 
             if @headers[m_name.to_sym].length == 0
-              @headers[m_name.to_sym] = nil    
+              @headers.delete(m_name.to_sym)    
             end
             return p
           else

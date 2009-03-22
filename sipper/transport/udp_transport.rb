@@ -112,7 +112,7 @@ module Transport
       @sock.close
       @t_thread.kill
       k = @ip.to_s + ":" + @port.to_s
-      @@instance[k] = nil
+      @@instance.delete(k)
     end
     
    

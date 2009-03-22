@@ -1691,7 +1691,7 @@ class Session
     txn_id = @iresponse.txn_id
     @cancellable_txns << txn_id
     if pc = @pending_cancels[txn_id] 
-      @pending_cancels[txn_id] = nil
+      @pending_cancels.delete(txn_id)
       if SipperConfigurator[:ProtocolCompliance] == 'strict'
         return if @iresponse.code >= 200
       end
@@ -2019,11 +2019,11 @@ class Session
     end
     
     key = sprintf("|%s|%d", event, event_id)
-    @subscriptionMap[key] = nil
+    @subscriptionMap.delete(key)
   end
   
   def remove_subscription(subscription)
-    @subscriptionMap[subscription.key] = nil
+    @subscriptionMap.delete(subscription.key)
   end
   
   def add_subscription_to_request(request, subscription)
