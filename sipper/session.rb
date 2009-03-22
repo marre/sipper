@@ -543,8 +543,8 @@ class Session
     return r
   end
   
-  def make_new_offer
-    @offer_answer.make_new_offer
+  def make_new_offer(*args)
+    @offer_answer.make_new_offer(*args)
   end
   
   # A helper method to create the right REGISTER request, though you can create
@@ -918,7 +918,7 @@ class Session
 
     if @offer_answer
       @offer_answer.setup_media_spec(play_spec, rec_spec, dtmf_spec) 
-      @offer_answer.refresh_sipper_media
+      @offer_answer.refresh_sipper_media if play_spec || rec_spec
     end
   end
 

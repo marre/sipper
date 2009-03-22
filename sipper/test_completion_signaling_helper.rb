@@ -44,10 +44,12 @@ module SIP
             signal_data.cond.wait(3)
             k += 3
             if signal_data.lock.nitems > 0
-              puts "Timeout happened waiting for signaling completion"
-              SipLogger['siplog::sip_testcompletionsignalinghelper'].error "Timeout happened waiting for signaling completion"
               break
             end
+          end
+          if k >= SipperConfigurator[:WaitSecondsForTestCompletion]
+            puts "Timeout happened waiting for signaling completion"
+            SipLogger['siplog::sip_testcompletionsignalinghelper'].error "Timeout happened waiting for signaling completion"
           end
         end
       end

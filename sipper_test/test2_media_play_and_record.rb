@@ -19,15 +19,14 @@ class Test2MediaPlayAndRecord < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          # why this doenst work?
-          # session.set_media_attributes(:rec_spec=>'rec.au', :play_spec=>'')                                   
-          
+                                            
           if File.exists?("rec.au")
             session.do_record("rec.au_found")
           else
             session.do_record("rec.au_not_present")
           end
           
+          session.set_media_attributes(:rec_spec=>'rec.au', :play_spec=>'') 
           
           session.respond_with(200)
           logd("Received INVITE sent a 200 from "+name)
@@ -44,8 +43,7 @@ class Test2MediaPlayAndRecord < DrivenSipTestCase
         end
 
         def on_ack(session)
-          session.update_audio_spec(:play_spec=>'',:rec_spec=>'rec.au')
-          #session.set_media_attributes(:rec_spec=>'rec.au', :play_spec=>'')
+          #session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
         end
         
         def on_success_res(session)
@@ -66,7 +64,7 @@ class Test2MediaPlayAndRecord < DrivenSipTestCase
         def start
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           r = u.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
-          u.offer_answer.make_new_offer
+          u.make_new_offer
           u.set_media_attributes(:play_spec =>'PLAY hello_sipper.au')
           u.send(r)
           logd("Sent a new INVITE from "+name)

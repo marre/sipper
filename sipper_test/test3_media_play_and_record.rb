@@ -67,19 +67,12 @@ class Test3MediaPlayAndRecord < DrivenSipTestCase
           session.request_with('ACK')
         end
 
-#        def on_media_audio_started(session)
-#          #session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
-#          session.update_audio_spec(:play_spec=>'',:rec_spec=>'rec.au')
-#        end
         
         def on_media_voice_activity_stopped(session)
           session.request_with("bye")
         end
 
-        def on_media_voice_activity_detected(session)
-           puts "now receiving audio"
-        end
-        
+      
         def on_success_res_for_bye(session)
           session.invalidate(true)
           session.flow_completed_for("Test3MediaPlayAndRecord")

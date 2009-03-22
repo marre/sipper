@@ -47,11 +47,11 @@ class TestmediacontrollerController < SIP::SipTestDriverController
     session.respond_with(200)
   end
 
-  def on_media_audio_started(session)
+  def on_media_connected(session)
     puts "NK **** Media started**"
   end
     
-    def on_media_audio_stopped(session) 
+    def on_media_disconnected(session) 
       puts "NK **** Media stopped**"
     end
     

@@ -123,7 +123,8 @@ class SipperOfferAnswer
 
    def refresh_sipper_media()
       return unless SipperConfigurator[:SipperMedia]
-
+      return unless @peerSdp
+      
       peerMediaLines = @peerSdp.media_lines
       ourMediaLines = @ourSdp.media_lines
 

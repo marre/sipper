@@ -26,14 +26,14 @@ class TestMediaPlayAndRecord < DrivenSipTestCase
             session.do_record("rec.au_not_present")
           end   
           session.offer_answer.make_new_offer
-          #session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
+          session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
           session.respond_with(200)
           logd("Received INVITE sent a 200 from "+name)
         end
   
 
         def on_ack(session)
-          session.update_audio_spec(:play_spec=>'',:rec_spec=>'rec.au')
+          #session.set_media_attributes(:play_spec=>'',:rec_spec=>'rec.au')
         end
         
         def on_media_voice_activity_stopped(session)
@@ -66,7 +66,7 @@ class TestMediaPlayAndRecord < DrivenSipTestCase
      
         
         def on_success_res_for_invite(session)
-          session.update_audio_spec(:play_spec =>'PLAY hello_sipper.au')
+          session.set_media_attributes(:play_spec =>'PLAY hello_sipper.au')
           session.request_with('ACK')
         end
        

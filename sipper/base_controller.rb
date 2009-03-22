@@ -328,9 +328,9 @@ module SIP
       else  
         case session.imedia_event.event
         when 'AUDIOSTARTED'
-          self.on_media_audio_started(session)
+          self.on_media_connected(session)
         when 'AUDIOSTOPPED'
-          self.on_media_audio_stopped(session)
+          self.on_media_disconnected(session)
         when 'DTMFRECEIVED'
           self.on_media_dtmf_received(session)
         when 'VOICE_ACTIVITY_DETECTED'
@@ -357,10 +357,10 @@ module SIP
     def on_media_voice_activity_stopped(session)
     end
 
-    def on_media_audio_started(session)
+    def on_media_connected(session)
     end
     
-    def on_media_audio_stopped(session) 
+    def on_media_disconnected(session) 
     end
     
     def on_media_dtmf_received(session)
