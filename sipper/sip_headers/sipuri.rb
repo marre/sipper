@@ -296,6 +296,8 @@ module URI
       
       asa = str.split(AMP)
       @headers = {}
+      esa = nil
+      hv = nil
       asa.each do |hdr|
         esa = hdr.split(EQL)
         hname = SipperUtil.methodize(esa[0])

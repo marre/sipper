@@ -32,6 +32,7 @@ module SipperUtil
     def MessageFill.fill(msg, h)
       @@slog.debug("msg is a #{msg.class}") if @@slog.debug?
       return MessageFill.sub(msg, h) if msg.is_a?(String)
+      str = nil
       msg.each do |k, v|
         #SipLogger['siplog::messagefill'].debug("Processing for #{k} the value is #{v}")
         unless v.nil?         

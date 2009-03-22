@@ -274,6 +274,9 @@ class Message
   
   def parse_headers arr
     content_idx = -1
+    h = nil
+    str_dc = nil
+    hn = nil
     arr.each_with_index do |str, idx|
       @@slog.debug("parsing header : "+str) if @@slog.debug?
       if !str || str.strip.length == 0  # \r\n\r\n before content

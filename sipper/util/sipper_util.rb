@@ -113,7 +113,9 @@ module SipperUtil
     p_hash = {}
     p = SipperUtil.header_value_separate_parameters(hdr_string)
     params = p[1]
-    
+    a = nil
+    key = nil
+    val = nil
     if params
       params.split(";").each do |x|
         a = x.split("=")
