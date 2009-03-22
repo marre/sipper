@@ -67,7 +67,8 @@ class Test4Mediadtmf < DrivenSipTestCase
       
         def on_media_voice_activity_detected(session)
           if !session[:start] 
-            session.update_dtmf_spec(:dtmf_spec => "5")   
+            session.update_dtmf_spec(:dtmf_spec => "5")
+            sleep 2   
             session.request_with('BYE') 
             session[:start] = 1
           end   
