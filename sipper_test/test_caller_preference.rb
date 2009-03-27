@@ -1,4 +1,4 @@
-$:.unshift File.join(ENV['SIPPER_HOME'],'sipper_test')
+
 require 'driven_sip_test_case'
 
 # UAC runs on 5066
