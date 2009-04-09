@@ -582,6 +582,10 @@ class Session
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_subsequent("PRACK", rrt[0], h)
     r = _add_route_headers_if_present(r, rrt)
+    if (@offer_answer)
+      ourSdp = @offer_answer.get_sdp() 
+      r.sdp = ourSdp if ourSdp!=nil    
+    end
     return r
   end
   
