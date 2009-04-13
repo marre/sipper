@@ -48,6 +48,9 @@ else
   ARGV.each_with_index do |arg, i|  
     if arg == "-m" 
       SipperConfigurator[:SipperMediaDefaultControlPort] = Integer(ARGV[i+1])
+    elsif arg == "-l" 
+      SipperConfigurator[:RunLoad] = true
+      SipperConfigurator[:CommandlineBitmask] |= 64  
     elsif arg == "-n" 
       SipperConfigurator[:CallRate] = ARGV[i+1]
       SipperConfigurator[:CommandlineBitmask] |= 32    

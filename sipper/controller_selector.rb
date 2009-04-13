@@ -14,6 +14,7 @@ require 'yaml'
 require 'sip_logger'
 require 'util/sipper_util'
 require 'controller_class_loader'
+require 'sipper_configurator'
 
 module SIP
   class ControllerSelector
@@ -99,6 +100,7 @@ module SIP
       if m.class == Class
         @controllers[fqcname] = inst = m.new  
         instrument_for_authentication(inst, m)
+        instrument_for_load(inst)
         if inst.order >= 0
           if @order_arr
             @order_arr.insert([inst.order, @order_arr.length].min, fqcname) 
@@ -113,9 +115,13 @@ module SIP
       ar = c_class.get_authenticate_requests
       if ar.nil?
         ar = c_class.get_authenticate_proxy_requests
-        SIP::ControllerSelector.push(true) unless ar.nil?
+        if ar.nil?
+          @controller_requires_proxy_auth = nil 
+        else
+          @controller_requires_proxy_auth = true
+        end
       else
-        SIP::ControllerSelector.push(false)
+        @controller_requires_proxy_auth = false
       end
       
       if ar && ar.length>0
@@ -131,7 +137,7 @@ module SIP
                 if old
                   session.respond_with(403)  
                 else
-                  r = session.create_challenge_response(session.irequest, SIP::ControllerSelector.pop)
+                  r = session.create_challenge_response(session.irequest, @controller_requires_proxy_auth)
                   session.send(r)
                 end
               end      
@@ -141,6 +147,30 @@ module SIP
       end
     end
     
+    
+    def instrument_for_load(c_obj)
+      return unless SipperConfigurator[:RunLoad]
+        class <<c_obj
+          alias_method :old_start, :start
+          define_method(:start) do 
+            numCalls = SipperConfigurator[:NumCalls]
+            burstDuration = 0.5
+            burstRate = Integer(SipperConfigurator[:CallRate] * burstDuration)
+            count = 0
+            while count < numCalls
+              startTime = Time.now
+              burstRate.times {
+                self.old_start()
+              }
+              count += burstRate
+              endTime = Time.now
+              sleepDuration = burstDuration - (endTime - startTime)
+              sleep(sleepDuration) if sleepDuration > 0
+            end      
+          end
+        end
+    end
+    
     def self.push(t)
       (@t ||= []) << t  
     end
@@ -148,7 +178,7 @@ module SIP
     def self.pop
       @t.pop if @t    
     end
-    private  :create_controllers, :instrument_for_authentication 
+    private  :create_controllers, :instrument_for_authentication, :instrument_for_load
     
   end
 end
