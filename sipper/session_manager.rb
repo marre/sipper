@@ -67,10 +67,10 @@ class SessionManager
                 s.session_map = :full
                 s.session_key = key 
                 @@slog.info("Found in half copying to full") if @@slog.info?
+                @@full_dialogs[key] = s
               else
                 @@slog.info("Found in half NOT copying to full") if @@slog.info?
               end
-              @@full_dialogs[key] = s
             end
           else
             @@slog.info("Found in the full dialogs map") if @@slog.info?

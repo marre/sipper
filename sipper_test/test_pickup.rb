@@ -218,7 +218,7 @@ class TestPickup < DrivenSipTestCase
           if session.iresponse.get_request_method == "BYE"
              logd("End of call flow reached.")
              alice_session2 = session
-             alice_session2.invalidate
+             alice_session2.invalidate(true)
              alice_session2.flow_completed_for("TestPickup")
           end
         end
