@@ -52,8 +52,7 @@ module SIP
         @processing_under_state_check = false
       end
       
-      def generate_controller(write_to_file=false, dir = nil, bulk = false)
-        @bulk = bulk  
+      def generate_controller(write_to_file=false, dir = nil)    
         @str = "# FLOW : #{@flow_str}\n#\n"
         @str << "require \'base_controller\'\n\n"
         @str << sprintf("class %s < %s \n\n", @gen_class_name, @ctype)
@@ -68,21 +67,9 @@ module SIP
         end
         
         @str << "  def initialize\n"
-        @str << "    logd('Controller created')\n"
-        @str << "    @numcalls = SipperConfigurator[:NumCalls]\n" if @bulk
-        @str << "  end\n\n"
-        
+        @str << "    logd('Controller created')\n  end\n\n"
         @method_code["start"] << "  def start\n"
-        sp= " "*4
-        if @bulk && @flow[0].direction == @d_out
-          @method_code["start"] << "    start_time = Time.now\n"
-          @method_code["start"] << "    count = 0\n"
-          @method_code["start"] << "    period = 1.0 / SipperConfigurator[:CallRate]\n"
-          @method_code["start"] << "    while count < SipperConfigurator[:NumCalls]\n"
-          @method_code["start"] << "      if (Time.now() - start_time) > period\n"
-          sp = " "*8
-        end
-        @method_code["start"] << "#{sp}session = create_udp_session(SipperConfigurator[:DefaultRIP], SipperConfigurator[:DefaultRP])\n"
+        @method_code["start"] << "    session = create_udp_session(SipperConfigurator[:DefaultRIP], SipperConfigurator[:DefaultRP])\n"
         @flow.each do |e|
           if e.direction == @d_in  # have a new method defined for each incoming and repeat outgoing
             @current_method = []
@@ -126,8 +113,7 @@ module SIP
           @method_code[m] << "    session.invalidate(true)\n"
           if @ctype == "SIP::SipTestDriverController"
             test_name = @gen_class_name.sub(/Controller/,"") # by convention the "Controller" is appended to named test 
-            @method_code[m] << "    @numcalls = @numcalls - 1\n" if @bulk
-            @method_code[m] << "    session.flow_completed_for('#{test_name}') #{@bulk ? "if @numcalls <= 0": ""}\n"  
+            @method_code[m] << "    session.flow_completed_for('#{test_name}')\n" 
           end
         end
         _close_all_methods
@@ -176,15 +162,9 @@ module SIP
       def _send_message(msg, method)
         sp = self._spacing    
         if msg =~ /^[A-Z]/    
-          @method_code[method] << "#{@bulk && method == "start" ? sp*2 : sp }session.request_with('#{msg}'"
+          @method_code[method] << "#{sp}session.request_with('#{msg}'"
           if method == "start"
             @method_code[method] << ", 'sip:nasir@sipper.com')" 
-            if @bulk
-              @method_code[method] << "\n        start_time += period"
-              @method_code[method] << "\n        count = count + 1"
-              @method_code[method] << "\n      end"
-              @method_code[method] << "\n    end"
-            end  
           else 
             @method_code[method] << ")"
           end

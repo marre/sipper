@@ -149,7 +149,7 @@ module SIP
     
     
     def instrument_for_load(c_obj)
-      return unless SipperConfigurator[:RunLoad]
+      return unless SipperConfigurator[:RunLoad] 
         class <<c_obj
           alias_method :old_start, :start
           define_method(:start) do 

@@ -12,7 +12,7 @@ def __print_usage
   puts " --version | -v  => print version information"
   puts " --help | -h  => print this message"
   puts ""
-  puts " [-i <local_ip>] [-p <local_port>] [-r <remote_ip>] [-o <remote_port>] [-b <total_calls>] [-n <calls_per_second>]  [-c|-t <file_name>]"
+  puts " [-i <local_ip>] [-p <local_port>] [-r <remote_ip>] [-o <remote_port>] [-b <total_calls>] [-n <calls_per_second>] [-rf <seconds>] [-c|-t <file_name>]"
   puts "  => -c for controller and -t for test generation"
   puts "  => <file_name> is the name of test or controller class to be run."
   puts " The default local port while running the controller is 5060 and the default remote port is "
@@ -20,6 +20,7 @@ def __print_usage
   puts " In its simplest usage, you can just start sipper by running it "
   puts " without arguments. The controllers in this case are loaded from "
   puts " the default controller path location. "
+  puts " The -rf option if present sets the maximum limit in seconds for srun to run."
   exit(0)
 end
 

@@ -25,7 +25,7 @@ module SIP
         @flow_msg_only = @flow.reject {|x| x.first_char(1) == "@"}
       end  
       
-      def generate_test(write_to_file=false, dir = nil, bulk = false)
+      def generate_test(write_to_file=false, dir = nil)
         @str = "$:.unshift File.join(ENV['SIPPER_HOME'],'sipper_test')\n"
         @str << "require \'driven_sip_test_case\'\n\n"
         @str << sprintf("class %s < DrivenSipTestCase \n\n", @gen_class_name)
@@ -36,7 +36,7 @@ module SIP
         @str << "    super\n"
         @str << "    SipperConfigurator[:SessionRecord]='msg-info'\n"
         @str << "    SipperConfigurator[:WaitSecondsForTestCompletion] = 180\n"
-        controller_code = Generators::GenController.new(@gen_class_name+"Controller", @flow_str, @pcap_arr, @filter, "SIP::SipTestDriverController").generate_controller(false,nil,bulk)
+        controller_code = Generators::GenController.new(@gen_class_name+"Controller", @flow_str, @pcap_arr, @filter, "SIP::SipTestDriverController").generate_controller(false)
         @str << "    str = <<-EOF\n"
         @str << controller_code
         @str << "    EOF\n"
@@ -47,9 +47,12 @@ module SIP
         @str << "    self.expected_flow = " 
         @str << SipperUtil.print_arr(@flow_msg_only) + "\n"
         @str << "    start_controller\n"
-        @str << "    for i in 0 ... SipperConfigurator[:NumCalls]\n" if bulk
-        @str << "    #{bulk ? "  ":""}verify_call_flow(:" + @direction +")\n"
-        @str << "    end\n" if bulk     
+        @str << "    if SipperConfigurator[:RunLoad] \n"
+        @str << "      k = SipperConfigurator[:NumCalls]-1 \n"
+        @str << "    else \n"
+        @str << "      k = 1 \n"
+        @str << "    end \n"
+        @str << "    k.downto(0) {|x| verify_call_flow(x)}\n"
         @str << "  end\n"      
         @str << "end\n"  # close class
        
