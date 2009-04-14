@@ -292,6 +292,23 @@ class SipperConfigurator
   # :SipperHttpServerConfig:
   #     A hash of config options that is passed on to the embedded webrick server.
   #     This is an optional configuration.
+  # 
+  # :RunLoad:
+  #     If set to true then Sipper will run the conroller (or test) as load test, this can be set
+  #     in config or even with srun with -l flag which runs any given controller (or test) under load.
+  #
+  # :NumCalls:
+  #     The configuration option for the maximum number of calls, that is used in conjunction with 
+  #     load test and is applicable only when RunLoad option is set (or srun is called with -l). This
+  #     key can be overridden by the srun option -b <number of calls>
+  #
+  # :CallRate:
+  #     The configuration option for the calls per second, that is used in conjunction with 
+  #     load test and is applicable only when RunLoad option is set (or srun is called with -l). This
+  #     key can be overridden by the srun option -n <calls per second>. There is a default burst rate
+  #     of 500 ms that is used. So for example if the calls per second required is 20 then the calls are
+  #     generated at the rate of 10/500msec, to avoid congestion. 
+  #     
   #
   EOF
   

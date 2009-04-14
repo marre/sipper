@@ -153,9 +153,9 @@ module SIP
         class <<c_obj
           alias_method :old_start, :start
           define_method(:start) do 
-            numCalls = SipperConfigurator[:NumCalls]
+            numCalls = SipperConfigurator[:NumCalls].to_i
             burstDuration = 0.5
-            burstRate = Integer(SipperConfigurator[:CallRate] * burstDuration)
+            burstRate = Integer(SipperConfigurator[:CallRate].to_i * burstDuration)
             count = 0
             while count < numCalls
               startTime = Time.now
