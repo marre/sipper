@@ -50,9 +50,9 @@ module SIP
         @str << "    if SipperConfigurator[:RunLoad] \n"
         @str << "      k = SipperConfigurator[:NumCalls]-1 \n"
         @str << "    else \n"
-        @str << "      k = 1 \n"
+        @str << "      k = 0 \n"
         @str << "    end \n"
-        @str << "    k.downto(0) {|x| verify_call_flow(x)}\n"
+        @str << "    0.upto(k) {|x| verify_call_flow(x)}\n"
         @str << "  end\n"      
         @str << "end\n"  # close class
        

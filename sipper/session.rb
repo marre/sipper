@@ -1651,12 +1651,18 @@ class Session
   end
   
   def flow_completed_for(test_name)
+    if SipperConfigurator[:RunLoad]
+      SipperConfigurator[:TempCallCount] = 0 unless SipperConfigurator[:TempCallCount]
+      SipperConfigurator[:TempCallCount] += 1  
+      return unless SipperConfigurator[:TempCallCount] == SipperConfigurator[:NumCalls]
+      SipperConfigurator[:TempCallCount] = nil
+    end
     unless @invalidated
       @ilog.debug("Session not invalidated yet, setting flag signaling completion") if @ilog.debug?
       @signal_test_complete_when_invalidated = test_name.to_s
       return true
     end
-    @ilog.debug("In flow_completed_for() now siganling the waiting test") if @ilog.debug?
+    @ilog.debug("In flow_completed_for() now signaling the waiting test") if @ilog.debug?
     SIP::TestCompletionSignalingHelper.signal_waiting_test(test_name.to_s)
   end
   
