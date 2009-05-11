@@ -8,6 +8,7 @@ CLEAN.include("sipper/logs/*._in")
 CLEAN.include("sipper/logs/*._out")
 CLEAN.include("sipper/logs/precall*")
 CLEAN.include("sipper/logs/.Test*")
+CLEAN.include("sipper/logs/*_store")
 
 task :default => [:test]
 
