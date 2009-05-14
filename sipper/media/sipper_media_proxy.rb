@@ -26,6 +26,9 @@ module Media
         unless x
            x = system(File.join(SipperConfigurator[:SipperBasePath], "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
         end
+        unless x
+           x = system(File.join("usr","local", "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
+        end
       end
       loop do
         sleep 2
