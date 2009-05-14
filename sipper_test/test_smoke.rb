@@ -19,6 +19,7 @@ class TestSmoke < DrivenSipTestCase
       class UasSmokeController < SIP::SipTestDriverController
       
         transaction_usage :use_transactions=>true
+        emit_console true 
         
         def on_invite(session)
           session.make_new_offer

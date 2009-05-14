@@ -30,6 +30,7 @@ module SIP
     @compact_headers = nil
     @session_record = nil
     @behind_nat = false
+    @emit_console
      
     def self.start_on_load(val)
       @sol = SipperUtil.boolify(val)  
@@ -54,6 +55,14 @@ module SIP
     
     def self.get_realm
       @realm
+    end
+    
+    def self.emit_console(val)
+      @emit_console = val
+    end
+    
+    def self.get_emit_console
+      @emit_console
     end
     
     # The transaction usage hash setting is like a modifier in the 
@@ -430,6 +439,7 @@ module SIP
       s.set_session_record(self.class.get_session_record)
       s.set_behind_nat(self.class.get_behind_nat)
       s.set_realm(self.class.get_realm)
+      s.emit_console = self.class.get_emit_console
       return s
     end
     
