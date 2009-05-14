@@ -222,8 +222,10 @@ class SipperOfferAnswer
       return if response.code <= 100
       return if response.code > 300
       if response.code < 200
-         return unless response["require".to_sym]
-         return unless response.require.to_s.include?("100rel")
+         if SipperConfigurator[:ProtocolCompliance] == 'strict'
+           return unless response["require".to_sym]
+           return unless response.require.to_s.include?("100rel")
+         end  
       end
 
       case @state
@@ -269,8 +271,10 @@ class SipperOfferAnswer
       return if response.code <= 100
       return if response.code > 300
       if response.code < 200
-         return unless response["require".to_sym]
-         return unless response.require.to_s.include?("100rel")
+         if SipperConfigurator[:ProtocolCompliance] == 'strict'
+           return unless response["require".to_sym]
+           return unless response.require.to_s.include?("100rel")
+         end
       end
 
       @ilog.debug("Outgoing response checking state #{@state}") if @ilog.debug?

@@ -8,7 +8,7 @@ SPEC = Gem::Specification.new do |s|
    s.email         = "nasir.khan@agnity.com" 
    s.platform      = Gem::Platform::RUBY 
    s.summary       = "Sipper - World's most productive SIP platform" 
-   candidates      = Dir.glob("{sipper,sipper_test,Rakefile}/**/*") 
+   candidates      = Dir.glob("{sipper,sipper_test,Rakefile,bin}/**/*") 
    s.files         = candidates.delete_if do |item| 
                        item.include?(".svn") 
                      end 
