@@ -1,0 +1,1 @@
+@ruby %SIPPER_HOME%\sipper\bin\upgrade_project.rb %*

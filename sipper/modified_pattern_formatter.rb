@@ -1,4 +1,3 @@
-# :include: ../rdoc/patternformatter
 #
 # == Other Info
 #
