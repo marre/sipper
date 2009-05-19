@@ -27,6 +27,7 @@ Source: "C:\sipper_installer\sgen.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\srun.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\sproj.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\ssmoke.cmd"; DestDir: "{app}\bin";
+Source: "C:\sipper_installer\supgrade.cmd"; DestDir: "{app}\bin";
 Source: "C:\sipper_installer\license.txt"; DestDir: "{app}";
 
 

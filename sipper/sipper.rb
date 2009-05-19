@@ -1,5 +1,12 @@
 require 'sipper_configurator'
-
+require 'bin/common'
+dir = SipperUtil::Common.in_project_dir()
+if dir
+  cf = File.join(dir, "frwk_ext")
+  if File.exists?(cf)
+    Dir[File.join(cf, '**/*.rb')].each {|f| load f}
+  end
+end
 Dir[File.join(File.dirname(__FILE__), 'lib/**/*.rb')].each {|l| load l}
 $:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib")
 $:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib", "smc")
@@ -36,7 +43,7 @@ require 'drb/drb'
 
 require 'base_controller'
 require 'sip_test_driver_controller'
-require 'bin/common'
+
 
 require 'media/sipper_media_proxy'
 require 'media/sipper_media_manager'
