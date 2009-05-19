@@ -13,7 +13,7 @@ require 'session_recorder'
 require 'test/unit'
 
 #NK
-require 'ruby_ext/autorunner'
+#require 'ruby_ext/autorunner'
 #$:.unshift File.join(ENV['SIPPER_HOME'], "sipper")
 #NK
 
@@ -22,7 +22,7 @@ require 'ruby_ext/autorunner'
 class BaseTestCase < Test::Unit::TestCase
  
   def setup
-    SipperConfigurator[:SessionRecordPath] = File.join(SipperConfigurator[:LogPath], ".Test#{self.class.name}")
+    SipperConfigurator[:SessionRecordPath] = File.join(SipperConfigurator[:LogPath], ".Test#{self.class.name.split('::')[-1]}")
     FileUtils.mkdir_p SipperConfigurator[:SessionRecordPath]
     #puts "Now testing #{self.class.name}"
   end
