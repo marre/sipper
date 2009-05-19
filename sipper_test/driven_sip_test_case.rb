@@ -26,7 +26,7 @@ class DrivenSipTestCase < SipTestCase
   end
   
   def _prep_monitor
-    @sd = SIP::TestCompletionSignalingHelper.prepare_monitor_for(self.class.name) unless @sd  
+    @sd = SIP::TestCompletionSignalingHelper.prepare_monitor_for(self.class.name.split('::')[-1]) unless @sd  
     @ok_to_wait = true
   end
   

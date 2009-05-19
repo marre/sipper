@@ -1,6 +1,11 @@
 require 'test/unit/ui/testrunnermediator'
 require 'test/unit/ui/testrunnerutilities'
+require "rubygems"
+require "ruport"
+require "ruport/util"
+
 require 'bin/common'
+
 
 module Test
   module Unit
@@ -21,16 +26,17 @@ module Test
             
             dir = SipperUtil::Common.in_project_dir()
             if dir
-              rd = File.join(dir, "reports")
+              @rd = File.join(dir, "reports")
               #rd = File.join(SipperConfigurator[:LogPath], "reports")
-              FileUtils.mkdir_p rd
+              FileUtils.mkdir_p @rd
               t = Time.now
-              s = t.strftime("%y%m%d_%H%M%S")
-              @io = File.new(File.join(rd, s), "w+")
+              @name = t.strftime("%y%m%d_%H%M%S")
+              @csv_file = File.join(@rd, @name+".csv")
+              @io = File.new(@csv_file, "w+")
             else  
               @io = STDOUT
             end
-            output("Test_Name,Test_Case,Result,Assertions")
+            output("Category, Test Name,Test Case,Result,Assertions, Detail")
             @console_io = STDOUT
             @already_outputted = false
             @faults = []
@@ -80,10 +86,8 @@ module Test
             end
             print_assertions unless (@in_same_class)
             @in_same_class =true
-            #output_single(",")
-            nl(1)
-            output_single(fault.long_display)
-            nl(1)
+            output_single(",")
+            output_single(fault.long_display.split("\n").join(" ; "))
           end
           
           def started(result)
@@ -101,12 +105,40 @@ module Test
             end
             console_nl
             console_output(@result)
+            @io.close
+            t = Table(@csv_file)
+            t.remove_column("Test Case")
+            grouping = Grouping(t,:by => "Category")
+            #pdf_content = grouping.to_pdf
+            mdata = {:total=>@result.run_count, 
+                     :ac=>@result.assertion_count,
+                     :fc=>@result.failure_count,
+                     :ec=>@result.error_count,
+                     :data => grouping}
+            html_content = HtmlController.render(:html, :data => mdata)
+          
+            #pdf_file = File.join(@rd, @name+".pdf")
+            html_file = File.join(@rd, @name+".html")
+            #pdf_io = File.new(pdf_file, "w+")
+            #pdf_io.write(pdf_content)
+            #pdf_io.flush
+            #pdf_io.close
+            html_io = File.new(html_file, "w+")
+            html_io.write(html_content)
+            html_io.flush
+            html_io.close
           end
           
           def test_started(name)
             class_name_idx = name.index("(")
             class_name = name[class_name_idx+1...-1]
             test_name = name[0...class_name_idx]
+            if class_name.index('::')
+              group_name,class_name = class_name.split('::')
+            else 
+              group_name = "Tests"
+            end
+            output_single(group_name + ",")
             output_single(class_name + ",")
             output_single(test_name + ",")
           end
@@ -116,6 +148,8 @@ module Test
             console_nl(VERBOSE)
             output_single("PASS,") unless (@already_outputted)
             print_assertions unless (@already_outputted)
+            output_single(",")
+            output_single("")
             @already_outputted = false
             @in_same_class =false
              nl(1)
