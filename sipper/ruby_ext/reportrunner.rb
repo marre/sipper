@@ -30,6 +30,7 @@ module Test
             else  
               @io = STDOUT
             end
+            output("Test_Name,Test_Case,Result,Assertions")
             @console_io = STDOUT
             @already_outputted = false
             @faults = []
@@ -73,12 +74,14 @@ module Test
             console_output_single(fault.single_character_display, PROGRESS_ONLY)
             @already_outputted = true
             if fault.single_character_display=='F'
-              output_single("FAIL,")
+              output_single("FAIL,") unless (@in_same_class)
             else 
-              output_single("ERROR,")
+              output_single("ERROR,") unless (@in_same_class)
             end
-            print_assertions
-            output_single(",")
+            print_assertions unless (@in_same_class)
+            @in_same_class =true
+            #output_single(",")
+            nl(1)
             output_single(fault.long_display)
             nl(1)
           end
@@ -111,10 +114,11 @@ module Test
           def test_finished(name)
             console_output_single(".", PROGRESS_ONLY) unless (@already_outputted)
             console_nl(VERBOSE)
+            output_single("PASS,") unless (@already_outputted)
+            print_assertions unless (@already_outputted)
             @already_outputted = false
-            output_single("PASS,")
-            print_assertions
-            nl(1)
+            @in_same_class =false
+             nl(1)
           end
           
           def print_assertions
