@@ -85,8 +85,12 @@ module Test
               output_single("ERROR,") unless (@in_same_class)
             end
             print_assertions unless (@in_same_class)
+            if !(@in_same_class)
+              output_single(",")
+            else
+              output_single( ';')
+            end 
             @in_same_class =true
-            output_single(",")
             output_single(fault.long_display.split("\n").join(" ; "))
           end
           
