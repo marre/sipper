@@ -88,7 +88,7 @@ module Test
             if !(@in_same_class)
               output_single(",")
             else
-              output_single( '<br><br>')
+              output_single( '<br/><br/>')
             end 
             @in_same_class =true
             output_single(fault.long_display.split("\n").join(" ; "))
