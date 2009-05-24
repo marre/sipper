@@ -40,6 +40,7 @@ module Test
             @console_io = STDOUT
             @already_outputted = false
             @faults = []
+            @test_class_names = []
           end
           
           # Begins the test run.
@@ -113,12 +114,15 @@ module Test
             t = Table(@csv_file)
             t.remove_column("Test Case")
             grouping = Grouping(t,:by => "Category")
+             
             #pdf_content = grouping.to_pdf
             mdata = {:total=>@result.run_count, 
                      :ac=>@result.assertion_count,
                      :fc=>@result.failure_count,
                      :ec=>@result.error_count,
+                     :cn=>@test_class_names,
                      :data => grouping}
+                 
             html_content = HtmlController.render(:html, :data => mdata)
           
             #pdf_file = File.join(@rd, @name+".pdf")
@@ -145,6 +149,7 @@ module Test
             output_single(group_name + ",")
             output_single(class_name + ",")
             output_single(test_name + ",")
+            @test_class_names << class_name
           end
           
           def test_finished(name)

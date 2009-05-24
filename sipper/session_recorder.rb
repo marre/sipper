@@ -34,7 +34,15 @@ class SessionRecorder
         @@base = @@val*10
       end
       @@val = @@base + @@count
+      if SipperConfigurator[:RunLoad]
+        if @@val > 99999999999999999999999999
+          @@count = 0
+          @@base = 0
+          @@val = 0
+        end
+      end
     end
+    @@val
   end
   
   def SessionRecorder.create_and_record(io, msg, msg_s, direction, session_setting=nil, emit_console=false)
@@ -157,7 +165,7 @@ class SessionRecorder
   end
   
   @@slog = SipLogger['siplog::sessionrecorder']
-
+  
   def SessionRecorder.load(f)
     @@slog.debug("Reading the recording from #{f}") if @@slog.debug?
     begin
