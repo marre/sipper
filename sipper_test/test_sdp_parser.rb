@@ -23,7 +23,8 @@ s=-
 c=IN IP4 127.0.0.1
 t=0 0
 m=audio 6000 RTP/AVP 0
-a=rtpmap:0 PCMU/8000}
+a=rtpmap:0 PCMU/8000
+b=AS:12600}
     msg = [str, ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
     sdp = SDP::SdpParser.parse(r.contents)
@@ -35,10 +36,11 @@ a=rtpmap:0 PCMU/8000}
     assert_equal("0 0", sdp.session_lines[:t])
     assert_equal(5, sdp.session_lines.length)
     assert_equal(1, sdp.media_lines.length)
-    assert_equal(2, sdp.media_lines[0].length)
+    assert_equal(3, sdp.media_lines[0].length)
     ma = sdp.media_lines.shift
     assert_equal("audio 6000 RTP/AVP 0", ma[:m])
     assert_equal("rtpmap:0 PCMU/8000", ma[:a])
+    assert_equal("AS:12600", ma[:b])
   end
   
   

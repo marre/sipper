@@ -75,17 +75,42 @@ m=audio 49170 RTP/AVP 0
 a=recvonly
 }
 
+sdp_only_str4 = %q{v=0
+o=jdoe 2890844526 2890842807 IN IP4 10.47.16.5
+s=SDP Seminar
+i=A Seminar on the session description protocol
+u=http://www.example.com/seminars/sdp.pdf
+e=j.doe@example.com (Jane Doe)
+c=IN IP4 224.2.17.12/127
+t=2873397496 2873404696
+a=recvonly
+a=some_attr
+m=audio 49170 RTP/AVP 0
+b=AS:12600
+a=recvonly
+}
+
     msg = [str, ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
     sdp = SDP::SdpParser.parse(r.contents)
     assert_equal(sdp_only_str1, sdp.format_sdp("\n"))
     sdp.remove_media_line_at(1)
     assert_equal(sdp_only_str2, sdp.format_sdp("\n"))
+    
     sdp.add_media_attribute_at(0, "recvonly")
+    
+    
+    
     assert_equal(sdp_only_str3, sdp.format_sdp("\n"))
     assert_equal(["recvonly"], sdp.get_media_attributes_at(0))
     sdp.remove_media_attribute_at(0, "recvonly")
     assert_equal(sdp_only_str2, sdp.format_sdp("\n"))
+    
+    sdp.add_media_attribute_at(0, "recvonly")
+    sdp.add_media_attribute_at(0, "AS:12600", :b)
+    assert_equal(sdp_only_str4, sdp.format_sdp("\n"))
+    assert_equal(["AS:12600"], sdp.get_media_attributes_at(0, :b))
+    
   end    
   
 end

@@ -78,25 +78,25 @@ module SDP
     end
     
     # a=xxx
-    def add_media_attribute_at(k, attr)
+    def add_media_attribute_at(k, attr, type=:a)
       raise ArgumentError, "We have #{@ma.length} media lines" if @ma.length <= k 
-      if @ma[k][:a].nil?
-        @ma[k][:a] = attr
+      if @ma[k][type].nil? || @ma[k][type].length == 0 
+        @ma[k][type] = attr
       else
-        @ma[k][:a] << "||" << attr
+        @ma[k][type] << "||" << attr
       end
     end
     
-    def remove_media_attribute_at(k, attr)
+    def remove_media_attribute_at(k, attr, type=:a)
       raise ArgumentError, "We have #{@ma.length} media lines" if @ma.length <= k 
-      unless @ma[k][:a].nil?
-        @ma[k][:a] = (@ma[k][:a].split("||").reject {|v| v == attr }).join("||")  
+      unless @ma[k][type].nil?
+        @ma[k][type] = (@ma[k][type].split("||").reject {|v| v == attr }).join("||")  
       end
     end
     
-    def get_media_attributes_at(k)
+    def get_media_attributes_at(k, type=:a)
       raise ArgumentError, "We have #{@ma.length} media lines" if @ma.length <= k
-      @ma[k][:a].split("||")
+      @ma[k][type].split("||")
     end
     
     def session_lines
