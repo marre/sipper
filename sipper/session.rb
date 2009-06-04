@@ -531,6 +531,9 @@ class Session
   # state in sipper. Specifically the new initial request will not have a to tag. 
   def create_initial_request(method, uri, *rest)
     log_and_raise "Cannot send initial request as some signaling has happened" unless initial_state?
+    unless uri.class == URI::SipUri
+      uri = URI::SipUri.new.assign(uri.to_s)
+    end
     self.remote_target = uri
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_initial(method, rrt[0], *rest)
