@@ -12,13 +12,6 @@ require 'session_recorder'
 
 require 'test/unit'
 
-#NK
-#require 'ruby_ext/autorunner'
-#$:.unshift File.join(ENV['SIPPER_HOME'], "sipper")
-#NK
-
-#Signal.trap("INT") { puts; exit }
-
 class BaseTestCase < Test::Unit::TestCase
  
   def setup

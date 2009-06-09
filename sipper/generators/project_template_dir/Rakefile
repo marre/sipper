@@ -10,6 +10,11 @@ def gem_paths(spec)
   }
 end
 
+# Required purely for backwards compatibility
+def set_sipper_home
+  ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
+end
+
 CLEAN.include("logs/*.log")
 CLEAN.include("logs/*._in")
 CLEAN.include("logs/*._out")
@@ -20,6 +25,7 @@ task :default => [:my_test]
 
 desc "Run all unit tests"
 Rake::TestTask.new(:test) do |t|
+  set_sipper_home()
   p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
   p.slice!(/\/sipper$/)
   q = File.join(p, "sipper_test")
@@ -38,7 +44,7 @@ desc "Run all unit tests in order"
 task :my_test do
   require 'test/unit/ui/console/testrunner'
   require 'test/unit'
-  
+  set_sipper_home()
   p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
   p.slice!(/\/sipper$/)
   $:.unshift File.join(p, "sipper")

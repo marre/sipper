@@ -1,5 +1,5 @@
 
-$:.unshift File.join(ENV['SIPPER_HOME'],'sipper_test')
+$$:.unshift File.join(File.dirname(__FILE__),"..","sipper")
 require 'driven_sip_test_case'
 
 class TestTransportMultiHandler < DrivenSipTestCase 
