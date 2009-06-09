@@ -32,8 +32,8 @@ class TestPathHeader1 < DrivenSipTestCase
         
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "path_r_proxy.rb")} &")    
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "registrar_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(File.dirname(__FILE__), "path_r_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+3} -rf 6 -c #{File.join(File.dirname(__FILE__), "registrar_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2

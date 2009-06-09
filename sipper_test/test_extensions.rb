@@ -7,7 +7,7 @@ class TestExtensions < DrivenSipTestCase
    
   def setup
     @orig_cp = SipperConfigurator[:ControllerPath]
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath],  "sipper_test", "test_controllers", "extensions")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "extensions")
     super
   end
   

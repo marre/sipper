@@ -3,7 +3,7 @@ require 'driven_sip_test_case'
 class TestSmcController < DrivenSipTestCase
    
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "state_machine_based")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "state_machine_based")
     super
   end
   

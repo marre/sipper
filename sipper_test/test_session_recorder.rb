@@ -6,7 +6,7 @@ class TestSessionRecorder < SipTestCase
   include FlexMock::TestCase
   
   def setup
-    SipperConfigurator[:SessionRecordPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper", "logs")
+    SipperConfigurator[:SessionRecordPath] = File.join(File.dirname(__FILE__),"..", "sipper", "logs")
   end
   
   def test_create_and_record

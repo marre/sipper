@@ -5,7 +5,7 @@ require 'driven_sip_test_case'
 class TestTransportMultiHandler < DrivenSipTestCase 
 
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "multi_trhandlers")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "multi_trhandlers")
     SipperConfigurator[:SessionRecord]='msg-info'
     super
   end

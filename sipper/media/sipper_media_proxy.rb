@@ -22,13 +22,9 @@ module Media
         end
       end
       Thread.new do
-        x = system(File.join(SipperConfigurator[:SipperBasePath], "sipper", "bin", "SipperMedia")  +" -p " + "#{@controller_port.to_s}")
-        unless x
-           x = system(File.join(SipperConfigurator[:SipperBasePath], "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
-        end
-        unless x
-           x = system(File.join("/usr","local", "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
-        end
+        
+        x = system(File.join(File.dirname(__FILE__), "..", "..", "bin", "SipperMedia") +" -p " + "#{@controller_port.to_s}")
+      
       end
       loop do
         sleep 2

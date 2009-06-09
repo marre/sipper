@@ -4,7 +4,7 @@ require 'driven_sip_test_case'
 class TestThTest < DrivenSipTestCase 
 
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "ctrl_trhandler")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "ctrl_trhandler")
     SipperConfigurator[:SessionRecord]='msg-info'
     super
   end

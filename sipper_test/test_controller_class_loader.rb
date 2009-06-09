@@ -5,7 +5,7 @@ require 'base_test_case'
 class TestControllerClassLoader < BaseTestCase
   include SIP
   def setup
-    @path = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "class_loading")
+    @path = File.join(File.dirname(__FILE__), "test_controllers", "class_loading")
   end
   
   def test_empty_clear

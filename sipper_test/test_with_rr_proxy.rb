@@ -22,7 +22,7 @@ class TestWithRRProxy < DrivenSipTestCase
     SipperConfigurator[:SessionRecord] = "msg-info"
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort]+2} -o #{SipperConfigurator[:LocalTestPort]} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "rr_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort]+2} -o #{SipperConfigurator[:LocalTestPort]} -rf 3 -c #{File.join(File.dirname(__FILE__), "rr_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2

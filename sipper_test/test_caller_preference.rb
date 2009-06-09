@@ -22,7 +22,7 @@ class TestCallerPreference < DrivenSipTestCase
 
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+1}  -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "caller_preference_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+1}  -rf 3 -c #{File.join(File.dirname(__FILE__), "caller_preference_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2

@@ -26,8 +26,8 @@ module SIP
       end  
       
       def generate_test(write_to_file=false, dir = nil)
-        @str = "$:.unshift File.join(ENV['SIPPER_HOME'],'sipper_test')\n"
-        @str << "require \'driven_sip_test_case\'\n\n"
+
+        @str = "require \'driven_sip_test_case\'\n\n"
         @str << sprintf("class %s < DrivenSipTestCase \n\n", @gen_class_name)
         @str << "  def self.description\n"
         @str << "    \"Callflow is #{@flow_str}\" \n"

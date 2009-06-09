@@ -183,9 +183,3 @@ module SIP
     
   end
 end
-
-if $PROGRAM_NAME == __FILE__
-  cs = SIP::ControllerSelector.new(Dir.new(File.join(SipperConfigurator[:SipperBasePath], "sipper", "controllers")))
-  ctr = cs.get_controllers(nil)
-  ctr.each {|x| p x.name}  
-end

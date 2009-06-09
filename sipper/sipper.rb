@@ -8,8 +8,8 @@ if dir
   end
 end
 Dir[File.join(File.dirname(__FILE__), 'lib/**/*.rb')].each {|l| load l}
-$:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib")
-$:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib", "smc")
+$:.unshift File.join(File.dirname(__FILE__),"lib")
+$:.unshift File.join(File.dirname(__FILE__),"lib", "smc")
 
 require 'statemap'
 
@@ -148,8 +148,6 @@ module SIP
       SipperConfigurator[:DefaultRIP] ||= "127.0.0.1"
       SipperConfigurator[:DefaultRP] ||= 5060
       
-      #default_cp = File.join(SipperConfigurator[:SipperBasePath], "sipper", "controllers")
-      #SipperConfigurator[:ControllerPath] ||= default_cp
       @q = Queue.new # the message queue
       SIP::Locator[:Tm] = TransportManager.new
       
@@ -294,7 +292,7 @@ module SIP
         require 'management/sipper_config_manager'
         @scm_server = Goblet::Management::SipperConfigManager.new.start
         # run the rails web server
-        require SipperConfigurator[:SipperBasePath] + '/goblet/web/goblet_console/config/boot'
+        require File.dirname(__FILE__) + '../goblet/web/goblet_console/config/boot'
         #Thread.new do
         require 'commands/server'
         #end

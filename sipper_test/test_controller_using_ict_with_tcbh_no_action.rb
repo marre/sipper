@@ -4,7 +4,7 @@ require 'driven_sip_test_case'
 class TestControllerUsingIctWithTcbhNoAction < DrivenSipTestCase
 
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "ict_tcbh")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "ict_tcbh")
     super
   end
   

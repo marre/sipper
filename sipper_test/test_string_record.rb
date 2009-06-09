@@ -8,7 +8,7 @@ require 'stringio'
 class TestStringRecord < DrivenSipTestCase
 
  def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "test_controllers", "string")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "string")
     super
   end
   

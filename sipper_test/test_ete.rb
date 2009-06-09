@@ -7,7 +7,7 @@ require 'driven_sip_test_case'
 class TestEte < DrivenSipTestCase
    
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath],  "sipper_test", "test_controllers", "ete")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "ete")
     super
   end
   

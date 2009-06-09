@@ -15,7 +15,7 @@ class TestGenerated < SipTestCase
     @orig_rp = SipperConfigurator[:DefaultRP]
     SipperConfigurator[:DefaultRP] = SipperConfigurator[:LocalTestPort]
     @orig_cp = SipperConfigurator[:ControllerPath]
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "tmp")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "tmp")
     FileUtils.mkdir SipperConfigurator[:ControllerPath]
     @orig_dir = FileUtils.pwd
     FileUtils.cd SipperConfigurator[:ControllerPath]

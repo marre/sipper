@@ -406,7 +406,6 @@ end
 
 # Defaults
 SipperConfigurator[:ProtocolCompliance] = 'strict'
-SipperConfigurator[:SipperBasePath] = ENV['SIPPER_HOME']
 SipperConfigurator[:WaitSecondsForTestCompletion] = 180
 SipperConfigurator[:TestManagerName] = nil
 SipperConfigurator[:TestManagerPort] = nil

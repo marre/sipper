@@ -3,7 +3,7 @@ require 'driven_sip_test_case'
 class TestControllerUsingIstWithTcbh < DrivenSipTestCase
 
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "ist_tcbh")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "ist_tcbh")
     super
   end
   

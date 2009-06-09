@@ -2,8 +2,8 @@ $:.unshift File.join(File.dirname(__FILE__),"..","sipper")
 
 require 'sipper'
 
-$:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib")
-$:.unshift File.join(SipperConfigurator[:SipperBasePath],"sipper","lib", "smc")
+$:.unshift File.join(File.dirname(__FILE__),"..", "sipper","lib")
+$:.unshift File.join(File.dirname(__FILE__),"..","sipper","lib", "smc")
 
 require 'sipper_assertions'
 

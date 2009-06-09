@@ -5,7 +5,7 @@ require 'test/unit'
 class TestMultiple < DrivenSipTestCase
    
   def setup
-    SipperConfigurator[:ControllerPath] = File.join(SipperConfigurator[:SipperBasePath], "sipper_test", "test_controllers", "multiple")
+    SipperConfigurator[:ControllerPath] = File.join(File.dirname(__FILE__), "test_controllers", "multiple")
     super
   end
   

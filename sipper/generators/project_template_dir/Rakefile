@@ -2,6 +2,13 @@
 require 'rake/clean'
 require 'rake/testtask'
 require 'yaml'
+require 'rubygems'
+
+def gem_paths(spec)
+  spec.require_paths.collect { |d| 
+    File.join(spec.full_gem_path, d)
+  }
+end
 
 CLEAN.include("logs/*.log")
 CLEAN.include("logs/*._in")
@@ -13,7 +20,11 @@ task :default => [:my_test]
 
 desc "Run all unit tests"
 Rake::TestTask.new(:test) do |t|
+  p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
+  p.slice!(/\/sipper$/)
+  q = File.join(p, "sipper_test")
   t.libs << "tests"
+  t.libs << q
   t.test_files= 
    Dir.glob("tests/*.rb")
   t.verbose = true
@@ -27,6 +38,12 @@ desc "Run all unit tests in order"
 task :my_test do
   require 'test/unit/ui/console/testrunner'
   require 'test/unit'
+  
+  p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
+  p.slice!(/\/sipper$/)
+  $:.unshift File.join(p, "sipper")
+  q = File.join(p, "sipper_test")
+  $:.unshift q
   Test::Unit.run = true
   path = File.join("tests", "order_tests.yaml") 
   if File.exists?(path)
@@ -54,3 +71,4 @@ task :my_test do
     Test::Unit::UI::Console::TestRunner.run(::Kernel.const_get(tf[0..-4].split("_").map! {|x| x.capitalize}.join))
   end
 end
+

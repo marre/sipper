@@ -25,7 +25,7 @@ class TestTargetRefreshWithRrUpdateProxy < DrivenSipTestCase
 
     super
     unless RUBY_PLATFORM =~ /mswin/
-      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]} -rf 3 -c #{File.join(SipperConfigurator[:SipperBasePath],"sipper_test", "rr_proxy.rb")} &")    
+      system("srun -p #{SipperConfigurator[:LocalTestPort][1]+2} -o #{SipperConfigurator[:LocalTestPort][1]} -rf 3 -c #{File.join(File.dirname(__FILE__), "rr_proxy.rb")} &")    
     end
     
     str2 = <<-EOF2

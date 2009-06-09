@@ -13,8 +13,10 @@ SPEC = Gem::Specification.new do |s|
                        item.include?(".svn") 
                      end 
    s.require_path  = "sipper" 
-   s.autorequire   = "sipper" 
-   s.has_rdoc       = true 
+   s.autorequire   = "sipper"
+   s.has_rdoc       = false 
+   s.bindir = "bin"
+   s.executables = ["srun", "ssmoke", "sproj", "sgen"]
    s.add_dependency("facets", "= 1.8.54") 
    s.add_dependency("flexmock", "= 0.7.1") 
    s.add_dependency("log4r", "= 1.0.5")  
