@@ -1,5 +1,5 @@
 
-$$:.unshift File.join(File.dirname(__FILE__),"..","sipper")
+$:.unshift File.join(File.dirname(__FILE__),"..","sipper")
 require 'driven_sip_test_case'
 
 class TestTransportMultiHandler < DrivenSipTestCase 

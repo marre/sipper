@@ -15,6 +15,23 @@ def set_sipper_home
   ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 end
 
+# The SIPPER_HOME is only required for Dev setups where gem is not 
+# installed and Sipper is run from source. 
+
+def add_sipper_path_if_gem(t=nil)
+  s = Gem::GemPathSearcher.new.find("Sipper")
+  if s 
+    u = gem_paths(s)
+    p = u[0]
+    p.slice!(/\/sipper$/)
+    q = File.join(p, "sipper_test")
+  else
+    q = File.join(ENV['SIPPER_HOME'], "sipper_test")
+  end
+  t.libs << q  if t
+  return q
+end
+
 CLEAN.include("logs/*.log")
 CLEAN.include("logs/*._in")
 CLEAN.include("logs/*._out")
@@ -26,11 +43,10 @@ task :default => [:my_test]
 desc "Run all unit tests"
 Rake::TestTask.new(:test) do |t|
   set_sipper_home()
-  p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
-  p.slice!(/\/sipper$/)
-  q = File.join(p, "sipper_test")
+  add_sipper_path_if_gem(t)
+  
   t.libs << "tests"
-  t.libs << q
+  
   t.test_files= 
    Dir.glob("tests/*.rb")
   t.verbose = true
@@ -45,11 +61,8 @@ task :my_test do
   require 'test/unit/ui/console/testrunner'
   require 'test/unit'
   set_sipper_home()
-  p = (gem_paths(Gem::GemPathSearcher.new.find("Sipper")))[0]
-  p.slice!(/\/sipper$/)
-  $:.unshift File.join(p, "sipper")
-  q = File.join(p, "sipper_test")
-  $:.unshift q
+  q = add_sipper_path_if_gem()
+  $:.unshift q  if q
   Test::Unit.run = true
   path = File.join("tests", "order_tests.yaml") 
   if File.exists?(path)
