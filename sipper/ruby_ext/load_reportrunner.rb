@@ -6,7 +6,7 @@ require "ruport"
 require "ruport/util"
 
 require 'bin/common'
-
+require 'sipper_configurator'
 
 module Test
   module Unit
@@ -28,7 +28,6 @@ module Test
             dir = SipperUtil::Common.in_project_dir()
             if dir
               @rd = File.join(dir, "reports")
-              #rd = File.join(SipperConfigurator[:LogPath], "reports")
               FileUtils.mkdir_p @rd
               t = Time.now
               @name = t.strftime("%y%m%d_%H%M%S")
@@ -37,13 +36,14 @@ module Test
             else  
               @io = STDOUT
             end
-            output("Timestamp, Succeeded,Failed,Errors")
+            output("Timestamp, Succeeded Assertions,Failed Assertions,Errors")
             @console_io = STDOUT
             @already_outputted = false
             @faults = []
             @succ_count = 0
             @fail_count = 0
             @err_count = 0
+            @emit_after_count = SipperConfigurator[:StfLoadReportFrequency] || 10
           end
           
           # Begins the test run.
@@ -69,10 +69,11 @@ module Test
           
           def attach_to_mediator
             @mediator.add_listener(TestResult::FAULT, &method(:add_fault))
+            @mediator.add_listener(TestResult::CHANGED, &method(:add_run))
             @mediator.add_listener(TestRunnerMediator::STARTED, &method(:started))
             @mediator.add_listener(TestRunnerMediator::FINISHED, &method(:finished))
-            @mediator.add_listener(TestCase::STARTED, &method(:test_started))
-            @mediator.add_listener(TestCase::FINISHED, &method(:test_finished))
+            #@mediator.add_listener(TestCase::STARTED, &method(:test_started))
+            #@mediator.add_listener(TestCase::FINISHED, &method(:test_finished))
           end
           
           def start_mediator
@@ -90,9 +91,18 @@ module Test
             end
           end
           
+          def add_run(result)
+            if result.passed?
+              @succ_count += 1
+              if (@succ_count%@emit_after_count == 0)
+                emit_row()
+              end
+            end  
+          end 
+          
           def started(result)
             @result = result
-            console_output("Started load")       
+            console_output("Started load, view the CSV file under reports for results")       
           end
           
           def finished(elapsed_time)
@@ -112,13 +122,7 @@ module Test
           end
           
           def test_finished(name)
-            console_output_single(".", PROGRESS_ONLY) unless (@already_outputted)
-            console_nl(VERBOSE)
-            @succ_count += 1
-            if (@succ_count%10 == 0)
-              emit_row()
-            end
-          end
+          end     
           
           def print_assertions
             output_single(@result.assertion_count-@last_assertion_count)
@@ -134,7 +138,7 @@ module Test
           end
           
           def emit_row()
-            output("#{Time.now}, #{@succ_count}, #{@fail_count}, #{@err_count}")  
+            output("#{Time.now.strftime("%H:%M:%S")}, #{@succ_count}, #{@fail_count}, #{@err_count}")  
           end
           
           def output(something, level=NORMAL)
