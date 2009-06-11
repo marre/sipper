@@ -79,8 +79,15 @@ else
       unless $ULOGNAME
         $ULOGNAME = '_'+File.basename(f)[0...-3]
       end
-      ARGV.clear # clear the args
+        
+      ARGV.each do |x|
+        if x.index("TESTOPTS")
+          @test_options = x[9..-1]
+        end
+      end 
+      ARGV.clear
       require 'bin/common'
+      ARGV << @test_options if @test_options
       load f
     elsif arg == "-c"
       unless $ULOGNAME
