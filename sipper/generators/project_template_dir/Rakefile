@@ -19,7 +19,7 @@ end
 # installed and Sipper is run from source. 
 
 def add_sipper_path_if_gem(t=nil)
-  s = Gem::GemPathSearcher.new.find("Sipper")
+  s = Gem::GemPathSearcher.new.find("sipper")
   if s 
     u = gem_paths(s)
     p = u[0]
