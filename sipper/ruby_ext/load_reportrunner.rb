@@ -114,7 +114,7 @@ module Test
             end
             console_nl
             console_output(@result)
-            emit_row()
+            #emit_row()
             @io.close     
           end
           
@@ -138,12 +138,15 @@ module Test
           end
           
           def emit_row()
-            output("#{Time.now.strftime("%H:%M:%S")}, #{@succ_count}, #{@fail_count}, #{@err_count}")  
+            str = "#{Time.now.to_i}, #{@succ_count}, #{@fail_count}, #{@err_count}"
+            output(str)
           end
           
           def output(something, level=NORMAL)
-            @io.puts(something) if (output?(level))
-            @io.flush
+            if (output?(level))
+              @io.write(something + "\n")
+            end
+              @io.flush
           end
           
           def console_output(something, level=NORMAL)
