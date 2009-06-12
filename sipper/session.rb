@@ -51,7 +51,7 @@ class Session
   :use_2xx_retrans, :use_1xx_retrans, :t2xx_retrans_timers, :t1xx_retrans_timers, 
   :dialog_routes, :force_update_session_map, :reliable_1xx_status, :ihttp_response, 
   :subscriptionMap, :name, :offer_answer, :registrations, :behind_nat, :realm, 
-  :dtmf_collected_digits, :emit_console
+  :dtmf_collected_digits, :emit_console, :detached_session
   
   class SubscriptionData
     attr_accessor :key, :timer, :source, :event, :event_id, :state, :method
@@ -127,6 +127,9 @@ class Session
     @dtmf_collect_till = nil
     @dtmf_collected_digits = ""
     @dtmf_collect_timer = nil
+    # detached session is defined as the one which does not have a session
+    # whose transport, ip and port has been fixed 
+    @detached_session = !(@transport && @rip && @rp)
   end
   
   def get_state_array
@@ -1886,7 +1889,7 @@ class Session
   # populates the transport, rip and rp attributes in the session if they are not 
   # set. This can happen if an unbound session is created. 
   def _check_transport_and_destination(msg)
-    if !(@transport && @rip && @rp) || @dialog_routes.target_refreshed?
+    if !(@transport && @rip && @rp) || (@dialog_routes.target_refreshed? && @detached_session)
       if (@controller && (cstp=@controller.specified_transport))
         msg.attributes[:_sipper_controller_specified_transport] =  cstp   
       end
