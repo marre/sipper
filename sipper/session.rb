@@ -607,7 +607,7 @@ class Session
   def create_subsequent_request(method, increment_cseq=true)
     @ilog.debug("Creating a subsequent request for #{method} and increment_cseq flag is #{increment_cseq}") if @ilog.debug?
     log_and_raise "As call_id is not set, it is likely that no initial req was sent or recvd"  unless @call_id  
-    if increment_cseq 
+    if increment_cseq && method != "ACK" 
       _increment_local_cseq 
     end
     if (method == "ACK")
