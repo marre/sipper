@@ -1,4 +1,3 @@
-# todo let gems create an executable that can run this from anywhere. 
 
 $:.unshift File.join(File.dirname(__FILE__),"..", "sipper")
 
@@ -42,8 +41,8 @@ if ((ARGV.length < 3) || %w(--help -h).include?(ARGV.first) || !(%w(-t -c -p).in
 end
 
 if %w(-p).include? ARGV.first
-  raise "This is a sipper installation and pcap test generator is not supported here. 
-  Upgrade to Goblet for pcap test genration support" unless SipperConfigurator[:GobletRelease]
+  raise "This is a base SIPr installation and pcap test generator is not supported here. 
+  Upgrade to SIPr Professional for pcap test genration support" unless SipperConfigurator[:GobletRelease]
   require "generators/gen_pcap_test"
   if ARGV.length < 4 
     __print_usage
