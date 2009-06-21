@@ -436,4 +436,6 @@ SipperConfigurator[:NumCalls] = 1
 SipperConfigurator[:CallRate] = 5
 SipperConfigurator[:RunLoad] = false
 ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
-
+unless RUBY_PLATFORM =~ /mswin/
+  SipperConfigurator[:LogPath] = "/tmp"
+end
