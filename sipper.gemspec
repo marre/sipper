@@ -15,8 +15,7 @@ SPEC = Gem::Specification.new do |s|
    s.files         = candidates.delete_if do |item| 
                        item.include?(".svn") 
                      end 
-   s.require_path  = "sipper" 
-   s.autorequire   = "sipper"
+   s.require_path  = "." 
    s.has_rdoc       = false 
    s.bindir = "bin"
    s.executables = ["srun", "ssmoke", "sproj", "sgen"]
