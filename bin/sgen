@@ -82,7 +82,7 @@ elsif type == "-t"
 elsif type == "-p"
   require 'goblet/sipper_ext/gen_pcap_test'
   g = SIP::Generators::GenPcapTest.new(gcls,pcap_file, filter)
-  g.generate_pcap_test()
+  g.generate_pcap_test(true, dir.nil? ? nil : File.join(dir, "tests") )
 else
   __print_usage
 end
