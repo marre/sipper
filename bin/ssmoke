@@ -1,3 +1,4 @@
+#!/usr/local/bin/ruby
 $:.unshift File.join(File.dirname(__FILE__), "..","sipper_test")
 
 Signal.trap("INT") { puts; exit }

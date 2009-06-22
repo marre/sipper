@@ -1,4 +1,4 @@
-# todo let gems create an executable that can run this from anywhere. 
+#!/usr/local/bin/ruby 
 require 'fileutils'
 
 $:.unshift File.join(File.dirname(__FILE__),"..", "sipper")

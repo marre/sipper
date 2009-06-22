@@ -27,6 +27,10 @@ module SIP
             FileUtils.cp(f, entity)  
           end
         end
+        if SipperConfigurator[:GobletRelease]
+          require 'goblet/sipper_ext/update_project'  
+          Goblet::UpdateProject.new.update(projname)
+        end
         FileUtils.mv(File.join(projname,"dot_sipper.proj"), File.join(projname, ".sipper.proj"))
         # now create the config for the project
         # log4r file
