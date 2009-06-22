@@ -1,3 +1,5 @@
+$:.unshift File.join(File.dirname(__FILE__), "..", "..", "sipper")
+
 require 'fileutils'
 require 'sipper_configurator'
 
