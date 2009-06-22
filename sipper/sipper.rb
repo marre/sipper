@@ -287,9 +287,8 @@ module SIP
       SIP::Locator[:HttpRequestDispatcher].start
       @running = true
       
-      if SipperConfigurator[:GobletRelease]
-        $:.unshift File.join(File.dirname(__FILE__),"..", "goblet")
-        require 'management/sipper_config_manager'
+      if SipperConfigurator[:GobletRelease] && SipperConfigurator[:RunGUI]
+        require 'goblet/management/sipper_config_manager'
         @scm_server = Goblet::Management::SipperConfigManager.new.start
         # run the rails web server
         require File.dirname(__FILE__) + '../goblet/web/goblet_console/config/boot'
