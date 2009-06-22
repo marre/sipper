@@ -18,9 +18,9 @@ class Message
   
   attr_reader :sdp
   
-  SIP_VER_PATT = /((?i)sip)\/[0-9]+\.[0-9]+/
-  TAGP_C = /(tag=)(.*?);/
-  TAGP_E = /(tag=)(.*?)$/
+  SIP_VER_PATT = /((?i)sip)\/[0-9]+\.[0-9]+/  unless defined? SIP_VER_PATT
+  TAGP_C = /(tag=)(.*?);/  unless defined? TAGP_C
+  TAGP_E = /(tag=)(.*?)$/ unless defined? TAGP_E
 
   def initialize(*hh)
     @headers = {}
