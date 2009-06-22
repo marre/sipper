@@ -157,6 +157,7 @@ module SIP
             burstDuration = 0.5
             burstRate = Integer(SipperConfigurator[:CallRate].to_i * burstDuration)
             burstRate = 1 if burstRate == 0
+            burstDuration = 1 if burstRate == 1
             count = 0
             while count < numCalls
               startTime = Time.now
