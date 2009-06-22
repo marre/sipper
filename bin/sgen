@@ -41,9 +41,8 @@ if ((ARGV.length < 3) || %w(--help -h).include?(ARGV.first) || !(%w(-t -c -p).in
 end
 
 if %w(-p).include? ARGV.first
-  raise "This is a base SIPr installation and pcap test generator is not supported here. 
-  Upgrade to SIPr Professional for pcap test genration support" unless SipperConfigurator[:GobletRelease]
-  require "generators/gen_pcap_test"
+  raise "\nThis is a base SIPr installation and pcap test generator is not supported here. Upgrade to SIPr Professional for pcap test generation support" unless SipperConfigurator[:GobletRelease]
+  
   if ARGV.length < 4 
     __print_usage
   end
@@ -81,6 +80,7 @@ elsif type == "-t"
   g = SIP::Generators::GenTest.new(gcls, flow)
   g.generate_test(true, dir.nil? ? nil : File.join(dir, "tests"))
 elsif type == "-p"
+  require 'goblet/sipper_ext/gen_pcap_test'
   g = SIP::Generators::GenPcapTest.new(gcls,pcap_file, filter)
   g.generate_pcap_test()
 else

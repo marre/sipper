@@ -1,4 +1,5 @@
 require 'yaml'
+require 'rubygems'
 
 class SipperConfigurator
   @@comment_str = <<-EOF
@@ -424,7 +425,6 @@ SipperConfigurator[:PrintHeapOnExit] = false
 SipperConfigurator[:SipperMedia] = false
 SipperConfigurator[:SipperMediaDefaultControlPort] = 4680
 SipperConfigurator[:SipperMediaProcessReuse] = false
-SipperConfigurator[:GobletRelease] = false
 SipperConfigurator[:GobletConfigPort] = 4681 if SipperConfigurator[:GobletRelease] 
 SipperConfigurator[:CommandlineBitmask] = 0
 SipperConfigurator[:HttpClientThreads] = 5
@@ -438,4 +438,9 @@ SipperConfigurator[:RunLoad] = false
 ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 unless RUBY_PLATFORM =~ /mswin/
   SipperConfigurator[:LogPath] = "/tmp"
+end
+if Gem.available?("SipperPE")
+  SipperConfigurator[:GobletRelease] = true
+else
+  SipperConfigurator[:GobletRelease] = false
 end
