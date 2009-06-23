@@ -152,6 +152,14 @@ module SIP
       return unless SipperConfigurator[:RunLoad] 
         class <<c_obj
           alias_method :old_start, :start
+          pause = false
+          if RUBY_PLATFORM =~ /linux/
+          Signal.trap("TSTP"){
+          pause = !pause
+          str = pause ? "Paused" : "Resumed"
+	  puts str
+	}
+        end
           define_method(:start) do 
             numCalls = SipperConfigurator[:NumCalls].to_i
             burstDuration = 0.5
@@ -161,10 +169,12 @@ module SIP
             count = 0
             while count < numCalls
               startTime = Time.now
+	     if not pause
               burstRate.times {
                 self.old_start()
               }
-              count += burstRate
+	      count += burstRate
+              end
               endTime = Time.now
               sleepDuration = burstDuration - (endTime - startTime)
               sleep(sleepDuration) if sleepDuration > 0
