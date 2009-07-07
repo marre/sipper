@@ -332,6 +332,40 @@ SipperProxy::~SipperProxy()
    }
 }
 
+bool SipperProxy::isSipperDomain(in_addr_t addr, unsigned short port)
+{
+   for(int idx = 0; idx < _numOfSipperDomain; idx++)
+   {
+      if((sipperDomains[idx].ip == addr) && (sipperDomains[idx].port == port))
+      {
+         return true;
+      }
+   }
+
+   return false;
+}
+
+void SipperProxy::setupStatistics(SipperProxyMsg *msg)
+{
+   if(msg->msgToSipper)
+   {
+      logger.logMsg(TRACE_FLAG, 0, 
+                    "Req[%d] Dir[In] Name[%s] From[%s:%d] Txn[%s] CallId[%s]",
+                    msg->isRequest, msg->msgName, 
+                    inet_ntoa(msg->recvSource.sin_addr), ntohs(msg->recvSource.sin_port),
+                    msg->incomingBranch, msg->callId);
+   }
+
+   if(msg->msgFromSipper)
+   {
+      logger.logMsg(TRACE_FLAG, 0, 
+                    "Req[%d] Dir[Out] Name[%s] To[%s:%d] Txn[%s] CallId[%s]",
+                    msg->isRequest, msg->msgName, 
+                    inet_ntoa(msg->sendTarget.sin_addr), ntohs(msg->sendTarget.sin_port),
+                    msg->outgoingBranch, msg->callId);
+   }
+}
+
 void SipperProxy::start()
 {
    fd_set read_fds;
@@ -424,6 +458,15 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
    }
 
    buffer[bufferLen] = '\0';
+   memcpy(incomingMsg, buffer, bufferLen + 1);
+   incomingMsgLen = bufferLen;
+
+   msgFromSipper = false;
+   msgToSipper = false;
+
+   unsigned short incomingPort = ntohs(recvSource.sin_port);
+   msgFromSipper = _context->isSipperDomain(recvSource.sin_addr.s_addr, 
+                                            incomingPort);
 
    logger.logMsg(TRACE_FLAG, 0, "ReceivedMessage From[%s:%d]\n---\n[%s]\n---",
                  inet_ntoa(recvSource.sin_addr), ntohs(recvSource.sin_port),
@@ -431,6 +474,22 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 
    if(strncmp(buffer, "SIP/2.0", 7) == 0)
    {
+      isRequest = false;
+
+      char *nameStart = buffer + 7;
+      while(*nameStart == ' ') nameStart++;
+
+      int cnt = 0;
+      char *maxEnd = buffer + bufferLen;
+      while(*nameStart != ' ' && cnt != 50 &&
+            nameStart < maxEnd)
+      {
+         msgName[cnt] = *nameStart;
+         nameStart++;
+         cnt++;
+      }
+      msgName[cnt] = '\0';
+
       char *end = strstr(buffer, "\r\n");
       if(end == NULL)
       {
@@ -439,10 +498,28 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       }
 
       hdrStart = end + 2;
+      _getCallId();
       _processResponse();
    }
    else
    {
+      isRequest = true;
+
+      char *nameStart = buffer;
+      while(*nameStart == ' ') nameStart++;
+
+      int cnt = 0;
+      char *maxEnd = buffer + bufferLen;
+      while(*nameStart != ' ' && cnt != 50 &&
+            nameStart < maxEnd)
+      {
+         msgName[cnt] = *nameStart;
+         nameStart++;
+         cnt++;
+      }
+
+      msgName[cnt] = '\0';
+
       char *end = strstr(buffer, "\r\n");
       if(end == NULL)
       {
@@ -455,6 +532,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       if((end > buffer) && (strncmp(end, "SIP/2.0", 7) == 0))
       {
          hdrStart = end + 9;
+         _getCallId();
          _processRequest();
       }
       else
@@ -486,6 +564,80 @@ void SipperProxyMsg::_processResponse()
 
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
+
+   msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
+                                          ntohs(sendTarget.sin_port));
+   _context->setupStatistics(this);
+}
+
+int SipperProxyMsg::_getCallId()
+{
+   char *callIdStart = NULL;
+   char *callIdValStart = NULL;
+
+   callId[0] = '\0';
+   char *fullForm = strstr(hdrStart - 2, "\r\nCall-ID:");
+   char *shortForm = NULL;
+
+   if(fullForm != NULL)
+   {
+      char locTmp = *fullForm;
+      *fullForm = '\0';
+      shortForm = strstr(hdrStart - 2, "\r\ni:");
+      *fullForm = locTmp;
+   }
+   else
+   {
+      shortForm = strstr(hdrStart - 2, "\r\ni:");
+   }
+
+   char *callIdToUse = fullForm;
+
+   if(callIdToUse == NULL) 
+   {
+      callIdToUse = shortForm;
+   }
+   else 
+   {
+      if((shortForm != NULL) && (shortForm < fullForm))
+      {
+         callIdToUse = shortForm;
+      }
+   }
+
+   if(callIdToUse == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No CallId found. \n");
+      return -1;
+   }
+
+   if(callIdToUse == fullForm) 
+   {
+      callIdStart = fullForm + 2;
+      callIdValStart = fullForm + 10;
+   }
+   else
+   {
+      callIdStart = shortForm + 2;
+      callIdValStart = shortForm + 4;
+   }
+
+   while(*callIdValStart == ' ') callIdValStart++;
+
+   char *src = callIdValStart;
+   char *tgt = callId;
+   int tgtlen = 0;
+   while(*src != '\r' && *src != '\n' &&
+         *src != ' ' && *src != '\0' && tgtlen < 250)
+   {
+      *tgt = *src;
+      tgtlen++;
+      tgt++;
+      src++;
+   }
+
+   *tgt = '\0';
+   return 0;
 }
 
 int SipperProxyMsg::_getFirstVia(char *&viaStart, char *&viaValStart)
@@ -597,6 +749,26 @@ int SipperProxyMsg::_removeFirstVia()
    char *viaValEnd = strstr(viaValStart, ",");
    *viaEnd = tmpData;
 
+   {
+      char *viaAnaStart = strstr(viaValStart, ";branch=");
+      if(viaAnaStart != NULL && viaAnaStart < viaEnd)
+      {
+         viaAnaStart += 8;
+         char *branchTarget = incomingBranch;
+         int cnt = 0;
+         while(*viaAnaStart != ';' && *viaAnaStart != '\0' &&
+               *viaAnaStart != ',' && *viaAnaStart != '\r' && cnt < 250)
+         {
+            *branchTarget = *viaAnaStart;
+            branchTarget++;
+            viaAnaStart++;
+            cnt++;
+         }
+   
+         *branchTarget = '\0';
+      }
+   }
+
    if((viaValEnd == NULL) || (viaEnd < viaValEnd))
    {
       //RemoveFullHeader
@@ -659,6 +831,7 @@ int SipperProxyMsg::_setTargetFromFirstVia()
    while(*paramStart == ';')
    {
       paramStart++;
+      while(*paramStart == ' ') paramStart++;
 
       if(strncmp(paramStart, "rport=", 6) == 0)
       {
@@ -676,6 +849,22 @@ int SipperProxyMsg::_setTargetFromFirstVia()
 
          hostname.assign(hostStart, hostend - hostStart);
          paramStart = hostend;
+      }
+      else if(strncmp(paramStart, "branch=", 7) == 0)
+      {
+         paramStart += 7;
+         char *branchTarget = outgoingBranch;
+         int cnt = 0;
+         while(*paramStart != ';' && *paramStart != '\0' &&
+               *paramStart != ',' && *paramStart != '\r' && cnt < 250)
+         {
+            *branchTarget = *paramStart;
+            branchTarget++;
+            paramStart++;
+            cnt++;
+         }
+
+         *branchTarget = '\0';
       }
 
       while(*paramStart != ';' && *paramStart != '\0' &&
@@ -752,11 +941,14 @@ void SipperProxyMsg::_processRequest()
 
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
+   msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
+                                          ntohs(sendTarget.sin_port));
+   _context->setupStatistics(this);
 }
 
 int SipperProxyMsg::_processViaRport()
 {
-   branch[0] = '\0';
+   incomingBranch[0] = '\0';
    char *viaStart = NULL;
    char *viaValStart = NULL;
 
@@ -785,7 +977,7 @@ int SipperProxyMsg::_processViaRport()
       else if(strncmp(viaValStart, ";branch=", 8) == 0)
       {
          viaValStart += 8;
-         char *branchTarget = branch;
+         char *branchTarget = incomingBranch;
          int cnt = 0;
          while(*viaValStart != ';' && *viaValStart != '\0' &&
                *viaValStart != ',' && *viaValStart != '\r' && cnt < 250)
@@ -813,17 +1005,19 @@ void SipperProxyMsg::_addViaHeader()
 {
    char viaHeader[1000];
    int viaLen = 0;
-   if(*branch == '\0')
+   if(*incomingBranch == '\0')
    {
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
-      viaLen = sprintf(viaHeader, "%sz9hG4bK_%d_%d_%d\r\n", _context->pxyViaHdr.c_str(), 
-                       tv.tv_sec, tv.tv_usec, rand());
+      sprintf(outgoingBranch, "z9hG4bK_%d_%d_%d", tv.tv_sec, tv.tv_usec, rand());
+      viaLen = sprintf(viaHeader, "%s%s\r\n", _context->pxyViaHdr.c_str(), 
+                       outgoingBranch);
    }
    else
    {
-      viaLen = sprintf(viaHeader, "%s%s_0\r\n", _context->pxyViaHdr.c_str(), branch);
+      sprintf(outgoingBranch, "%s_0", incomingBranch);
+      viaLen = sprintf(viaHeader, "%s%s\r\n", _context->pxyViaHdr.c_str(), outgoingBranch);
    }
 
    _addToBuffer(hdrStart, viaHeader, viaLen);

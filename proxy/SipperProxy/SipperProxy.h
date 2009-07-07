@@ -70,6 +70,7 @@ class SipperDomain
       std::string hostpart;
 };
 
+class SipperProxyMsg;
 class SipperProxy
 {
    private:
@@ -123,6 +124,10 @@ class SipperProxy
       {
          return _dnsCache.getIp(hostname);
       }
+
+      bool isSipperDomain(in_addr_t addr, unsigned short port);
+
+      void setupStatistics(SipperProxyMsg *msg);
 };
 
 #define MAX_PROXY_MSG_LEN 0xFFFF
@@ -133,8 +138,15 @@ class SipperProxyMsg
 
       char buffer[MAX_PROXY_MSG_LEN + 1];
       int  bufferLen;
+      char incomingMsg[MAX_PROXY_MSG_LEN + 1];
+      int  incomingMsgLen;
 
-      char branch[301];
+      bool isRequest;
+
+      char incomingBranch[301];
+      char outgoingBranch[301];
+      char msgName[101];
+      char callId[301];
 
       struct sockaddr_in recvSource;
       int recvSocket;
@@ -147,6 +159,9 @@ class SipperProxyMsg
       SipperProxy *_context;
 
       char *_routeStart;
+
+      bool msgFromSipper;
+      bool msgToSipper;
 
    public:
 
@@ -161,6 +176,7 @@ class SipperProxyMsg
       int _setTargetFromFirstVia();
 
       int _getFirstVia(char *&viaStart, char *&viaValStart);
+      int _getCallId();
 
       void _removeData(char *from, char *to);
       void _addToBuffer(char *startPos, const char *insData, int len);
