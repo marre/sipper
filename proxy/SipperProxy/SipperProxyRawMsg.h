@@ -13,7 +13,8 @@
 #define SMSG_MSG_LEN_OFF  11
 #define SMSG_IP_OFF       13
 #define SMSG_PORT_OFF     17
-#define SMSG_DYN_PART_OFF 19
+#define SMSG_TIME_OFF     19
+#define SMSG_DYN_PART_OFF 23
 
 #define SET_SHORT_TO_BUF(VAR, OFF) \
 { \
@@ -31,6 +32,7 @@
 { \
    memcpy(outBuf + OFF, (void *)VAR, LEN); \
 }
+
 class SipperProxyRawMsg : virtual public SipperProxyRef
 {
    private:
