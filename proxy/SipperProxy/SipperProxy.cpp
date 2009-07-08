@@ -4,6 +4,8 @@ LOG("ProxyMain");
 #include "SipperProxyConfig.h"
 #include "SipperProxyLogMgr.h"
 
+#include "SipperProxyRawMsg.h"
+
 #include <netdb.h>
 
 DnsCache::DnsCache()
@@ -304,6 +306,7 @@ SipperProxy::SipperProxy() :
                  "IncludeRecordRouteHeader", "1").c_str()) == 0) ? false : true;
    processMaxForward = (atoi(config.getConfig("Global", "ProcessMaxForwards",
                                         "1").c_str()) == 0) ? false : true;
+   _statMgr = SipperProxyStatMgr::getInstance();
 }
 
 SipperProxy::~SipperProxy()
@@ -349,20 +352,60 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
 {
    if(msg->msgToSipper)
    {
-      logger.logMsg(TRACE_FLAG, 0, 
-                    "Req[%d] Dir[In] Name[%s] From[%s:%d] Txn[%s] CallId[%s]",
-                    msg->isRequest, msg->msgName, 
-                    inet_ntoa(msg->recvSource.sin_addr), ntohs(msg->recvSource.sin_port),
-                    msg->incomingBranch, msg->callId);
+      int nameLen = strlen(msg->msgName);
+      int branchLen = strlen(msg->incomingBranch);
+      int callIdLen = strlen(msg->callId);
+
+      SipperProxyRefObjHolder<SipperProxyRawMsg> holder(SipperProxyRawMsg::getFactoryMsg());
+      SipperProxyRawMsg *rmsg = holder.getObj();
+      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen);
+
+      unsigned int bufLen;
+      char *outBuf = rmsg->getBuf(bufLen);
+
+      SET_INT_TO_BUF(bufLen, SMSG_RECLEN_OFF);
+      outBuf[SMSG_DIREC_OFF] = 1;
+      outBuf[SMSG_MSGTYPE_OFF] = msg->isRequest;
+      outBuf[SMSG_NAME_LEN_OFF] = (char)nameLen;
+      SET_SHORT_TO_BUF(branchLen, SMSG_BRN_LEN_OFF);
+      SET_SHORT_TO_BUF(callIdLen, SMSG_CALL_LEN_OFF);
+      SET_SHORT_TO_BUF(0, SMSG_MSG_LEN_OFF);
+      SET_RAW_TO_BUF(&msg->recvSource.sin_addr, 4, SMSG_IP_OFF);
+      SET_RAW_TO_BUF(&msg->recvSource.sin_port, 2, SMSG_PORT_OFF);
+      SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
+      SET_RAW_TO_BUF(msg->incomingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
+      SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);
+
+      _statMgr->publish(rmsg);
    }
 
    if(msg->msgFromSipper)
    {
-      logger.logMsg(TRACE_FLAG, 0, 
-                    "Req[%d] Dir[Out] Name[%s] To[%s:%d] Txn[%s] CallId[%s]",
-                    msg->isRequest, msg->msgName, 
-                    inet_ntoa(msg->sendTarget.sin_addr), ntohs(msg->sendTarget.sin_port),
-                    msg->outgoingBranch, msg->callId);
+      int nameLen = strlen(msg->msgName);
+      int branchLen = strlen(msg->outgoingBranch);
+      int callIdLen = strlen(msg->callId);
+
+      SipperProxyRefObjHolder<SipperProxyRawMsg> holder(SipperProxyRawMsg::getFactoryMsg());
+      SipperProxyRawMsg *rmsg = holder.getObj();
+      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen);
+
+      unsigned int bufLen;
+      char *outBuf = rmsg->getBuf(bufLen);
+
+      SET_INT_TO_BUF(bufLen, SMSG_RECLEN_OFF);
+      outBuf[SMSG_DIREC_OFF] = 1;
+      outBuf[SMSG_MSGTYPE_OFF] = msg->isRequest;
+      outBuf[SMSG_NAME_LEN_OFF] = (char)nameLen;
+      SET_SHORT_TO_BUF(branchLen, SMSG_BRN_LEN_OFF);
+      SET_SHORT_TO_BUF(callIdLen, SMSG_CALL_LEN_OFF);
+      SET_SHORT_TO_BUF(0, SMSG_MSG_LEN_OFF);
+      SET_RAW_TO_BUF(&msg->sendTarget.sin_addr, 4, SMSG_IP_OFF);
+      SET_RAW_TO_BUF(&msg->sendTarget.sin_port, 2, SMSG_PORT_OFF);
+      SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
+      SET_RAW_TO_BUF(msg->outgoingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
+      SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);
+
+      _statMgr->publish(rmsg);
    }
 }
 

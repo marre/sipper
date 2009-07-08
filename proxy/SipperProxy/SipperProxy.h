@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include "SipperProxyStatMgr.h"
 
 struct DnsEntry
 {
@@ -90,6 +91,8 @@ class SipperProxy
 
       DnsCache _dnsCache;
 
+      SipperProxyStatMgr *_statMgr;
+
    public:
 
       unsigned int _numOfSipperDomain;
@@ -128,6 +131,7 @@ class SipperProxy
       bool isSipperDomain(in_addr_t addr, unsigned short port);
 
       void setupStatistics(SipperProxyMsg *msg);
+
 };
 
 #define MAX_PROXY_MSG_LEN 0xFFFF

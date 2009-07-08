@@ -26,19 +26,38 @@ class SipperProxyRef
       SipperProxyRef & operator = (const SipperProxyRef &);
 };
 
+template <class _MSG>
 class SipperProxyRefObjHolder
 {
    private:
 
-      SipperProxyRef *_obj;
+      _MSG *_obj;
 
    public:
 
-      SipperProxyRefObjHolder(SipperProxyRef *);
-      ~SipperProxyRefObjHolder();
+      SipperProxyRefObjHolder(_MSG *inMsg) :
+         _obj(inMsg)
+      {
+      }
 
-      SipperProxyRef * getObj();
-      void setObj(SipperProxyRef *inObj);
+      ~SipperProxyRefObjHolder()
+      {
+         if(_obj != NULL) _obj->removeRef();
+      }
+
+      _MSG * getObj()
+      {
+         return _obj;
+      }
+
+      void setObj(_MSG *inObj)
+      {
+         if(inObj == _obj) return;
+
+         if(_obj != NULL) _obj->removeRef();
+
+         _obj = inObj;
+      }
 
    private:
 

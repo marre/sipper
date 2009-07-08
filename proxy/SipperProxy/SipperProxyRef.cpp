@@ -33,35 +33,3 @@ unsigned int SipperProxyRef::removeRef()
    return locCount;
 }
 
-SipperProxyRefObjHolder::SipperProxyRefObjHolder(SipperProxyRef *obj)
-{
-   _obj = obj;
-}
-
-SipperProxyRefObjHolder::~SipperProxyRefObjHolder()
-{
-   if(_obj != NULL)
-   {
-      _obj->removeRef();
-   }
-}
-
-SipperProxyRef * SipperProxyRefObjHolder::getObj()
-{
-   return _obj;
-}
-
-void SipperProxyRefObjHolder::setObj(SipperProxyRef *inObj)
-{
-   if(inObj == _obj)
-   {
-      return;
-   }
-
-   if(_obj != NULL)
-   {
-      _obj->removeRef();
-   }
-
-   _obj = inObj;
-}
