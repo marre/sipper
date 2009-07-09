@@ -28,12 +28,18 @@ void SipperProxyStatMgr::_init()
       }
    }
 
-   std::string listenPort = config.getConfig("StatCollector", "ListenPort", "0");
-   std::string listenIP = config.getConfig("StatCollector", "ListenIp", "127.0.0.1");
-   unsigned short port = (unsigned short) atoi(listenPort.c_str());
+   unsigned int numOutListenPort = atoi(config.getConfig("StatCollector", "NumOfListenPort", "1").c_str());
 
-   if(port != 0)
+   for(unsigned int idx = 0; idx < numOutListenPort; idx++)
    {
-      SipperProxyRefObjHolder<SipperProxyStatSockAcceptor> holder(new SipperProxyStatSockAcceptor(listenIP, port, this));
+      std::ostringstream tmp;
+      tmp << "ListenPort" << idx;
+      std::string listenPort = config.getConfig("StatCollector", tmp.str(), "0");
+      unsigned short port = (unsigned short) atoi(listenPort.c_str());
+
+      if(port != 0)
+      {
+         SipperProxyRefObjHolder<SipperProxyStatSockAcceptor> holder(new SipperProxyStatSockAcceptor(port, this));
+      }
    }
 }

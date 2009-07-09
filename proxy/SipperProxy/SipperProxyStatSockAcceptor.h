@@ -1,29 +1,32 @@
 #ifndef __STAT_SOCK_ACCEPTOR_H__
 #define __STAT_SOCK_ACCEPTOR_H__
 
-#include "SipperProxyStatMgr.h"
+#include "SipperProxyRef.h"
+#include "SipperProxyLock.h"
+#include <string>
+
+class SipperProxyStatMgr;
 
 class SipperProxyStatSockAcceptor : public SipperProxyRef
 {
    private:
 
       SipperProxyStatMgr *_mgr;
+      bool _shutdownFlag;
+      SipperProxyMutex _mutex;
+      int _sock;
 
-      static void * _threadStart(void *inData)
-      {
-         SipperProxyRefObjHolder<SipperProxyStatSockAcceptor> holder((SipperProxyStatSockAcceptor *)inData);
-
-         SipperProxyStatSockAcceptor *obj = holder.getObj();
-         obj->_processIncomingConnections();
-      }
+      static void * _threadStart(void *inData);
 
    public:
 
-      SipperProxyStatSockAcceptor(const std::string &ip, unsigned short port,
+      SipperProxyStatSockAcceptor(unsigned short port,
                                   SipperProxyStatMgr *mgr) :
-         _mgr(mgr)
+         _mgr(mgr),
+         _shutdownFlag(false),
+         _sock(-1)
       {
-         if(_openSocket(ip, port) != 0)
+         if(_openSocket(port) != 0)
          {
             return;
          }
@@ -32,18 +35,18 @@ class SipperProxyStatSockAcceptor : public SipperProxyRef
          addRef();
          pthread_create(&thread, NULL, _threadStart, this);
       }
+      ~SipperProxyStatSockAcceptor();
+
+      void shutdown()
+      {
+         MutexGuard(&_mutex);
+         _shutdownFlag = true;
+      }
 
    private:
 
-      int _openSocket(const std::string &ip, unsigned short port)
-      {
-         return 0;
-      }
-
-      void _processIncomingConnections()
-      {
-         return;
-      }
+      int _openSocket(unsigned short port);
+      void _processIncomingConnections();
 };
 
 #endif

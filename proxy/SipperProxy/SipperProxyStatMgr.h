@@ -1,6 +1,7 @@
 #ifndef __SIPPER_PROXY_STAT_MGR_H__
 #define __SIPPER_PROXY_STAT_MGR_H__
 
+#include "SipperProxyStatSockAcceptor.h"
 #include "SipperProxyRawMsg.h"
 #include "SipperProxyLock.h"
 
@@ -47,6 +48,8 @@ class SipperProxyStatDispatcher : public SipperProxyRef
 };
 
 #define MAX_MSG_DISPATHERS 5
+#define MAX_SOCK_ACCEPTORS 5
+
 class SipperProxyStatMgr
 {
    private:
@@ -54,7 +57,8 @@ class SipperProxyStatMgr
       static SipperProxyStatMgr *_instance;
       SipperProxyMutex _mutex;
 
-      SipperProxyStatDispatcher *_dispatchers[MAX_MSG_DISPATHERS];
+      SipperProxyStatDispatcher   *_dispatchers[MAX_MSG_DISPATHERS];
+      SipperProxyStatSockAcceptor *_acceptors[MAX_MSG_DISPATHERS];
 
    public:
    
@@ -118,6 +122,46 @@ class SipperProxyStatMgr
                {
                   dispatcher->removeRef();
                   _dispatchers[idx] = NULL;
+               }
+            }
+         }
+      }
+
+      int addAcceptor(SipperProxyStatSockAcceptor *acceptor)
+      {
+         {
+            MutexGuard(&_mutex);
+            for(int idx = 0; idx < MAX_SOCK_ACCEPTORS; idx++)
+            {
+               if(_acceptors[idx] == acceptor) return 0;
+            }
+
+            for(int idx = 0; idx < MAX_SOCK_ACCEPTORS; idx++)
+            {
+               if(_acceptors[idx] == NULL) 
+               {
+                  acceptor->addRef();
+                  _acceptors[idx] = acceptor;
+                  return 0;
+               }
+            }
+         }
+
+         acceptor->shutdown();
+         return -1;
+      }
+
+      void removeAcceptor(SipperProxyStatSockAcceptor *acceptor)
+      {
+         acceptor->shutdown();
+         {
+            MutexGuard(&_mutex);
+            for(int idx = 0; idx < MAX_SOCK_ACCEPTORS; idx++)
+            {
+               if(_acceptors[idx] == acceptor) 
+               {
+                  acceptor->removeRef();
+                  _acceptors[idx] = NULL;
                }
             }
          }

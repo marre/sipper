@@ -9,6 +9,7 @@ class SipperProxyStatFileDispatcher : public SipperProxyStatDispatcher
 
       static void * _threadStart(void *inData)
       {
+         pthread_detach(pthread_self());
          SipperProxyRefObjHolder<SipperProxyStatFileDispatcher> holder((SipperProxyStatFileDispatcher *)inData);
 
          SipperProxyStatFileDispatcher *obj = holder.getObj();

@@ -1,5 +1,5 @@
-#ifndef __PROXY_MSG_H__
-#define __PROXY_MSG_H__
+#ifndef __SIPPER_PROXY_H__
+#define __SIPPER_PROXY_H__
 
 #ifndef __UNIX__
 #include <winsock2.h>

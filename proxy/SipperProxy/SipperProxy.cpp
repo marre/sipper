@@ -132,6 +132,18 @@ int main(int argc, char **argv)
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
    config.loadConfigFile(configFile);
 
+#ifndef __UNIX__
+   WSADATA wsaData;
+   int iResult;
+
+   iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+   if (iResult != 0)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "WSAStartup failed: %d\n", iResult);
+      exit(1);
+   }
+#endif
+
    SipperProxy proxy;
    proxy.start();
 
