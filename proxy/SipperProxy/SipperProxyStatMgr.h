@@ -34,7 +34,10 @@ class SipperProxyStatDispatcher : public SipperProxyRef
          rmsg->addRef();
          SipperProxyQueueData queueMsg;
          queueMsg.data = rmsg;
-         _queue.eventEnqueue(&queueMsg);
+         if(_queue.eventEnqueue(&queueMsg) != 1)
+         {
+            rmsg->removeRef();
+         }
       }
 };
 

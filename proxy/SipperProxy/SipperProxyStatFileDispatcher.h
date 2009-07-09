@@ -17,33 +17,26 @@ class SipperProxyStatFileDispatcher : public SipperProxyStatDispatcher
          obj->_mgr->removeDispathcer(obj);
       }
 
+   private:
+      
+      FILE *_fp;
+      std::string _filename;
+      unsigned int _recCount;
+
+      unsigned int _currFileIdx;
+      unsigned int _currFileSize;
+
    public:
 
       SipperProxyStatFileDispatcher(const std::string &file, 
-                                    SipperProxyStatMgr *mgr) :
-         SipperProxyStatDispatcher(mgr)
-      {
-         if(_openFile(file) != 0)
-         {
-            return;
-         }
-
-         pthread_t thread;
-         addRef();
-         pthread_create(&thread, NULL, _threadStart, this);
-      }
+                                    unsigned int recCount,
+                                    SipperProxyStatMgr *mgr);
+      ~SipperProxyStatFileDispatcher();
 
    private:
 
-      int _openFile(const std::string &inFile)
-      {
-         return 0;
-      }
-
-      void _processData()
-      {
-         return;
-      }
+      int _openFile();
+      void _processData();
 };
 
 #endif

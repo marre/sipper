@@ -2,6 +2,7 @@
 #include "SipperProxyConfig.h"
 #include "SipperProxyStatFileDispatcher.h"
 #include "SipperProxyStatSockAcceptor.h"
+#include <sstream>
 
 SipperProxyStatMgr * SipperProxyStatMgr::_instance = NULL;
 
@@ -9,11 +10,22 @@ void SipperProxyStatMgr::_init()
 {
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
 
-   std::string outfile = config.getConfig("StatCollector", "Outfile", "");
+   unsigned int numOutFile = atoi(config.getConfig("StatCollector", "NumOutFile", "0").c_str());
 
-   if(outfile != "")
+   for(unsigned int idx = 0; idx < numOutFile; idx++)
    {
-      SipperProxyRefObjHolder<SipperProxyStatDispatcher> holder(new SipperProxyStatFileDispatcher(outfile, this));
+      std::ostringstream tmp;
+      tmp << "Outfile" << idx;
+      std::string outfile = config.getConfig("StatCollector", tmp.str(), "");
+      tmp.str("");
+      tmp << "RollOverSize" << idx;
+      std::string rstr = config.getConfig("StatCollector", tmp.str(), "50000000");
+      unsigned int rolloverSize = atoi(rstr.c_str());
+
+      if(outfile != "")
+      {
+         SipperProxyRefObjHolder<SipperProxyStatDispatcher> holder(new SipperProxyStatFileDispatcher(outfile, rolloverSize, this));
+      }
    }
 
    std::string listenPort = config.getConfig("StatCollector", "ListenPort", "0");
