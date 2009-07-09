@@ -10,7 +10,7 @@ void SipperProxyStatMgr::_init()
 {
    SipperProxyConfig &config = SipperProxyConfig::getInstance();
 
-   unsigned int numOutFile = atoi(config.getConfig("StatCollector", "NumOutFile", "0").c_str());
+   unsigned int numOutFile = atoi(config.getConfig("StatCollector", "NumOutFile", "1").c_str());
 
    for(unsigned int idx = 0; idx < numOutFile; idx++)
    {

@@ -12,7 +12,7 @@ ifeq ($(SYSTEM_INFO),SunOS)
    CC_FLAGS=-D_REENTRANT
 endif
 
-$(OUTDIR)/SipperProxy:
+all:$(OUTDIR)/SipperProxy
 
 clean:
 	rm -Rf $(OUTDIR)

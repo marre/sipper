@@ -350,7 +350,8 @@ bool SipperProxy::isSipperDomain(in_addr_t addr, unsigned short port)
 
 void SipperProxy::setupStatistics(SipperProxyMsg *msg)
 {
-   int currTime = time(NULL);
+   struct timeval tv;
+   SipperProxyPortable::getTimeOfDay(&tv);
 
    if(msg->msgToSipper)
    {
@@ -374,7 +375,8 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       SET_SHORT_TO_BUF(0, SMSG_MSG_LEN_OFF);
       SET_RAW_TO_BUF(&msg->recvSource.sin_addr, 4, SMSG_IP_OFF);
       SET_RAW_TO_BUF(&msg->recvSource.sin_port, 2, SMSG_PORT_OFF);
-      SET_INT_TO_BUF(currTime, SMSG_TIME_OFF);
+      SET_INT_TO_BUF(tv.tv_sec, SMSG_TIME_SEC_OFF);
+      SET_INT_TO_BUF(tv.tv_usec, SMSG_TIME_USEC_OFF);
       SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
       SET_RAW_TO_BUF(msg->incomingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
       SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);
@@ -404,7 +406,8 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       SET_SHORT_TO_BUF(0, SMSG_MSG_LEN_OFF);
       SET_RAW_TO_BUF(&msg->sendTarget.sin_addr, 4, SMSG_IP_OFF);
       SET_RAW_TO_BUF(&msg->sendTarget.sin_port, 2, SMSG_PORT_OFF);
-      SET_INT_TO_BUF(currTime, SMSG_TIME_OFF);
+      SET_INT_TO_BUF(tv.tv_sec, SMSG_TIME_SEC_OFF);
+      SET_INT_TO_BUF(tv.tv_usec, SMSG_TIME_USEC_OFF);
       SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
       SET_RAW_TO_BUF(msg->outgoingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
       SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);

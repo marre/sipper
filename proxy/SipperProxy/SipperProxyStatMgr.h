@@ -29,6 +29,11 @@ class SipperProxyStatDispatcher : public SipperProxyRef
          _queue.registerCleanupFunc(_queueMsgCleanup);
       }
 
+      void shutdown()
+      {
+         _queue.stopQueue();
+      }
+
       void loadMessage(SipperProxyRawMsg *rmsg)
       {
          rmsg->addRef();
@@ -80,33 +85,40 @@ class SipperProxyStatMgr
 
       int addDispatcher(SipperProxyStatDispatcher *dispatcher)
       {
-         MutexGuard(&_mutex);
-         for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
          {
-            if(_dispatchers[idx] == dispatcher) return 0;
-         }
-
-         for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
-         {
-            if(_dispatchers[idx] == NULL) 
+            MutexGuard(&_mutex);
+            for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
             {
-               dispatcher->addRef();
-               return 0;
+               if(_dispatchers[idx] == dispatcher) return 0;
+            }
+
+            for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
+            {
+               if(_dispatchers[idx] == NULL) 
+               {
+                  dispatcher->addRef();
+                  _dispatchers[idx] = dispatcher;
+                  return 0;
+               }
             }
          }
 
+         dispatcher->shutdown();
          return -1;
       }
 
       void removeDispathcer(SipperProxyStatDispatcher *dispatcher)
       {
-         MutexGuard(&_mutex);
-         for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
+         dispatcher->shutdown();
          {
-            if(_dispatchers[idx] == dispatcher) 
+            MutexGuard(&_mutex);
+            for(int idx = 0; idx < MAX_MSG_DISPATHERS; idx++)
             {
-               dispatcher->removeRef();
-               _dispatchers[idx] = NULL;
+               if(_dispatchers[idx] == dispatcher) 
+               {
+                  dispatcher->removeRef();
+                  _dispatchers[idx] = NULL;
+               }
             }
          }
       }
