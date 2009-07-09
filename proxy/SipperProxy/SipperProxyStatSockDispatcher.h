@@ -16,6 +16,7 @@ class SipperProxyStatSockDispatcher : public SipperProxyStatDispatcher
          obj->_mgr->addDispatcher(obj);
          obj->_processData();
          obj->_mgr->removeDispathcer(obj);
+         return NULL;
       }
 
    private:
@@ -31,6 +32,7 @@ class SipperProxyStatSockDispatcher : public SipperProxyStatDispatcher
    private:
 
       void _processData();
+      int _sendSocket(char *buf, unsigned int toSend);
 };
 
 #endif

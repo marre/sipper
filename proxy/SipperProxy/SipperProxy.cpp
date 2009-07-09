@@ -110,6 +110,9 @@ void DnsCache::checkCache()
 
 int main(int argc, char **argv)
 {
+#if __UNIX__
+   sigignore(SIGPIPE);
+#endif
    std::string configFile("SipperProxy.cfg");
    std::string logFile("SipperProxyLog.lcfg");
 

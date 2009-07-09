@@ -16,6 +16,7 @@ class SipperProxyStatFileDispatcher : public SipperProxyStatDispatcher
          obj->_mgr->addDispatcher(obj);
          obj->_processData();
          obj->_mgr->removeDispathcer(obj);
+         return NULL;
       }
 
    private:

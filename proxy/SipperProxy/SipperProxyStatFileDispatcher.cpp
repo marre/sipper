@@ -61,6 +61,7 @@ void SipperProxyStatFileDispatcher::_processData()
       fflush(_fp);
       SipperProxyQueueData inMsg[100];
       int msgCount = _queue.eventDequeueBlk(inMsg, 100, 500, true);
+      bool errorFlag = false;
 
       for(int idx = 0; idx < msgCount; idx++)
       {
@@ -69,8 +70,11 @@ void SipperProxyStatFileDispatcher::_processData()
          unsigned int msgLen = 0;
          char *buffer = msg->getBuf(msgLen);
 
+         if(errorFlag) continue;
+
          if(fwrite(buffer, msgLen, 1, _fp) != 1)
          {
+            errorFlag = true;
             logger.logMsg(ERROR_FLAG, 0, "Error writing file [%s].\n",
                           strerror(SipperProxyPortable::getErrorCode()));
             _queue.stopQueue();
