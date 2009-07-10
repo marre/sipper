@@ -150,6 +150,7 @@ class SipperProxyMsg
       char incomingBranch[301];
       char outgoingBranch[301];
       char msgName[101];
+      char respReq[101];
       char callId[301];
 
       struct sockaddr_in recvSource;
@@ -181,6 +182,7 @@ class SipperProxyMsg
 
       int _getFirstVia(char *&viaStart, char *&viaValStart);
       int _getCallId();
+      int _getCSeqMethod();
 
       void _removeData(char *from, char *to);
       void _addToBuffer(char *startPos, const char *insData, int len);

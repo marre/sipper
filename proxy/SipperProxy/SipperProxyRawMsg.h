@@ -4,18 +4,19 @@
 #include "SipperProxyRef.h"
 #include "SipperProxyMsgFactory.h"
 
-#define SMSG_RECLEN_OFF     0
-#define SMSG_DIREC_OFF      4
-#define SMSG_MSGTYPE_OFF    5
-#define SMSG_NAME_LEN_OFF   6
-#define SMSG_BRN_LEN_OFF    7
-#define SMSG_CALL_LEN_OFF   9
-#define SMSG_MSG_LEN_OFF   11
-#define SMSG_IP_OFF        13
-#define SMSG_PORT_OFF      17
-#define SMSG_TIME_SEC_OFF  19
-#define SMSG_TIME_USEC_OFF 23
-#define SMSG_DYN_PART_OFF  27
+#define SMSG_RECLEN_OFF        0
+#define SMSG_DIREC_OFF         4
+#define SMSG_MSGTYPE_OFF       5
+#define SMSG_NAME_LEN_OFF      6
+#define SMSG_BRN_LEN_OFF       7
+#define SMSG_CALL_LEN_OFF      9
+#define SMSG_MSG_LEN_OFF      11
+#define SMSG_IP_OFF           13
+#define SMSG_PORT_OFF         17
+#define SMSG_TIME_SEC_OFF     19
+#define SMSG_TIME_USEC_OFF    23
+#define SMSG_RESP_REQ_LEN_OFF 27
+#define SMSG_DYN_PART_OFF     28
 
 #define SET_SHORT_TO_BUF(VAR, OFF) \
 { \

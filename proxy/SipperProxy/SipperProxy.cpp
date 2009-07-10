@@ -373,10 +373,11 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       int nameLen = strlen(msg->msgName);
       int branchLen = strlen(msg->incomingBranch);
       int callIdLen = strlen(msg->callId);
+      int respReqLen = strlen(msg->respReq);
 
       SipperProxyRefObjHolder<SipperProxyRawMsg> holder(SipperProxyRawMsg::getFactoryMsg());
       SipperProxyRawMsg *rmsg = holder.getObj();
-      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen);
+      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen + respReqLen);
 
       unsigned int bufLen;
       char *outBuf = rmsg->getBuf(bufLen);
@@ -392,9 +393,12 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       SET_RAW_TO_BUF(&msg->recvSource.sin_port, 2, SMSG_PORT_OFF);
       SET_INT_TO_BUF(tv.tv_sec, SMSG_TIME_SEC_OFF);
       SET_INT_TO_BUF(tv.tv_usec, SMSG_TIME_USEC_OFF);
+      outBuf[SMSG_RESP_REQ_LEN_OFF] = (char) respReqLen;
       SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
       SET_RAW_TO_BUF(msg->incomingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
       SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);
+      SET_RAW_TO_BUF(msg->incomingMsg, 0, SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen);
+      SET_RAW_TO_BUF(msg->respReq, respReqLen, SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen + 0);
 
       _statMgr->publish(rmsg);
    }
@@ -404,10 +408,11 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       int nameLen = strlen(msg->msgName);
       int branchLen = strlen(msg->outgoingBranch);
       int callIdLen = strlen(msg->callId);
+      int respReqLen = strlen(msg->respReq);
 
       SipperProxyRefObjHolder<SipperProxyRawMsg> holder(SipperProxyRawMsg::getFactoryMsg());
       SipperProxyRawMsg *rmsg = holder.getObj();
-      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen);
+      rmsg->setLen(SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen + respReqLen);
 
       unsigned int bufLen;
       char *outBuf = rmsg->getBuf(bufLen);
@@ -423,9 +428,12 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       SET_RAW_TO_BUF(&msg->sendTarget.sin_port, 2, SMSG_PORT_OFF);
       SET_INT_TO_BUF(tv.tv_sec, SMSG_TIME_SEC_OFF);
       SET_INT_TO_BUF(tv.tv_usec, SMSG_TIME_USEC_OFF);
+      outBuf[SMSG_RESP_REQ_LEN_OFF] = (char) respReqLen;
       SET_RAW_TO_BUF(msg->msgName, nameLen, SMSG_DYN_PART_OFF);
       SET_RAW_TO_BUF(msg->outgoingBranch, branchLen, SMSG_DYN_PART_OFF + nameLen);
       SET_RAW_TO_BUF(msg->callId, callIdLen, SMSG_DYN_PART_OFF + nameLen + branchLen);
+      SET_RAW_TO_BUF(msg->buffer, 0, SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen + callIdLen);
+      SET_RAW_TO_BUF(msg->respReq, respReqLen, SMSG_DYN_PART_OFF + nameLen + branchLen + callIdLen + 0);
 
       _statMgr->publish(rmsg);
    }
@@ -522,6 +530,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       return;
    }
 
+   respReq[0] = '\0';
    buffer[bufferLen] = '\0';
    memcpy(incomingMsg, buffer, bufferLen + 1);
    incomingMsgLen = bufferLen;
@@ -564,6 +573,7 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 
       hdrStart = end + 2;
       _getCallId();
+      _getCSeqMethod();
       _processResponse();
    }
    else
@@ -694,6 +704,46 @@ int SipperProxyMsg::_getCallId()
    int tgtlen = 0;
    while(*src != '\r' && *src != '\n' &&
          *src != ' ' && *src != '\0' && tgtlen < 250)
+   {
+      *tgt = *src;
+      tgtlen++;
+      tgt++;
+      src++;
+   }
+
+   *tgt = '\0';
+   return 0;
+}
+
+int SipperProxyMsg::_getCSeqMethod()
+{
+   char *cseqStart = NULL;
+   char *cseqMethodStart = NULL;
+
+   respReq[0] = '\0';
+   char *cseqToUse = strstr(hdrStart - 2, "\r\nCSeq:");
+
+   if(cseqToUse == NULL)
+   {
+      logger.logMsg(ERROR_FLAG, 0, "No Cseq found. \n");
+      return -1;
+   }
+
+   cseqStart = cseqToUse + 2;
+   cseqMethodStart = cseqToUse + 7;
+
+   while(*cseqMethodStart == ' ') cseqMethodStart++;
+   char *src = cseqMethodStart;
+   while(*src != '\r' && *src != '\n' &&
+         *src != ' ' && *src != '\0') src++;
+   cseqMethodStart = src;
+   while(*cseqMethodStart == ' ') cseqMethodStart++;
+
+   src = cseqMethodStart;
+   char *tgt = respReq;
+   int tgtlen = 0;
+   while(*src != '\r' && *src != '\n' &&
+         *src != ' ' && *src != '\0' && tgtlen < 50)
    {
       *tgt = *src;
       tgtlen++;
