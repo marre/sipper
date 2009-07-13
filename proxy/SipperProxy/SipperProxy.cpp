@@ -321,7 +321,13 @@ SipperProxy::SipperProxy() :
                  "IncludeRecordRouteHeader", "1").c_str()) == 0) ? false : true;
    processMaxForward = (atoi(config.getConfig("Global", "ProcessMaxForwards",
                                         "1").c_str()) == 0) ? false : true;
-   _statMgr = SipperProxyStatMgr::getInstance();
+   enableStatistics = (atoi(config.getConfig("Global", "EnableStatistics",
+                                           "1").c_str()) == 0) ? false : true;
+
+   if(enableStatistics)
+   {
+      _statMgr = SipperProxyStatMgr::getInstance();
+   }
 }
 
 SipperProxy::~SipperProxy()
@@ -365,6 +371,8 @@ bool SipperProxy::isSipperDomain(in_addr_t addr, unsigned short port)
 
 void SipperProxy::setupStatistics(SipperProxyMsg *msg)
 {
+   if(!enableStatistics) return;
+
    struct timeval tv;
    SipperProxyPortable::getTimeOfDay(&tv);
 
@@ -532,15 +540,21 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
 
    respReq[0] = '\0';
    buffer[bufferLen] = '\0';
-   memcpy(incomingMsg, buffer, bufferLen + 1);
-   incomingMsgLen = bufferLen;
+   if(_context->enableStatistics)
+   {
+      memcpy(incomingMsg, buffer, bufferLen + 1);
+      incomingMsgLen = bufferLen;
+   }
 
    msgFromSipper = false;
    msgToSipper = false;
 
    unsigned short incomingPort = ntohs(recvSource.sin_port);
-   msgFromSipper = _context->isSipperDomain(recvSource.sin_addr.s_addr, 
-                                            incomingPort);
+   if(_context->enableStatistics)
+   {
+      msgFromSipper = _context->isSipperDomain(recvSource.sin_addr.s_addr, 
+                                               incomingPort);
+   }
 
    logger.logMsg(TRACE_FLAG, 0, "ReceivedMessage From[%s:%d]\n---\n[%s]\n---",
                  inet_ntoa(recvSource.sin_addr), ntohs(recvSource.sin_port),
@@ -550,19 +564,22 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
    {
       isRequest = false;
 
-      char *nameStart = buffer + 7;
-      while(*nameStart == ' ') nameStart++;
-
-      int cnt = 0;
-      char *maxEnd = buffer + bufferLen;
-      while(*nameStart != ' ' && cnt != 50 &&
-            nameStart < maxEnd)
+      if(_context->enableStatistics)
       {
-         msgName[cnt] = *nameStart;
-         nameStart++;
-         cnt++;
+         char *nameStart = buffer + 7;
+         while(*nameStart == ' ') nameStart++;
+
+         int cnt = 0;
+         char *maxEnd = buffer + bufferLen;
+         while(*nameStart != ' ' && cnt != 50 &&
+               nameStart < maxEnd)
+         {
+            msgName[cnt] = *nameStart;
+            nameStart++;
+            cnt++;
+         }
+         msgName[cnt] = '\0';
       }
-      msgName[cnt] = '\0';
 
       char *end = strstr(buffer, "\r\n");
       if(end == NULL)
@@ -572,28 +589,35 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       }
 
       hdrStart = end + 2;
-      _getCallId();
-      _getCSeqMethod();
+
+      if(_context->enableStatistics)
+      {
+         _getCallId();
+         _getCSeqMethod();
+      }
       _processResponse();
    }
    else
    {
       isRequest = true;
 
-      char *nameStart = buffer;
-      while(*nameStart == ' ') nameStart++;
-
-      int cnt = 0;
-      char *maxEnd = buffer + bufferLen;
-      while(*nameStart != ' ' && cnt != 50 &&
-            nameStart < maxEnd)
+      if(_context->enableStatistics)
       {
-         msgName[cnt] = *nameStart;
-         nameStart++;
-         cnt++;
-      }
+         char *nameStart = buffer;
+         while(*nameStart == ' ') nameStart++;
 
-      msgName[cnt] = '\0';
+         int cnt = 0;
+         char *maxEnd = buffer + bufferLen;
+         while(*nameStart != ' ' && cnt != 50 &&
+               nameStart < maxEnd)
+         {
+            msgName[cnt] = *nameStart;
+            nameStart++;
+            cnt++;
+         }
+
+         msgName[cnt] = '\0';
+      }
 
       char *end = strstr(buffer, "\r\n");
       if(end == NULL)
@@ -607,7 +631,10 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
       if((end > buffer) && (strncmp(end, "SIP/2.0", 7) == 0))
       {
          hdrStart = end + 9;
-         _getCallId();
+         if(_context->enableStatistics)
+         {
+            _getCallId();
+         }
          _processRequest();
       }
       else
@@ -640,9 +667,12 @@ void SipperProxyMsg::_processResponse()
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
 
-   msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
-                                          ntohs(sendTarget.sin_port));
-   _context->setupStatistics(this);
+   if(_context->enableStatistics)
+   {
+      msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
+                                             ntohs(sendTarget.sin_port));
+      _context->setupStatistics(this);
+   }
 }
 
 int SipperProxyMsg::_getCallId()
@@ -864,6 +894,7 @@ int SipperProxyMsg::_removeFirstVia()
    char *viaValEnd = strstr(viaValStart, ",");
    *viaEnd = tmpData;
 
+   if(_context->enableStatistics)
    {
       char *viaAnaStart = strstr(viaValStart, ";branch=");
       if(viaAnaStart != NULL && viaAnaStart < viaEnd)
@@ -1056,9 +1087,12 @@ void SipperProxyMsg::_processRequest()
 
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
-   msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
-                                          ntohs(sendTarget.sin_port));
-   _context->setupStatistics(this);
+   if(_context->enableStatistics)
+   {
+      msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
+                                             ntohs(sendTarget.sin_port));
+      _context->setupStatistics(this);
+   }
 }
 
 int SipperProxyMsg::_processViaRport()
@@ -1565,6 +1599,8 @@ int SipperProxyMsg::_setTargetFromFirstRoute()
       return -1;
    }
 
+   //TODO: Check whether the route is having lr. If not the request is forwarded to Strict proxy. In this case we should set the Last Route as ReqURI and assing ReqURI as FirstRoute and remove the firstRoute. -Suriya.
+   
    return 0;
 }
 

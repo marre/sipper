@@ -114,6 +114,7 @@ class SipperProxy
       bool processMaxForward;
       bool incPathHdr;
       bool incRecordRouteHdr;
+      bool enableStatistics;
 
    public:
 
