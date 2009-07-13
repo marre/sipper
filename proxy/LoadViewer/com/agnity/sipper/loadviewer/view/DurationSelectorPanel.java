@@ -22,7 +22,7 @@ public class DurationSelectorPanel extends JPanel implements ActionListener
         _parent = parent;
         _command = command;
         
-        setLayout(new FlowLayout());
+        setLayout(new FlowLayout(FlowLayout.LEFT));
         
         add(new JLabel(command));
         JRadioButton rbut;        

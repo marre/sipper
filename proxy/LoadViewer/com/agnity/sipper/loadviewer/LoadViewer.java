@@ -8,12 +8,14 @@ import com.agnity.sipper.loadviewer.view.StatisticsViewerPanel;
 
 public class LoadViewer
 {
-    SockDataReader  _reader;
+    String          _ip;
+    short           _port;
     LoadDataManager _dataManager;
 
     public LoadViewer(String ip, short port) throws Exception
     {
-        _reader = new SockDataReader(ip, port, this);
+        _ip = ip;
+        _port = port;
         _dataManager = new LoadDataManager();
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -33,7 +35,18 @@ public class LoadViewer
         new Thread() {
             public void run()
             {
-                _reader.startRead();
+                while(true)
+                {
+                    try
+                    {
+                        SockDataReader _reader = new SockDataReader(_ip, _port, LoadViewer.this);
+                        _reader.startRead();
+                    }
+                    catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
             }
         }.start();
 
@@ -53,9 +66,9 @@ public class LoadViewer
         _dataManager.loadData(msg);
     }
 
-    public void getData(TimeSlotModalData data)
+    public void getData(TimeSlotModalData data, boolean compFlag)
     {
-        _dataManager.getLoadData(data);
+        _dataManager.getLoadData(data, compFlag);
     }
 
     private void _displayStart()

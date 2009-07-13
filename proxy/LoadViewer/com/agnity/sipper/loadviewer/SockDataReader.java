@@ -60,13 +60,12 @@ public class SockDataReader
             catch(Exception exp)
             {
                 exp.printStackTrace(System.err);
-                System.exit(0);
+                return;
             }
 
             if(ret == -1)
             {
                 System.err.printf("Read returned -1.\n");
-                System.exit(0);
                 return;
             }
 
@@ -80,7 +79,6 @@ public class SockDataReader
                 if(currMsgLen > 0x40000)
                 {
                     System.err.printf("Stream corrupted Received message of len [%d]\n", currMsgLen);
-                    System.exit(1);
                     return;
                 }
 
@@ -91,7 +89,6 @@ public class SockDataReader
                     if(msg.parse(_rdBuffer) == -1)
                     {
                         System.err.printf("Error parsing message.\n");
-                        System.exit(1);
                         return;
                     }
 

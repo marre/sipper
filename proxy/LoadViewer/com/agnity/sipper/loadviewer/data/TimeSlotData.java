@@ -21,7 +21,8 @@ public class TimeSlotData
     public long                  numResRetrans      = 0;
     public long                  numProvisionalResp = 0;
 
-    public HashMap<String, Long> msgMap             = new HashMap<String, Long>(25);
+    public HashMap<String, Long> incomingMsgMap     = new HashMap<String, Long>(25);
+    public HashMap<String, Long> outgoingMsgMap     = new HashMap<String, Long>(25);
 
     public void reset()
     {
@@ -37,7 +38,8 @@ public class TimeSlotData
         numReqs = 0;
         numIncomings = 0;
         numProvisionalResp = 0;
-        msgMap.clear();
+        incomingMsgMap.clear();
+        outgoingMsgMap.clear();
     }
 
     public void copyTo(TimeSlotData in)
@@ -53,21 +55,38 @@ public class TimeSlotData
         in.numReqs += numReqs;
         in.numIncomings += numIncomings;
         in.numProvisionalResp += numProvisionalResp;
-        
-        for(Entry<String, Long> entry : msgMap.entrySet())
+
+        for(Entry<String, Long> entry : incomingMsgMap.entrySet())
         {
             String name = entry.getKey();
             Long value = entry.getValue();
-            
-            Long currval = in.msgMap.get(name);
+
+            Long currval = in.incomingMsgMap.get(name);
 
             if(currval == null)
             {
-                in.msgMap.put(name, value);
+                in.incomingMsgMap.put(name, value);
             }
             else
             {
-                in.msgMap.put(name, Long.valueOf(currval.longValue() + value.longValue()));
+                in.incomingMsgMap.put(name, Long.valueOf(currval.longValue() + value.longValue()));
+            }
+        }
+
+        for(Entry<String, Long> entry : outgoingMsgMap.entrySet())
+        {
+            String name = entry.getKey();
+            Long value = entry.getValue();
+
+            Long currval = in.outgoingMsgMap.get(name);
+
+            if(currval == null)
+            {
+                in.outgoingMsgMap.put(name, value);
+            }
+            else
+            {
+                in.outgoingMsgMap.put(name, Long.valueOf(currval.longValue() + value.longValue()));
             }
         }
     }
@@ -80,15 +99,31 @@ public class TimeSlotData
             name += (" " + msg.respReq);
         }
 
-        Long currval = msgMap.get(name);
-
-        if(currval == null)
+        if(msg.isIncoming)
         {
-            msgMap.put(name, Long.valueOf(1));
+            Long currval = incomingMsgMap.get(name);
+
+            if(currval == null)
+            {
+                incomingMsgMap.put(name, Long.valueOf(1));
+            }
+            else
+            {
+                incomingMsgMap.put(name, Long.valueOf(currval.longValue() + 1));
+            }
         }
         else
         {
-            msgMap.put(name, Long.valueOf(currval.longValue() + 1));
+            Long currval = outgoingMsgMap.get(name);
+
+            if(currval == null)
+            {
+                outgoingMsgMap.put(name, Long.valueOf(1));
+            }
+            else
+            {
+                outgoingMsgMap.put(name, Long.valueOf(currval.longValue() + 1));
+            }
         }
     }
 }

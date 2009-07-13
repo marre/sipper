@@ -46,9 +46,13 @@ public class StatTableView extends JPanel
             elements.add(new Pair("NewTrans:", data.numNewTxns));
             elements.add(new Pair("CompTrans:", data.numCompTxns));
             
-            for(Entry<String, Long> entry:data.msgMap.entrySet())
+            for(Entry<String, Long> entry:data.incomingMsgMap.entrySet())
             {
-                elements.add(new Pair(entry.getKey(), entry.getValue()));
+                elements.add(new Pair("--> " + entry.getKey(), entry.getValue()));
+            }
+            for(Entry<String, Long> entry:data.outgoingMsgMap.entrySet())
+            {
+                elements.add(new Pair("<-- " + entry.getKey(), entry.getValue()));
             }
         }
         

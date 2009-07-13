@@ -99,13 +99,15 @@ public class LoadDataManager
             return;            
         }
         
-        TimeSlotData currSlot = _getTimeSlot(msg);
+        TimeSlotData currSlot = _getTimeSlot(msg);        
 
         if(currSlot == null)
         {
             _totalStat.numDroppedMsgs++;
             return;
         }
+        
+        _totalStat.sec = msg.time_sec;
 
         currSlot.numMsgs++;
         _totalStat.numMsgs++;
@@ -162,7 +164,7 @@ public class LoadDataManager
                 if(reqData == null)
                 {
                     currSlot.numResRetrans++;
-                    _totalStat.numReqRetrans++;
+                    _totalStat.numResRetrans++;
                 }
                 else
                 {
@@ -185,7 +187,7 @@ public class LoadDataManager
         _totalStat.loadMessage(msg);
     }
     
-    public synchronized void getLoadData(TimeSlotModalData data)
+    public synchronized void getLoadData(TimeSlotModalData data, boolean compFlag)
     {
         data.activeCalls = _callMap.size();
         data.activeTransactions = _txnMap.size();
@@ -193,6 +195,12 @@ public class LoadDataManager
         
         int endSlot = _currSlotNum;
         int startSlot = endSlot - data.duration;
+        
+        if(compFlag)
+        {
+            endSlot++;
+            startSlot++;
+        }
         
         if(endSlot < 0) endSlot = 0;
         if(startSlot < 0) startSlot = 0;

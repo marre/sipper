@@ -3,9 +3,12 @@ package com.agnity.sipper.loadviewer.view;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -22,6 +25,7 @@ public class StatisticsViewerPanel extends JPanel
     {
         int _duration;
         int _refresh;
+        boolean _incTillLast;
 
         class LocTimerTask extends TimerTask
         {
@@ -32,10 +36,11 @@ public class StatisticsViewerPanel extends JPanel
             }
         }
 
-        public ViewerTimerTask(int duration, int refresh)
+        public ViewerTimerTask(int duration, int refresh, boolean incTillLast)
         {
             _duration = duration;
             _refresh = refresh;
+            _incTillLast = incTillLast;
         }
 
         private void _handleTimer()
@@ -45,7 +50,7 @@ public class StatisticsViewerPanel extends JPanel
             TimeSlotModalData newData = new TimeSlotModalData();
             newData.duration = _duration;
             newData.refreshDuration = _refresh;
-            _parent.getData(newData);
+            _parent.getData(newData, _incTillLast);
 
             javax.swing.SwingUtilities.invokeLater(new DataRefresher(newData));
             _timer.schedule(new LocTimerTask(), _refresh * 1000);
@@ -82,7 +87,7 @@ public class StatisticsViewerPanel extends JPanel
         }
     }
 
-    LoadViewer            _parent = null;
+    LoadViewer            _parent           = null;
     TimeSlotModalData     _data             = null;
 
     DurationSelectorPanel _refreshSelector  = null;
@@ -95,7 +100,7 @@ public class StatisticsViewerPanel extends JPanel
     public StatisticsViewerPanel(LoadViewer parent)
     {
         _parent = parent;
-        _data             = new TimeSlotModalData();
+        _data = new TimeSlotModalData();
         _refreshSelector = new DurationSelectorPanel("Refresh", this);
         _durationSelector = new DurationSelectorPanel("Duration", this);
         _compTable = new StatTableView(_data.compData);
@@ -106,12 +111,24 @@ public class StatisticsViewerPanel extends JPanel
         JPanel topPanel = new JPanel(new GridLayout(3, 1));
         topPanel.add(_refreshSelector);
         topPanel.add(_durationSelector);
-        
-        JPanel textPanel = new JPanel(new FlowLayout());
+
+        JPanel textPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         textPanel.add(new JLabel("ActiveCalls"));
         textPanel.add(_activeCalls);
         textPanel.add(new JLabel("ActiveTransactions"));
         textPanel.add(_activeTrans);
+        JCheckBox box = new JCheckBox("IncludeTillLastSec");
+        box.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e)
+            {
+                if(e.getStateChange() == ItemEvent.SELECTED)
+                    handleCommand("IncludeTillLastSec", 1);
+                else
+                    handleCommand("IncludeTillLastSec", 0);
+            }
+        });
+        textPanel.add(box);
         topPanel.add(textPanel);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -120,23 +137,27 @@ public class StatisticsViewerPanel extends JPanel
 
         add(topPanel, BorderLayout.NORTH);
         add(bottomPanel, BorderLayout.CENTER);
-        
+
         _refreshSelector.setupButton();
         _durationSelector.setupButton();
     }
 
-    public void handleCommand(String command, int duration)
+    public void handleCommand(String command, int inVal)
     {
         if(command.equals("Refresh"))
         {
-            _data.refreshDuration = duration;
+            _data.refreshDuration = inVal;
         }
         else if(command.equals("Duration"))
         {
-            _data.duration = duration;
+            _data.duration = inVal;
+        }
+        else if(command.equals("IncludeTillLastSec"))
+        {
+            _data.includeTillLast = (inVal == 1 ? true : false);
         }
 
-        _currTimer = new ViewerTimerTask(_data.duration, _data.refreshDuration);
+        _currTimer = new ViewerTimerTask(_data.duration, _data.refreshDuration, _data.includeTillLast);
         _timer.schedule(_currTimer, 100);
     }
 }
