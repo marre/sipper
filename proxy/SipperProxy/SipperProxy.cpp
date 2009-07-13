@@ -426,7 +426,7 @@ void SipperProxy::setupStatistics(SipperProxyMsg *msg)
       char *outBuf = rmsg->getBuf(bufLen);
 
       SET_INT_TO_BUF(bufLen, SMSG_RECLEN_OFF);
-      outBuf[SMSG_DIREC_OFF] = 1;
+      outBuf[SMSG_DIREC_OFF] = 0;
       outBuf[SMSG_MSGTYPE_OFF] = msg->isRequest;
       outBuf[SMSG_NAME_LEN_OFF] = (char)nameLen;
       SET_SHORT_TO_BUF(branchLen, SMSG_BRN_LEN_OFF);
