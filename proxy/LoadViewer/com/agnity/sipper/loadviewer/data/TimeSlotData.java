@@ -5,24 +5,58 @@ import java.util.Map.Entry;
 
 public class TimeSlotData
 {
-    public long                  sec                = 0;
-    public long                  numMsgs            = 0;
-    public long                  numDroppedMsgs     = 0;
-    public long                  numReqs            = 0;
-    public long                  numIncomings       = 0;
+    public class TxnInfo
+    {
+        long minDuration   = Long.MAX_VALUE;
+        long maxDuration   = Long.MIN_VALUE;
+        long totalCount    = 0;
+        long totalDuration = 0;
 
-    public long                  numNewCalls        = 0;
-    public long                  numNewTxns         = 0;
-    public long                  numReqRetrans      = 0;
+        void add(long duration)
+        {
+            totalCount++;
+            totalDuration += duration;
+            if(duration < minDuration) minDuration = duration;
+            if(duration > maxDuration) maxDuration = duration;
+        }
 
-    public long                  numCompCalls       = 0;
-    public long                  numCompTxns        = 0;
+        public void copyTo(TxnInfo inVal)
+        {
+            inVal.totalCount += totalCount;
+            inVal.totalDuration += totalDuration;
 
-    public long                  numResRetrans      = 0;
-    public long                  numProvisionalResp = 0;
+            if(minDuration < inVal.minDuration) inVal.minDuration = minDuration;
+            if(maxDuration > inVal.maxDuration) inVal.maxDuration = maxDuration;
+        }
 
-    public HashMap<String, Long> incomingMsgMap     = new HashMap<String, Long>(25);
-    public HashMap<String, Long> outgoingMsgMap     = new HashMap<String, Long>(25);
+        public String toString()
+        {
+            return String.format("Min[%d] Max[%d] Avg[%d] in usecs", minDuration, maxDuration, totalDuration/totalCount);
+            //long avg = totalDuration / totalCount;
+            //return "Min[" + minDuration + "] Max[" + maxDuration + "] Avg[" + avg + "] in usecs";
+        }
+    }
+
+    public long                     sec                = 0;
+    public long                     numMsgs            = 0;
+    public long                     numDroppedMsgs     = 0;
+    public long                     numReqs            = 0;
+    public long                     numIncomings       = 0;
+
+    public long                     numNewCalls        = 0;
+    public long                     numNewTxns         = 0;
+    public long                     numReqRetrans      = 0;
+
+    public long                     numCompCalls       = 0;
+    public long                     numCompTxns        = 0;
+
+    public long                     numResRetrans      = 0;
+    public long                     numProvisionalResp = 0;
+
+    public HashMap<String, Long>    incomingMsgMap     = new HashMap<String, Long>(25);
+    public HashMap<String, Long>    outgoingMsgMap     = new HashMap<String, Long>(25);
+    public HashMap<String, TxnInfo> incomingTxnMap     = new HashMap<String, TxnInfo>(25);
+    public HashMap<String, TxnInfo> outgoingTxnMap     = new HashMap<String, TxnInfo>(25);
 
     public void reset()
     {
@@ -40,6 +74,8 @@ public class TimeSlotData
         numProvisionalResp = 0;
         incomingMsgMap.clear();
         outgoingMsgMap.clear();
+        incomingTxnMap.clear();
+        outgoingTxnMap.clear();
     }
 
     public void copyTo(TimeSlotData in)
@@ -89,6 +125,39 @@ public class TimeSlotData
                 in.outgoingMsgMap.put(name, Long.valueOf(currval.longValue() + value.longValue()));
             }
         }
+
+        for(Entry<String, TxnInfo> entry : incomingTxnMap.entrySet())
+        {
+            String name = entry.getKey();
+            TxnInfo value = entry.getValue();
+
+            TxnInfo currVal = in.incomingTxnMap.get(name);
+
+            if(currVal == null)
+            {
+                currVal = new TxnInfo();
+                in.incomingTxnMap.put(name, currVal);
+            }
+
+            value.copyTo(currVal);
+        }
+
+        for(Entry<String, TxnInfo> entry : outgoingTxnMap.entrySet())
+        {
+            String name = entry.getKey();
+            TxnInfo value = entry.getValue();
+
+            TxnInfo currVal = in.outgoingTxnMap.get(name);
+
+            if(currVal == null)
+            {
+                currVal = new TxnInfo();
+                in.outgoingTxnMap.put(name, currVal);
+            }
+
+            value.copyTo(currVal);
+        }
+
     }
 
     public void loadMessage(SipMsgData msg)
@@ -99,31 +168,42 @@ public class TimeSlotData
             name += (" " + msg.respReq);
         }
 
-        if(msg.isIncoming)
-        {
-            Long currval = incomingMsgMap.get(name);
+        HashMap<String, Long> mapToUse = incomingMsgMap;
 
-            if(currval == null)
-            {
-                incomingMsgMap.put(name, Long.valueOf(1));
-            }
-            else
-            {
-                incomingMsgMap.put(name, Long.valueOf(currval.longValue() + 1));
-            }
+        if(!msg.isIncoming)
+        {
+            mapToUse = outgoingMsgMap;
+        }
+
+        Long currval = mapToUse.get(name);
+
+        if(currval == null)
+        {
+            mapToUse.put(name, Long.valueOf(1));
         }
         else
         {
-            Long currval = outgoingMsgMap.get(name);
-
-            if(currval == null)
-            {
-                outgoingMsgMap.put(name, Long.valueOf(1));
-            }
-            else
-            {
-                outgoingMsgMap.put(name, Long.valueOf(currval.longValue() + 1));
-            }
+            mapToUse.put(name, Long.valueOf(currval.longValue() + 1));
         }
+    }
+
+    public void loadCompTrans(SipMsgData reqData, SipMsgData respMsg)
+    {
+        long txnDuration = ((respMsg.time_sec - reqData.time_sec) * 1000000) + respMsg.time_usec - reqData.time_usec;
+
+        HashMap<String, TxnInfo> mapToUse = incomingTxnMap;
+
+        if(!reqData.isIncoming)
+        {
+            mapToUse = outgoingTxnMap;
+        }
+
+        TxnInfo locInfo = mapToUse.get(reqData.name);
+        if(locInfo == null)
+        {
+            locInfo = new TxnInfo();
+            mapToUse.put(reqData.name, locInfo);
+        }
+        locInfo.add(txnDuration);
     }
 }

@@ -9,6 +9,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import com.agnity.sipper.loadviewer.data.TimeSlotData;
+import com.agnity.sipper.loadviewer.data.TimeSlotData.TxnInfo;
 
 public class StatTableView extends JPanel
 {
@@ -20,8 +21,14 @@ public class StatTableView extends JPanel
         class Pair        
         {
             String name;
-            long value;
-            Pair(String inName, long inValue)
+            Object value;
+            Pair(String inName, Long inValue)
+            {
+                name = inName;
+                value = inValue;
+            }
+            
+            public Pair(String inName, String inValue)
             {
                 name = inName;
                 value = inValue;
@@ -53,6 +60,14 @@ public class StatTableView extends JPanel
             for(Entry<String, Long> entry:data.outgoingMsgMap.entrySet())
             {
                 elements.add(new Pair("<-- " + entry.getKey(), entry.getValue()));
+            }
+            for(Entry<String, TxnInfo> entry:data.incomingTxnMap.entrySet())
+            {
+                elements.add(new Pair("Txn --> " + entry.getKey(), entry.getValue().toString()));
+            }
+            for(Entry<String, TxnInfo> entry:data.outgoingTxnMap.entrySet())
+            {
+                elements.add(new Pair("Txn <-- " + entry.getKey(), entry.getValue().toString()));
             }
         }
         

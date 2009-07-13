@@ -11,6 +11,7 @@ import java.util.TimerTask;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import com.agnity.sipper.loadviewer.LoadViewer;
 import com.agnity.sipper.loadviewer.data.TimeSlotModalData;
@@ -131,12 +132,12 @@ public class StatisticsViewerPanel extends JPanel
         textPanel.add(box);
         topPanel.add(textPanel);
 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(_compTable, BorderLayout.WEST);
-        bottomPanel.add(_durationTable, BorderLayout.EAST);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(_compTable);
+        bottomPanel.add(_durationTable);
 
         add(topPanel, BorderLayout.NORTH);
-        add(bottomPanel, BorderLayout.CENTER);
+        add(new JScrollPane(bottomPanel), BorderLayout.CENTER);
 
         _refreshSelector.setupButton();
         _durationSelector.setupButton();

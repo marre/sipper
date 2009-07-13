@@ -168,6 +168,8 @@ public class LoadDataManager
                 }
                 else
                 {
+                    currSlot.loadCompTrans(reqData, msg);
+                    _totalStat.loadCompTrans(reqData, msg);
                     currSlot.numCompTxns++;
                     _totalStat.numCompTxns++;
                 }
