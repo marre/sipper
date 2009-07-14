@@ -32,6 +32,7 @@ public class DurationSelectorPanel extends JPanel implements ActionListener
         rbut.setActionCommand("1");
         grp.add(rbut);
         add(rbut);
+        defaultButton = rbut;
         
         rbut = new JRadioButton("5 sec"); 
         rbut.addActionListener(this); 
@@ -50,7 +51,6 @@ public class DurationSelectorPanel extends JPanel implements ActionListener
         rbut.setActionCommand("30");
         grp.add(rbut);
         add(rbut);
-        defaultButton = rbut;
         
         rbut = new JRadioButton("1 min"); 
         rbut.addActionListener(this); 

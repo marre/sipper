@@ -3,11 +3,15 @@ package com.agnity.sipper.loadviewer.view;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,8 +28,8 @@ public class StatisticsViewerPanel extends JPanel
 
     class ViewerTimerTask extends TimerTask
     {
-        int _duration;
-        int _refresh;
+        int     _duration;
+        int     _refresh;
         boolean _incTillLast;
 
         class LocTimerTask extends TimerTask
@@ -85,6 +89,7 @@ public class StatisticsViewerPanel extends JPanel
             _activeTrans.setText("" + _data.activeTransactions);
             _compTable.setDataModal(_data.compData);
             _durationTable.setDataModal(_data.durationData);
+            _dateText.setText("" + new Date(_data.compData.sec * 1000));
         }
     }
 
@@ -97,6 +102,7 @@ public class StatisticsViewerPanel extends JPanel
     StatTableView         _durationTable    = null;
     JLabel                _activeCalls      = null;
     JLabel                _activeTrans      = null;
+    JLabel _dateText = null;
 
     public StatisticsViewerPanel(LoadViewer parent)
     {
@@ -118,18 +124,46 @@ public class StatisticsViewerPanel extends JPanel
         textPanel.add(_activeCalls);
         textPanel.add(new JLabel("ActiveTransactions"));
         textPanel.add(_activeTrans);
-        JCheckBox box = new JCheckBox("IncludeTillLastSec");
-        box.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e)
-            {
-                if(e.getStateChange() == ItemEvent.SELECTED)
-                    handleCommand("IncludeTillLastSec", 1);
-                else
-                    handleCommand("IncludeTillLastSec", 0);
-            }
-        });
-        textPanel.add(box);
+        {
+            JCheckBox box = new JCheckBox("IncludeTillLastSec");
+            box.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e)
+                {
+                    if(e.getStateChange() == ItemEvent.SELECTED)
+                        handleCommand("IncludeTillLastSec", 1);
+                    else
+                        handleCommand("IncludeTillLastSec", 0);
+                }
+            });
+            textPanel.add(box);
+        }
+        {
+            JButton clearButton = new JButton("ClearData");
+            clearButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    _timer.schedule(new TimerTask() {
+                        @Override
+                        public void run()
+                        {
+                            _parent.clearData();
+                        }
+                    }, 1);
+                    _timer.purge();
+                }
+            });
+
+            textPanel.add(clearButton);
+        }
+        {
+            textPanel.add(new JLabel("Last update time:"));
+            
+            _dateText = new JLabel("");
+            textPanel.add(_dateText);
+        }
+
         topPanel.add(textPanel);
 
         JPanel bottomPanel = new JPanel();
@@ -160,5 +194,6 @@ public class StatisticsViewerPanel extends JPanel
 
         _currTimer = new ViewerTimerTask(_data.duration, _data.refreshDuration, _data.includeTillLast);
         _timer.schedule(_currTimer, 100);
+        _timer.purge();
     }
 }

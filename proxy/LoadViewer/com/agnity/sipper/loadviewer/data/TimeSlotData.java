@@ -80,6 +80,7 @@ public class TimeSlotData
 
     public void copyTo(TimeSlotData in)
     {
+        in.sec = sec;
         in.numNewCalls += numNewCalls;
         in.numCompCalls += numCompCalls;
         in.numNewTxns += numNewTxns;

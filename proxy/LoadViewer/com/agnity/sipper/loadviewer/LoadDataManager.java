@@ -212,4 +212,18 @@ public class LoadDataManager
             _secSlot[idx].copyTo(data.durationData);
         }
     }
+
+    public synchronized void clearData()
+    {
+        _callMap.clear();
+        _txnMap.clear();
+        _totalStat.reset();
+        
+        for(int idx = 0; idx < _secSlot.length; idx++)
+        {
+            _secSlot[idx].reset();
+        }
+        
+        _currSlotNum = 0;
+    }
 }

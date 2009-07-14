@@ -35,10 +35,16 @@ public class LoadViewer
         new Thread() {
             public void run()
             {
+                boolean firstTry = true;
                 while(true)
                 {
                     try
                     {
+                        if(!firstTry)
+                        {
+                            Thread.sleep(1000);
+                        }
+                        firstTry = false;
                         SockDataReader _reader = new SockDataReader(_ip, _port, LoadViewer.this);
                         _reader.startRead();
                     }
@@ -61,6 +67,12 @@ public class LoadViewer
         new LoadViewer(args[0], Short.parseShort(args[1]));
     }
 
+    /**
+     * @param msg
+     */
+    /**
+     * @param msg
+     */
     public void processIncomingMsg(SipMsgData msg)
     {
         _dataManager.loadData(msg);
@@ -81,5 +93,10 @@ public class LoadViewer
 
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public void clearData()
+    {
+        _dataManager.clearData();
     }
 }
