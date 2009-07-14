@@ -1306,7 +1306,7 @@ int SipperProxyMsg::_getFirstRoute(char *&routeStart, char *&routeValStart)
 
    if(routeToUse == NULL)
    {
-      logger.logMsg(ERROR_FLAG, 0, "No Route found. \n");
+      logger.logMsg(TRACE_FLAG, 0, "No Route found. \n");
       return -1;
    }
 
