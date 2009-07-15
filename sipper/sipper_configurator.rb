@@ -309,7 +309,11 @@ class SipperConfigurator
   #     key can be overridden by the srun option -n <calls per second>. There is a default burst rate
   #     of 500 ms that is used. So for example if the calls per second required is 20 then the calls are
   #     generated at the rate of 10/500msec, to avoid congestion. 
-  #     
+  #  
+  # :ReadLoadData
+  #     This configuration option is set to true to get data from a yaml file for load test. its default
+  #     value is false, to use this feature, make it true and create a file named as "bulkcalldata.yaml"  
+  #     under config directory.      
   #
   EOF
   
@@ -435,6 +439,7 @@ SipperConfigurator[:SipperHttpServer] = false
 SipperConfigurator[:NumCalls] = 1
 SipperConfigurator[:CallRate] = 5
 SipperConfigurator[:RunLoad] = false
+SipperConfigurator[:ReadLoadData] = false
 ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 unless RUBY_PLATFORM =~ /mswin/
   SipperConfigurator[:LogPath] = "/tmp"

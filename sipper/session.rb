@@ -36,6 +36,7 @@ require 'registration'
 require 'xml_generator/xml_doc_generator'
 require 'sipper_http/sipper_http_servlet_request_wrapper'
 require 'sipper_http/sipper_http_servlet'
+require 'yaml'
 
 class Session
   include SipLogger
@@ -534,12 +535,29 @@ class Session
   # state in sipper. Specifically the new initial request will not have a to tag. 
   def create_initial_request(method, uri, *rest)
     log_and_raise "Cannot send initial request as some signaling has happened" unless initial_state?
+    if SipperConfigurator[:RunLoad] && SipperConfigurator[:ReadLoadData]
+      unless defined? @@msg_val
+        x = File.join(SipperConfigurator[:ConfigPath],"bulkcalldata.yaml")
+        @@msg_val = YAML.load(File.open(x))
+      end
+      if ! defined? @@msg_count
+        @@msg_count =0
+      else
+        @@msg_count =@@msg_count+1
+      end
+      @@msg_count = 0 if @@msg_count >= @@msg_val.length
+      curr_msg = @@msg_val[@@msg_val.keys[@@msg_count]]
+      uri = curr_msg["uri"] if curr_msg.has_key?("uri")
+    end
     unless uri.class == URI::SipUri
       uri = URI::SipUri.new.assign(uri.to_s)
     end
     self.remote_target = uri
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_initial(method, rrt[0], *rest)
+    if SipperConfigurator[:RunLoad] && SipperConfigurator[:ReadLoadData]
+      curr_msg.each{|key, value| eval "r.#{key}= '#{value}'"}
+    end
     r = _add_route_headers_if_present(r, rrt)
     r.via.rport = '' if @behind_nat
     if @offer_answer
