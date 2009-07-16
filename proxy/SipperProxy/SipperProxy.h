@@ -196,15 +196,19 @@ class SipperProxyMsg
       void _addRecordRouteHeader();
 
       int _getFirstRoute(char *&routeStart, char *&routeValStart);
+      int _getFirstRoute(char *&routeStart, char *&routeEnd, bool &singleHdr,
+                         char *&routeValStart, char *&routeValEnd);
       int _getLastRoute(char *&routeStart, char *&routeEnd, bool &singleHdr,
                         char *&routeValStart, char *&routeValEnd);
 
       bool _isRegisterRequest();
       bool _isRoutePresent();
-      bool _isReqURIContainsProxyDomain();
+      bool _isReqURIContainsProxyDomain(bool &lrFlag);
       void _moveLastRouteToReqURI();
+      void _moveFirstRouteToReqURI();
+      void _moveFirstRouteToReqURIAndReqURIToLastRoute();
       void _removeFirstRouteIfProxyDomain();
-      int _setTargetFromFirstRoute();
+      int _setTargetFromFirstRoute(bool &lrFlag);
       int _setTargetFromReqURI();
       int _setTargetFromSipperDomain();
 };
