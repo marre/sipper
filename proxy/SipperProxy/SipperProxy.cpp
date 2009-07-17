@@ -264,6 +264,15 @@ SipperProxy::SipperProxy() :
       exit(1);
    }
 
+   {
+      std::string ipstr = config.getConfig("Global", "OutBoundProxyIp", "");
+
+      outboundPxyIp = inet_addr(ipstr.c_str());
+
+      std::string portinfo = config.getConfig("Global", "OutBouldProxyPort", "0");
+      outboundPxyPort = atoi(portinfo.c_str());
+   }
+
    sipperDomains = new SipperDomain[_numOfSipperDomain];
 
    for(unsigned int idx = 0; idx < _numOfSipperDomain; idx++)
@@ -550,11 +559,8 @@ void SipperProxyMsg::processMessage(SipperProxy *context)
    msgToSipper = false;
 
    unsigned short incomingPort = ntohs(recvSource.sin_port);
-   if(_context->enableStatistics)
-   {
-      msgFromSipper = _context->isSipperDomain(recvSource.sin_addr.s_addr, 
-                                               incomingPort);
-   }
+   msgFromSipper = _context->isSipperDomain(recvSource.sin_addr.s_addr, 
+                                            incomingPort);
 
    logger.logMsg(TRACE_FLAG, 0, "ReceivedMessage From[%s:%d]\n---\n[%s]\n---",
                  inet_ntoa(recvSource.sin_addr), ntohs(recvSource.sin_port),
@@ -667,10 +673,10 @@ void SipperProxyMsg::_processResponse()
    sendto(sendSocket, buffer, bufferLen, 0, (struct sockaddr *)&sendTarget,
           sizeof(sockaddr_in));
 
+   msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
+                                          ntohs(sendTarget.sin_port));
    if(_context->enableStatistics)
    {
-      msgToSipper = _context->isSipperDomain(sendTarget.sin_addr.s_addr, 
-                                             ntohs(sendTarget.sin_port));
       _context->setupStatistics(this);
    }
 }
@@ -751,11 +757,11 @@ int SipperProxyMsg::_getCSeqMethod()
    char *cseqMethodStart = NULL;
 
    respReq[0] = '\0';
-   char *cseqToUse = strstr(hdrStart - 2, "\r\nCSeq:");
+   char *cseqToUse = strstr(hdrStart - 2, "\r\nCseq:");
 
    if(cseqToUse == NULL)
    {
-      logger.logMsg(ERROR_FLAG, 0, "No Cseq found. \n");
+      logger.logMsg(ERROR_FLAG, 0, "No Cseq found.\n");
       return -1;
    }
 
@@ -1089,20 +1095,34 @@ void SipperProxyMsg::_processRequest()
       }
       else
       {
-         _setTargetFromReqURI();
+         if(msgFromSipper && (_context->outboundPxyPort != 0))
+         {
+            _setTargetFromOutboundPxy();
+         }
+         else
+         {
+            _setTargetFromReqURI();
+         }
       }
    }
    else
    {
-      bool lrFlag = false;
-      if(_isReqURIContainsProxyDomain(lrFlag))
+      if(msgFromSipper && (_context->outboundPxyPort != 0))
       {
-         //Choose one from the SipperDomain
-         _setTargetFromSipperDomain();
+         _setTargetFromOutboundPxy();
       }
       else
       {
-         _setTargetFromReqURI();
+         bool lrFlag = false;
+         if(_isReqURIContainsProxyDomain(lrFlag))
+         {
+            //Choose one from the SipperDomain
+            _setTargetFromSipperDomain();
+         }
+         else
+         {
+            _setTargetFromReqURI();
+         }
       }
    }
 
@@ -1847,6 +1867,21 @@ int SipperProxyMsg::_setTargetFromSipperDomain()
 
    char *end = strstr(buffer, "\r\n");
    hdrStart = end + 2;
+
+   return 0;
+}
+
+int SipperProxyMsg::_setTargetFromOutboundPxy()
+{
+   memset(&sendTarget, 0, sizeof(sendTarget));
+   sendTarget.sin_family = AF_INET;
+   sendTarget.sin_port = htons(_context->outboundPxyPort);
+   sendTarget.sin_addr.s_addr = _context->outboundPxyIp;
+
+   if(sendTarget.sin_addr.s_addr == -1)
+   {
+      return -1;
+   }
 
    return 0;
 }

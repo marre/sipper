@@ -116,6 +116,9 @@ class SipperProxy
       bool incRecordRouteHdr;
       bool enableStatistics;
 
+      in_addr_t outboundPxyIp;
+      unsigned short outboundPxyPort;
+
    public:
 
       SipperProxy();
@@ -211,6 +214,7 @@ class SipperProxyMsg
       int _setTargetFromFirstRoute(bool &lrFlag);
       int _setTargetFromReqURI();
       int _setTargetFromSipperDomain();
+      int _setTargetFromOutboundPxy();
 };
 
 #endif
