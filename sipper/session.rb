@@ -539,15 +539,10 @@ class Session
       unless defined? @@msg_val
         x = File.join(SipperConfigurator[:ConfigPath],"bulkcalldata.yaml")
         @@msg_val = YAML.load(File.open(x))
+        @@header_hash ={}
+        @@msg_val["msg"].keys.each{ |key| @@header_hash[key]= 0}
       end
-      if ! defined? @@msg_count
-        @@msg_count =0
-      else
-        @@msg_count =@@msg_count+1
-      end
-      @@msg_count = 0 if @@msg_count >= @@msg_val.length
-      curr_msg = @@msg_val[@@msg_val.keys[@@msg_count]]
-      uri = curr_msg["uri"] if curr_msg.has_key?("uri")
+      uri = gen_hdr_for_load("uri",@@msg_val["msg"]["uri"]) if @@msg_val["msg"].has_key?("uri")
     end
     unless uri.class == URI::SipUri
       uri = URI::SipUri.new.assign(uri.to_s)
@@ -556,7 +551,7 @@ class Session
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_initial(method, rrt[0], *rest)
     if SipperConfigurator[:RunLoad] && SipperConfigurator[:ReadLoadData]
-      curr_msg.each{|key, value| eval "r.#{key}= '#{value}'"}
+      @@msg_val["msg"].each{|key, value| eval "r.#{key}= '#{gen_hdr_for_load(key,value)}'" if key !="uri"}
     end
     r = _add_route_headers_if_present(r, rrt)
     r.via.rport = '' if @behind_nat
@@ -566,6 +561,23 @@ class Session
     end  
     return r
   end
+  
+  def gen_hdr_for_load(header,value)
+    if value.include?("<")
+      start_range = (value.slice(value.index("<")+1..value.index(">")-1)).split("-")[0].to_i
+      end_range = (value.slice(value.index("<")+1..value.index(">")-1)).split("-")[1].to_i
+      curr_val = start_range + @@header_hash[header] 
+      if  curr_val < end_range
+        @@header_hash[header] = @@header_hash[header] + 1
+      else
+        @@header_hash[header] = 0
+      end  
+      curr_str = value.gsub(/<.*-.*>/,curr_val.to_s)
+      return curr_str
+    else
+      return value
+    end
+  end  
   
   def make_new_offer(*args)
     @offer_answer.make_new_offer(*args)
