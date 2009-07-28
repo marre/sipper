@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby 
+#!/usr/bin/env ruby
 require File.join(File.dirname(__FILE__), "..", "sipper", "generators", "gen_project")
 
 Signal.trap("INT") { puts; exit }
