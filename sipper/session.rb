@@ -37,6 +37,8 @@ require 'xml_generator/xml_doc_generator'
 require 'sipper_http/sipper_http_servlet_request_wrapper'
 require 'sipper_http/sipper_http_servlet'
 require 'yaml'
+require 'util/multipart/mime_multipart'
+require 'util/multipart/multipart_parser'
 
 class Session
   include SipLogger
@@ -1229,7 +1231,10 @@ class Session
   def _on_common_sip(msg)
     if msg[:content_type] && msg.content_type.to_s =~ /sdp/   
       msg.sdp = SDP::SdpParser.parse(msg.contents, true)  if msg[:content]
-    end      
+    end    
+    if msg[:content_type] && msg.content_type.to_s =~ /multipart/   
+      msg.multipart_content = Multipart::MultipartParser.parse(msg.contents,msg.content_type)  if msg[:content]
+    end  
     @call_id = msg.call_id.to_s
     @ilog.debug("Now record the incoming message") if @ilog.debug?
     _do_record_sip("in", msg)

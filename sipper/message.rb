@@ -16,7 +16,7 @@ class Message
 
   attr_accessor  :incoming, :rcvd_from_info, :rcvd_at_info, :transaction
   
-  attr_reader :sdp
+  attr_reader :sdp, :multipart_content
   
   SIP_VER_PATT = /((?i)sip)\/[0-9]+\.[0-9]+/  unless defined? SIP_VER_PATT
   TAGP_C = /(tag=)(.*?);/  unless defined? TAGP_C
@@ -392,6 +392,13 @@ class Message
     self.content = sdp_csv_content
     self.content_type = 'application/sdp'
   end
+  
+  def multipart_content=(multipart_content)
+    @multipart_content = multipart_content
+    self.content_type = "multipart/" + multipart_content.subtype 
+    self.content_type.boundary = multipart_content.boundary
+    self.content = multipart_content.to_s
+  end  
   
   # takes [body] and type as two arguments
   def set_body(b, type)
