@@ -222,8 +222,9 @@ int SipperMediaListener::startListener(unsigned short port)
 
          if(accSock == -1)
          {
+            std::string errMsg = SipperMediaListener::errorString();
             logger.logMsg(ERROR_FLAG, 0, "Accept failed for [%d]. [%s]\n",
-                   sock, strerror(errno));
+                   sock, errMsg.c_str());
             continue;
          }
 
