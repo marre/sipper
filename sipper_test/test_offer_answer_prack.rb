@@ -20,7 +20,9 @@ class TestOfferAnswerPrack < DrivenSipTestCase
           logd("Received INVITE in #{name}")
           session[:inviteReq] = session.irequest
           session.respond_with(100)
-          session.respond_reliably_with(183, session[:inviteReq])
+          res=session.create_response(183, nil, session[:inviteReq], true)
+          res.sdp.media_lines[0].delete :a
+          session.send_response(res)
           session['prackState'] = '183'
         end
 

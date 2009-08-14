@@ -205,8 +205,10 @@ module SDP
      codec << "G711U" if codecnums.include?("0")
      codec << "G711A" if codecnums.include?("8")
 
-     media[:a].split("||").each do |val|
-           codec << "DTMF" if val.include?("telephone-event")
+     if media[:a]
+        media[:a].split("||").each do |val|
+              codec << "DTMF" if val.include?("telephone-event")
+        end
      end
 
      return codec
@@ -214,11 +216,14 @@ module SDP
 
   def SDP.get_media_status(media)
      retStatus = "sendrecv"
-     media[:a].split("||").each do |val|
-        retStatus = "inactive" if val == "inactive"
-        retStatus = "sendrecv" if val == "sendrecv"
-        retStatus = "recvonly" if val == "recvonly"
-        retStatus = "sendonly" if val == "sendonly"
+
+     if media[:a]
+        media[:a].split("||").each do |val|
+           retStatus = "inactive" if val == "inactive"
+           retStatus = "sendrecv" if val == "sendrecv"
+           retStatus = "recvonly" if val == "recvonly"
+           retStatus = "sendonly" if val == "sendonly"
+        end
      end
 
      return retStatus
