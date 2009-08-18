@@ -26,8 +26,8 @@ class TestSessionLifetime < DrivenSipTestCase
       
       class UacSltController < SIP::SipTestDriverController
       
-        session_timer 70
-        session_limit 240
+        session_timer 300
+        session_limit 1000
         
         def start
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")

@@ -80,6 +80,8 @@ class TestPublish < DrivenSipTestCase
             r.content_type = "application/pidf+xml"
             r.content = "Published PIDF document\r\n"            
             session.send(r)
+            session['2xx'] = 2
+          elsif session['2xx'] == 2
             session.invalidate(true)
           end  
         end
