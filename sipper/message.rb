@@ -82,7 +82,7 @@ class Message
   end
   
   def define_from_hash(header_hash)
-    header_hash_formatted = header_hash.map{|e| "#{e[0]}: <#{e[1]}>"}.join(', ')
+    header_hash_formatted = header_hash.map{|e| "#{e[0]}: <#{e[1]}>"}.join(', ') if @@slog.info?
     @@slog.info("Defining headers from hash #{header_hash_formatted}") if @@slog.info?
     k = nil
     v = nil
