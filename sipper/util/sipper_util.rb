@@ -28,6 +28,7 @@ module SipperUtil
   # -4 to remove .rb
   # 
   def SipperUtil.classify(fname)
+    x = nil
     if fname =~ /\.rb$/
        fname[0..-4].split("_").map{|x| x.capitalize}.join
     else
@@ -63,6 +64,7 @@ module SipperUtil
   def SipperUtil.headerize(hname)
     return nil if hname.nil?
     arr = hname.to_s.split('_')
+    i = nil
     arr.each do |i|
       if i.downcase === "www"
         i.upcase!
@@ -117,6 +119,7 @@ module SipperUtil
     key = nil
     val = nil
     if params
+      x = nil
       params.split(";").each do |x|
         a = x.split("=")
         key = a.shift

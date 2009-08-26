@@ -84,6 +84,8 @@ class Message
   def define_from_hash(header_hash)
     header_hash_formatted = header_hash.map{|e| "#{e[0]}: <#{e[1]}>"}.join(', ')
     @@slog.info("Defining headers from hash #{header_hash_formatted}") if @@slog.info?
+    k = nil
+    v = nil
     header_hash.each { |k,v| self.send((k.to_s<<"=").to_sym, v)}
   end
   

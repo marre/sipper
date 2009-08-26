@@ -148,6 +148,8 @@ module URI
         str << self.port.to_s
       end
       if self.uri_params
+        k = nil
+        v = nil
         self.uri_params.each do |k,v|
           if v
             if v == ""
@@ -161,6 +163,8 @@ module URI
       
       if self.headers
         first = true
+        k = nil
+        v = nil
         self.headers.each do |k,v|
           if v
             if v == ""

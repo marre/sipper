@@ -60,6 +60,8 @@ module SipHeaders
     def _format
       return nil unless self.header_value  
       str = self.header_value.dup
+      k = nil
+      v = nil
       if self.header_params
         self.header_params.each do |k,v|
           if v
@@ -116,6 +118,7 @@ module SipHeaders
       end
       meta = class << self; self; end
       meta.send(:define_method, name) { self.header_params[name] }
+      x = nil
       meta.send(:define_method, :"#{name}=") { |x| self.header_params[name] = x }
       self.send m, *a
     rescue => e
