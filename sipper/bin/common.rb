@@ -11,6 +11,8 @@ module SipperUtil
       unless @@project_dir 
         dir = FileUtils.pwd
         try_files = [File.join(dir,".sipper.proj"), File.join(dir,"..",".sipper.proj"), File.join(dir,"..","..",".sipper.proj")]
+        f = nil
+        i = nil
         try_files.each_with_index do |f,i|  
           if File.exist? f 
             pd = case i

@@ -76,6 +76,7 @@ module SipperUtil
   
     def parse(ex_ary)
       @exps = []
+      str = nil
       ex_ary.each {|str| @exps << ExpectationElement.new(str) } 
       @idx = 0
       @match_count = 0
@@ -123,6 +124,7 @@ module SipperUtil
     def _match_response(res)
       return false if res.length != 3
       matched = true
+      m = nil
       @exps[@idx].messages.each do |m|
         return false unless m.first_char(1).int? 
         matched = true
@@ -140,6 +142,7 @@ module SipperUtil
     end
     
     def _match_request(req)
+      m = nil
       @exps[@idx].messages.each do |m|
         return true if m == req
       end
@@ -147,6 +150,7 @@ module SipperUtil
     end
     
     def _match_neutral(txt)
+      m = nil
       @exps[@idx].messages.each do |m|
         return true if m == txt
       end

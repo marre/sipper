@@ -223,6 +223,8 @@ module SipperUtil
   # instance variables "b" and "a" to 2 and 1 respectively in the 
   # object obj.
   def SipperUtil.hash_to_iv(h, obj)
+    k = nil
+    v = nil
     h.each_pair {|k,v| obj.send("#{k}=", v) }
   end
   
@@ -250,6 +252,8 @@ module SipperUtil
   # eg. ["a", "b", "c"], with elements as strings. 
   def SipperUtil.print_arr arr
     s = "["
+    x = nil
+    i = nil
     arr.each_with_index do |x,i|
       s +=  "'" + x.to_s + "'"
       s += "," unless i == arr.length-1

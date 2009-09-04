@@ -73,6 +73,7 @@ module Transport
             #puts "starting the select loop.."
             IO.select([@sock])
             mesg = @sock.recvfrom_nonblock(MAX_RECV_BUFFER)
+            in_filter = nil
             BaseTransport.in_filters.each do |in_filter|
               @ilog.debug("Ingress filter applied is #{in_filter.class.name}") if @ilog.debug?
               mesg[0] = in_filter.do_filter(mesg[0])
@@ -81,6 +82,8 @@ module Transport
             #["msg", ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
             if @ilog.debug?
               @ilog.debug("Message received is - ")
+              x= nil
+              i = nil
               mesg.each_with_index {|x,i| @ilog.debug(" > mesg[#{i}]=#{x}")}    
             end
             if mesg[0]
@@ -129,7 +132,7 @@ module Transport
       else
         @ilog.debug("Nothing to fill in message of class #{smesg.class}") if @ilog.debug?
       end
-      
+      out_filter = nil  
       BaseTransport.out_filters.each do |out_filter|
         @ilog.debug("Outgress filter applied is #{out_filter.class.name}") if @ilog.debug?
         smesg = out_filter.do_filter(smesg)

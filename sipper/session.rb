@@ -284,6 +284,8 @@ class Session
         txn_handler = klass.new if klass
         ict = SIP::Transaction::InviteClientTransaction.new(self, branch, txn_handler, 
           transport, @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
+        k = nil
+        v = nil
         @tmr_hash[:Ict].each_pair {|k,v| ict.send("#{k}=".to_sym, v) }  #check if sym required
         msg.transaction = ict
         @transactions[branch] = ict
@@ -297,6 +299,8 @@ class Session
         txn_handler = klass.new if klass
         nict = SIP::Transaction::NonInviteClientTransaction.new(self, branch, txn_handler, 
           transport,  @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
+        k = nil
+        v = nil  
         @tmr_hash[:Nict].each_pair {|k,v| nict.send("#{k}=".to_sym, v) }  #check if sym required
         msg.transaction = nict
         if msg.method == "CANCEL"
@@ -1069,6 +1073,8 @@ class Session
           txn_handler = klass.new if klass
           ist = SIP::Transaction::InviteServerTransaction.new(self, branch, txn_handler, transport, 
                   @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
+          k = nil
+          v = nil 
           @tmr_hash[:Ist].each_pair {|k,v| ist.send("#{k}=".to_sym, v) }  
           @transactions[branch] = ist
         end
@@ -1116,6 +1122,8 @@ class Session
           txn_handler = klass.new if klass
           nist = SIP::Transaction::NonInviteServerTransaction.new(self, branch, txn_handler, transport, 
                    @tp_flags, (self.respond_to?(:sock) ? self.sock : nil))
+          k = nil
+          v = nil
           @tmr_hash[:Nist].each_pair {|k,v| nist.send("#{k}=".to_sym, v) }  
         end
         request.transaction = nist

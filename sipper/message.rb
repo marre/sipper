@@ -96,8 +96,11 @@ class Message
   def copy_from(from_msg, *hdrs)
     @@slog.debug("copy_from: copying headers #{hdrs.join(",")}") if @@slog.debug?
     if hdrs[0] == :_sipper_all
+      k = nil
+      v = nil
       from_msg.each {|k,v| self[k] = v}
     else
+      x = nil
       hdrs.each {|x| self[x] = from_msg[x] if from_msg[x]}
     end
     

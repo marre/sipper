@@ -23,6 +23,8 @@ module SipperUtil
     
     # just plain strings
     def MessageFill.sub(str, h)
+      k = nil
+      v = nil
       h.each do |k,v|
         str.gsub!(SUBS[k], v)
       end
@@ -33,6 +35,8 @@ module SipperUtil
       @@slog.debug("msg is a #{msg.class}") if @@slog.debug?
       return MessageFill.sub(msg, h) if msg.is_a?(String)
       str = nil
+      k = nil
+      v = nil
       msg.each do |k, v|
         #SipLogger['siplog::messagefill'].debug("Processing for #{k} the value is #{v}")
         unless v.nil?         
