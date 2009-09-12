@@ -34,7 +34,12 @@ module Media
     
     def ping
       begin
-        t =  TCPSocket.new(SipperConfigurator[:LocalSipperIP], @controller_port)
+        sipperMediaIp = SipperConfigurator[:SipperMediaIP]
+        unless sipperMediaIp
+           sipperMediaIp = SipperConfigurator[:LocalSipperIP]
+        end
+
+        t =  TCPSocket.new(sipperMediaIp, @controller_port)
       rescue SystemCallError
         return false
       end
@@ -44,7 +49,12 @@ module Media
     
     def shutdown
       begin
-        t =  TCPSocket.new(SipperConfigurator[:LocalSipperIP], @controller_port)
+        sipperMediaIp = SipperConfigurator[:SipperMediaIP]
+        unless sipperMediaIp
+           sipperMediaIp = SipperConfigurator[:LocalSipperIP]
+        end
+
+        t =  TCPSocket.new(sipperMediaIp, @controller_port)
         #t.setsockopt(Socket::IPPROTO_TCP, Socket::NONBLOCK, true)
         t.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
       rescue SystemCallError

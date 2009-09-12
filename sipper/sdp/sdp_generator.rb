@@ -31,6 +31,7 @@ module SDP
         sdp.session_lines[:v] = "0"
       end
 
+      ip = SipperConfigurator[:SdpIP] unless ip
       ip = SipperConfigurator[:LocalSipperIP] unless ip
 
       if sdp.session_lines[:o].nil?

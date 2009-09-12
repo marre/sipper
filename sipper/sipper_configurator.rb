@@ -315,6 +315,14 @@ class SipperConfigurator
   #     value is false, to use this feature, make it true and create a file named as "bulkcalldata.yaml"  
   #     under config directory.      
   #
+  # :SipperMediaIP
+  #     This configuration provides the IP of the SipperMedia Sipper instance will connect.
+  #     If not provided Sipper will make use of LocalSipperIP for its connection to SipperMedia.
+  #
+  # :SdpIP
+  #     This configuration provides the default IP to be used in the SDP.
+  #     If not provided Sipper will make use of LocalSipperIP in the SDP.
+  #
   EOF
   
   def SipperConfigurator.all_keys()
@@ -429,6 +437,7 @@ SipperConfigurator[:PrintHeapOnExit] = false
 SipperConfigurator[:SipperMedia] = false
 SipperConfigurator[:SipperMediaDefaultControlPort] = 4680
 SipperConfigurator[:SipperMediaProcessReuse] = false
+#SipperConfigurator[:SipperMediaIP] = "127.0.0.1"
 SipperConfigurator[:GobletConfigPort] = 4681 if SipperConfigurator[:GobletRelease] 
 SipperConfigurator[:CommandlineBitmask] = 0
 SipperConfigurator[:HttpClientThreads] = 5

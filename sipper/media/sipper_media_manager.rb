@@ -31,7 +31,12 @@ module Media
     
     def start
       return false unless SipperConfigurator[:SipperMedia]
-      @t =  TCPSocket.new(SipperConfigurator[:LocalSipperIP], SIP::Locator[:Smd].controller_port) 
+      sipperMediaIp = SipperConfigurator[:SipperMediaIP]
+      unless sipperMediaIp
+         sipperMediaIp = SipperConfigurator[:LocalSipperIP]
+      end
+
+      @t =  TCPSocket.new(sipperMediaIp, SIP::Locator[:Smd].controller_port) 
       
       Thread.new do
         while true do
