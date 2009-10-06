@@ -135,14 +135,26 @@ module Multipart
     def to_s
       str =""
       str << "Content-Type: "<< @type <<"\r\n" if @type
-      str << @headers.to_s
+      @headers.each do |h|
+        str << h << "\r\n"
+      end  
       str << "\r\n"  
       str << @content.to_s
+    end
+    
+    def add_header_param_at(k,param)
+      raise ArgumentError, "We have #{@headers.length} header lines" if @headers.length <= k
+      @headers[k] << "; " + param
     end
     
     def add_header_line(line)
       @headers << line
     end  
+    
+    def delete_header_line_at(k)
+      raise ArgumentError, "We have #{@headers.length} header lines" if @headers.length <= k
+      @headers.delete_at(k)
+    end   
     
     def type
       @type
