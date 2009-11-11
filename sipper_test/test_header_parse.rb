@@ -42,6 +42,13 @@ class TestHeaderParse < BaseTestCase
     assert_equal("SIP/2.0/TLS 175.19.37.207:6063;branch=z9hG4bK-1-0", pv.to_s)
   end
   
+  
+  def test_parse_to
+    to = "sip:msml@10.32.4.30:5066;tag=hssUA_4052825476-151"
+    t = SipHeaders::To.new.assign(to)
+    assert_equal("To", t.name)
+    assert_equal("sip:msml@10.32.4.30:5066", t.uri.to_s)
+  end
   # Via: SIP/2.0/UDP 10.17.205.49:5062
   
 #  def test_parse_via_2543

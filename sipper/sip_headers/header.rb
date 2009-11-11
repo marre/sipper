@@ -301,8 +301,12 @@ module SipHeaders
         [URI::SipUri.new.assign(m[0][1...-1]), m.post_match] 
       else
         @only_addr_spec = true
-        #[str, nil]
-        [URI::SipUri.new.assign(str), nil] 
+        # To address the following case where <> may not be 
+        # there for addr-spec
+        # To        =  ( "To" / "t" ) HCOLON ( name-addr
+        # / addr-spec ) *( SEMI to-param )
+        s = str.split(";")
+        [URI::SipUri.new.assign(s[0]), s[1]] 
       end   
     end
     
