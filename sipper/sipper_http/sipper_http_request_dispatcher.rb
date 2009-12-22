@@ -53,7 +53,7 @@ class SipperHttpRequestDispatcher
           end
           req.basic_auth(url_context.user, url_context.passwd) if url_context.user && url_context.passwd
           if url_context.hdr_arr && url_context.hdr_arr.size > 0 
-            hdr_arr.each do |k, v|
+            url_context.hdr_arr.each do |k, v|
               req[k] = v
             end
           end           
