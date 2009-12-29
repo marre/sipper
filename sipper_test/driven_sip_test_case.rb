@@ -68,6 +68,8 @@ class DrivenSipTestCase < SipTestCase
           direction = :in
         elsif   dir == ">"
           direction = :out
+        else
+          direction = :neutral
         end
       end
       
@@ -75,6 +77,8 @@ class DrivenSipTestCase < SipTestCase
         recording = get_in_recording(idx).get_info_only_recording
       elsif direction.to_s == "out"
         recording = get_out_recording(idx).get_info_only_recording
+      else
+        recording = get_neutral_recording(idx).get_info_only_recording
       end  
       
       recording.each do |msg|
