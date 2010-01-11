@@ -43,7 +43,7 @@ class SipperHttpRequestDispatcher
           url = URI.parse(url_context.url)
           res = nil
           if url_context.req_method == 'get'
-            req = Net::HTTP::Get.new(url.path)
+            req = Net::HTTP::Get.new(url.request_uri)
           elsif url_context.req_method == 'put'
             req = Net::HTTP::Put.new(url.path)
           elsif url_context.req_method == 'post'
