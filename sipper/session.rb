@@ -757,6 +757,7 @@ class Session
     
     if ((req.method == "SUBSCRIBE") && (code >= 200) && (code < 300))
       r.copy_from(req, :expires) unless req.nil?
+      r.expires='3600' if not r[:expires]
     end
     
     if (reliability && code > 100 && code < 200)
@@ -1992,7 +1993,7 @@ class Session
       subscription.method = request.method
 
       if request.method == "SUBSCRIBE"
-        if request.expires.header_value == '0'
+        if request[:expires] and request.expires.header_value == '0'
           subscription.state = "terminated"
         end
       end
