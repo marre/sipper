@@ -20,7 +20,7 @@ module SipperHttp
       end
       logsip("I", req.peeraddr[2], req.peeraddr[1], req.addr[2], req.addr[1], "HTTP", req.to_s)
       if s
-        http_session['sipper_session'] = s
+        #http_session['sipper_session'] = s
         s.on_http_request(SipperHttp::SipperHttpServletRequestWrapper.new(req, res))
       else 
         SipperHttp::SipperHttpServlet.send_no_match_err(req, res)    
