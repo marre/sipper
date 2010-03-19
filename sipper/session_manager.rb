@@ -46,7 +46,11 @@ class SessionManager
   # responded to, it transitions to full_dialogs from half dialogs
   # 
   @@slog = SipLogger['siplog::sessionmanager'];
-
+  
+  def self.full_dialogs
+    @@full_dialogs
+  end
+  
   def SessionManager.find_session call_id, local, remote, final=false
     @@slog.info("Finding session for key |#{local}|#{call_id}|#{remote}|") if @@slog.info?
     #@@slog.debug("Half map at this time is #{@@half_dialogs.keys.join(',')}") if @@slog.debug?

@@ -323,6 +323,10 @@ class SipperConfigurator
   #     This configuration provides the default IP to be used in the SDP.
   #     If not provided Sipper will make use of LocalSipperIP in the SDP.
   #
+  # :ActiveCalls
+  #     This configuration provides the concurrency control in case of load test.its default value  
+  #     is 0 which means no concurrency.
+  #
   EOF
   
   def SipperConfigurator.all_keys()
@@ -449,6 +453,7 @@ SipperConfigurator[:NumCalls] = 1
 SipperConfigurator[:CallRate] = 5
 SipperConfigurator[:RunLoad] = false
 SipperConfigurator[:ReadLoadData] = false
+SipperConfigurator[:ActiveCalls] = 0
 ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 unless RUBY_PLATFORM =~ /mswin/
   SipperConfigurator[:LogPath] = "/tmp"

@@ -169,6 +169,9 @@ module SIP
             burstDuration = 1 if burstRate == 1
             count = 0
             while count < numCalls
+              if SipperConfigurator[:ActiveCalls] !=0 && SessionManager.full_dialogs.length > SipperConfigurator[:ActiveCalls]
+                next
+              end
               startTime = Time.now
 	            if not pause
                 burstRate.times {
