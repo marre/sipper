@@ -30,7 +30,10 @@ class TestIsupContent < DrivenSipTestCase
         
         def on_invite(session)
           multipart_content  = session.irequest.multipart_content
-          if ( multipart_content.get_count == 2 and multipart_content.get_bodypart(1).type == "application/ISUP")
+          
+          iam_msg = ISUP::IsupParser.parse(multipart_content.get_bodypart(1).contents)      # Get IAM msg object, and then access & verify the fields
+          
+          if ( multipart_content.get_count == 2 and multipart_content.get_bodypart(1).type == "application/ISUP" and iam_msg.natConInd == "02" and iam_msg.fwdCallInd == "1212" and iam_msg.callingPartyCat == "01") 
             session.do_record("valid_content")
           else  
             session.do_record("invalid_content")
@@ -38,13 +41,17 @@ class TestIsupContent < DrivenSipTestCase
           
           r1 = session.create_response(180)
           part1 = Multipart::MimeBodypart.new(SDP::SdpGenerator.make_no_media_sdp, "application/sdp")
-          part2  = Multipart::MimeBodypart.new("06 00 00 00", "application/ISUP")
+          
+          part2  = Multipart::MimeBodypart.new("06 00 00 00", "application/ISUP")     # Creation of ACM msg by passing the hex dump
+          
           multipart_content = Multipart::MimeMultipart.new([part1,part2])
           r1.multipart_content = multipart_content
           session.send(r1)
           r2 = session.create_response(200)
           part1 = Multipart::MimeBodypart.new(SDP::SdpGenerator.make_no_media_sdp, "application/sdp")
-          part2  = Multipart::MimeBodypart.new("09 00", "application/ISUP")
+          
+          anm_msg = ISUP::ANM.new          # Creation of ANM msg having the defaut value
+          part2  = Multipart::MimeBodypart.new(anm_msg.contents, "application/ISUP")
           multipart_content = Multipart::MimeMultipart.new([part1,part2])
           r2.multipart_content = multipart_content
           session.send(r2)
@@ -78,11 +85,14 @@ class TestIsupContent < DrivenSipTestCase
           r = session.create_initial_request("INVITE", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           
           part1 = Multipart::MimeBodypart.new(SDP::SdpGenerator.make_no_media_sdp, "application/sdp")
-          part2  = Multipart::MimeBodypart.new("01 00 49 00 00 03 02 00 07 04 10 00 33 63 21
-43 00 30 11", "application/ISUP")
-
           
-                    
+          iam_msg= ISUP::IAM.new        # Creation of IAM msg having default value 
+          iam_msg.natConInd = "02"        # Also can modify the specific fields
+          iam_msg.fwdCallInd = "1212"
+          iam_msg.callingPartyCat = "01"
+          
+          part2  = Multipart::MimeBodypart.new(iam_msg.contents,"application/ISUP")
+          
           multipart_content = Multipart::MimeMultipart.new([part1,part2])
                  
           r.multipart_content = multipart_content

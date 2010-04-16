@@ -18,6 +18,10 @@ module ISUP
     def  msg_type
       @type
     end
+    
+    def  contents
+      @msg_content
+    end
      
     def  natConInd
       #First parameter : nat of conn ind., size 1 octet
@@ -127,6 +131,10 @@ module ISUP
       @type
     end
     
+    def  contents
+      @msg_content
+    end
+    
     def  bckCalInd
       #First parameter : backward call indicator., size 2 octet
       @msg_content.slice(2 .. 5)  
@@ -154,6 +162,11 @@ module ISUP
     def  msg_type
       @type
     end
+    
+    def  contents
+      @msg_content
+    end
+    
   end
 
 
@@ -173,6 +186,10 @@ module ISUP
     
     def  msg_type
       @type
+    end
+    
+    def  contents
+      @msg_content
     end
     
     def causeVal
@@ -212,6 +229,10 @@ module ISUP
     
     def  msg_type
       @type
+    end
+    
+    def  contents
+      @msg_content
     end
     
   end
