@@ -23,6 +23,7 @@ class TestStrayResAcked < DrivenSipTestCase
             else
               nil
             end
+            puts rts
           s = UdpSession.new(remote_ip, remote_port, rts)
           r = s.create_initial_request("ACK", m.contact.uri)
           r.copy_from(m, :from, :to, :call_id)
@@ -69,7 +70,7 @@ class TestStrayResAcked < DrivenSipTestCase
         def start
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.request_with("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info",
-            :record_route=>"sip:example1.com;lr,sip:example2.com;lr")
+            :record_route=>"<sip:example1.com;lr>,<sip:example2.com;lr>")
           logd("Sent a new INVITE from "+name)
         end
      
