@@ -37,7 +37,7 @@ class TestControllerUsingPreExistingRs0 < DrivenSipTestCase
         
         def start
           orig = SipperConfigurator[:PreExistingRouteSet]
-          SipperConfigurator[:PreExistingRouteSet] = ["sip:nk@sipper.com;lr", "sip:nk@goblet.com;lr"]
+          SipperConfigurator[:PreExistingRouteSet] = ["<sip:nk@sipper.com;lr>", "<sip:nk@goblet.com;lr>"]
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           r = u.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u.send(r)

@@ -44,7 +44,7 @@ class TestControllerUsingRouteSet < DrivenSipTestCase
         
         def start
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info",
-               :record_route=>"sip:example1.com;lr,sip:example2.com;lr")
+               :record_route=>"<sip:example1.com;lr>,<sip:example2.com;lr>")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
           logd("Sent a new INVITE from #{name}")

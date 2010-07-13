@@ -35,12 +35,12 @@ class TestControllerUsingPreExistingRs1 < DrivenSipTestCase
       class UacPeRs1Controller < SIP::SipTestDriverController
       
         transaction_usage :use_transactions=>true
-        pre_existing_route_set ["sip:nasir@sipper.com;lr", "sip:nasir@goblet.com;lr"]
+        pre_existing_route_set ["<sip:nasir@sipper.com;lr>", "<sip:nasir@goblet.com;lr>"]
         
         
         def start
           orig = SipperConfigurator[:PreExistingRouteSet]
-          SipperConfigurator[:PreExistingRouteSet] = ["sip:nk@sipper.com;lr", "sip:nk@goblet.com;lr"]
+          SipperConfigurator[:PreExistingRouteSet] = ["<sip:nk@sipper.com;lr>", "<sip:nk@goblet.com;lr>"]
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           r = u.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u.send(r)
