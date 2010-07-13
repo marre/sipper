@@ -23,7 +23,6 @@ class TestStrayResAcked < DrivenSipTestCase
             else
               nil
             end
-            puts rts
           s = UdpSession.new(remote_ip, remote_port, rts)
           r = s.create_initial_request("ACK", m.contact.uri)
           r.copy_from(m, :from, :to, :call_id)
