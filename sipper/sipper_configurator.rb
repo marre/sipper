@@ -310,11 +310,6 @@ class SipperConfigurator
   #     of 500 ms that is used. So for example if the calls per second required is 20 then the calls are
   #     generated at the rate of 10/500msec, to avoid congestion. 
   #  
-  # :ReadLoadData
-  #     This configuration option is set to true to get data from a yaml file for load test. its default
-  #     value is false, to use this feature, make it true and create a file named as "bulkcalldata.yaml"  
-  #     under config directory.      
-  #
   # :SipperMediaIP
   #     This configuration provides the IP of the SipperMedia Sipper instance will connect.
   #     If not provided Sipper will make use of LocalSipperIP for its connection to SipperMedia.
@@ -378,7 +373,7 @@ class SipperConfigurator
   
   def SipperConfigurator.load_yaml_file(file)
     begin
-      lsip = lspo = rsip = rspo = nil   
+      lsip = lspo = rsip = rspo = loadData = nil   
       io = File.new(file, "r")
       @@comment_str = ""
       io.each do |line|
@@ -398,6 +393,7 @@ class SipperConfigurator
           crate = SipperConfigurator[:CallRate] if ((SipperConfigurator[:CommandlineBitmask] | 32) == SipperConfigurator[:CommandlineBitmask])  
           ncalls = SipperConfigurator[:NumCalls] if ((SipperConfigurator[:CommandlineBitmask] | 16) == SipperConfigurator[:CommandlineBitmask]) 
           rload = SipperConfigurator[:RunLoad] if ((SipperConfigurator[:CommandlineBitmask] | 64) == SipperConfigurator[:CommandlineBitmask])
+          loadData = SipperConfigurator[:LoadData] if ((SipperConfigurator[:CommandlineBitmask] | 128) == SipperConfigurator[:CommandlineBitmask])
         end
         @@cfg_hash = @@cfg_hash.merge(obj)
         SipperConfigurator[:LocalSipperIP] = lsip if lsip
@@ -407,6 +403,7 @@ class SipperConfigurator
         SipperConfigurator[:CallRate] =crate.to_i if crate
         SipperConfigurator[:NumCalls] =ncalls.to_i if ncalls
         SipperConfigurator[:RunLoad] = rload if rload
+	SipperConfigurator[:LoadData] = loadData if loadData
       else
         msg = "Object read from file #{file} is not a configuration"
         raise TypeError, msg
@@ -452,7 +449,6 @@ SipperConfigurator[:SipperHttpServer] = false
 SipperConfigurator[:NumCalls] = 1
 SipperConfigurator[:CallRate] = 5
 SipperConfigurator[:RunLoad] = false
-SipperConfigurator[:ReadLoadData] = false
 SipperConfigurator[:ActiveCalls] = 0
 ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 unless RUBY_PLATFORM =~ /mswin/

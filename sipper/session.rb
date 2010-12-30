@@ -543,9 +543,9 @@ class Session
   # state in sipper. Specifically the new initial request will not have a to tag. 
   def create_initial_request(method, uri, *rest)
     log_and_raise "Cannot send initial request as some signaling has happened" unless initial_state?
-    if SipperConfigurator[:RunLoad] && SipperConfigurator[:ReadLoadData]
+    if SipperConfigurator[:RunLoad] && SipperConfigurator[:LoadData] != nil
       unless defined? @@msg_val
-        x = File.join(SipperConfigurator[:ConfigPath],"bulkcalldata.yaml")
+        x = File.join(SipperConfigurator[:LoadData])
         @@msg_val = YAML.load(File.open(x))
         @@header_hash ={}
         @@msg_val["msg"].keys.each{ |key| @@header_hash[key]= 0}
@@ -558,7 +558,7 @@ class Session
     self.remote_target = uri
     rrt = @dialog_routes.get_ruri_and_routes
     r = Request.create_initial(method, rrt[0], *rest)
-    if SipperConfigurator[:RunLoad] && SipperConfigurator[:ReadLoadData]
+    if SipperConfigurator[:RunLoad] && SipperConfigurator[:LoadData] != nil
       @@msg_val["msg"].each{|key, value| eval "r.#{key}= '#{gen_hdr_for_load(key,value)}'" if key !="uri"}
     end
     r = _add_route_headers_if_present(r, rrt)
