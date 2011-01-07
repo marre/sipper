@@ -41,7 +41,13 @@ class SipMessageRouter
             msg = @q.pop
             #@ilog.debug("Message #{msg} picked up from queue") if @ilog.debug?
             @ilog.info("Message picked from queue, now parsing") if @ilog.info?
-            r = Message.parse(msg)
+            begin
+               r = Message.parse(msg)
+            rescue ArgumentError
+                @ilog.warn("DONT KNOW WHAT YOU SENT") if @ilog.warn?
+                next
+            end
+
             2.times do  # one optional retry
               case r
               when Request
