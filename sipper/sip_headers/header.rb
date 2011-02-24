@@ -306,7 +306,7 @@ module SipHeaders
         # To        =  ( "To" / "t" ) HCOLON ( name-addr
         # / addr-spec ) *( SEMI to-param )
         s = str.split(";")
-	s[1]= ";"+s[1] if s[1] != nil
+	      s[1]= ";"+s[1] if s[1] != nil
         [URI::SipUri.new.assign(s[0]), s[1]] 
       end   
     end
