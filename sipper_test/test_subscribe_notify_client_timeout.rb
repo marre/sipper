@@ -21,7 +21,7 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
         session_timer 1500
 
         def on_subscribe(session)
-          logd("Received Subscribe in #{name}")
+          logd("Received Subscribe in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -51,7 +51,7 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
         end
 
         def on_subscription_timeout(session, subscription)
-          logd("Received Subscription timeout in #{name}")
+          logd("Received Subscription timeout in "+name)
 
           subscription.state = "terminated"
 
@@ -68,7 +68,7 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
 
           if session['closeState'] == 1
              session.invalidate
@@ -95,11 +95,11 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
           u.send(r)
 
           u["currSubscription"] = subscription
-          logd("Sent a new Subscribe from #{name}")
+          logd("Sent a new Subscribe from "+name)
         end
      
         def on_notify(session)
-          logd("Received notify in #{name}")
+          logd("Received notify in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -119,7 +119,7 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
         end
 
         def on_subscription_refresh_timeout(session, subscription)
-          logd("Received refresh timeout. in #{name}")
+          logd("Received refresh timeout. in "+name)
           if session["refreshedSubscription"] == nil
              session["refreshedSubscription"] = "yes"
              subReq = session.create_subsequent_request("SUBSCRIBE")
@@ -130,7 +130,7 @@ class TestSubscribeNotifyClientTimeout < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received subscription response in #{name}")
+          logd("Received subscription response in "+name)
           request = session.iresponse.get_request()
           #subscription = session["currSubscription"]
           subscription = session.get_subscription(request)

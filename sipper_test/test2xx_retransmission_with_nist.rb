@@ -65,7 +65,7 @@ class Test2xxRetransmissionWithNist < DrivenSipTestCase
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.invalidate(true)
           session.flow_completed_for("Test2xxRetransmissionWithNist")
         end

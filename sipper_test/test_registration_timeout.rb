@@ -46,11 +46,11 @@ class TestRegistrationTimeout < DrivenSipTestCase
           
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
         
         def on_registration_expiry(session, registration)
-          logd("Timer received in #{name}")
+          logd("Timer received in "+name)
           #Refresh registration
           r = session.create_subsequent_request('REGISTER')
           session.send r
@@ -59,7 +59,7 @@ class TestRegistrationTimeout < DrivenSipTestCase
         def on_success_res(session)
           if !session['2xx'] 
             session['2xx'] =1
-            logd("Received response in #{name}")
+            logd("Received response in "+name)
             session.start_registration_expiry_timer
           elsif session['2xx'] == 1
             session.invalidate(true)

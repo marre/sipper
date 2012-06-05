@@ -45,7 +45,7 @@ class TestNon2xxRetransmissionWithIst < DrivenSipTestCase
         session_timer #{@grty*10} 
         
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session.respond_with(404)
           session.invalidate
           session.flow_completed_for("TestNon2xxRetransmissionWithIst")

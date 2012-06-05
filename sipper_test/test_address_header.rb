@@ -37,11 +37,11 @@ class TestAddressHeader < DrivenSipTestCase
                 :p_session_record=>"msg-info", :from=>"Nasir Khan <sip:nasir@sipper.com>;myparam=value;tag=xyz")                    
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.request_with('ack')
           session.invalidate(true)
         end

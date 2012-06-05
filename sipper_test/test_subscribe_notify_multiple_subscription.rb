@@ -21,7 +21,7 @@ class TestSubscribeNotifyMultipleSubscription < DrivenSipTestCase
         session_timer 1500
 
         def on_subscribe(session)
-          logd("Received Subscribe in #{name}")
+          logd("Received Subscribe in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -50,7 +50,7 @@ class TestSubscribeNotifyMultipleSubscription < DrivenSipTestCase
         end
 
         def on_subscription_timeout(session, subscription)
-          logd("Received Subscription timeout in #{name}")
+          logd("Received Subscription timeout in "+name)
 
           subscription.state = "terminated"
 
@@ -67,7 +67,7 @@ class TestSubscribeNotifyMultipleSubscription < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
 
           if ( session["numOfSubscription"].to_i == 0 )
              session.invalidate
@@ -93,11 +93,11 @@ class TestSubscribeNotifyMultipleSubscription < DrivenSipTestCase
           r.expires = "1"
           u.send(r)
 
-          logd("Sent a new Subscribe from #{name}")
+          logd("Sent a new Subscribe from "+name)
         end
      
         def on_notify(session)
-          logd("Received notify in #{name}")
+          logd("Received notify in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -123,7 +123,7 @@ class TestSubscribeNotifyMultipleSubscription < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received subscription response in #{name}")
+          logd("Received subscription response in "+name)
           request = session.iresponse.get_request()
           subscription = session.get_subscription(request)
 

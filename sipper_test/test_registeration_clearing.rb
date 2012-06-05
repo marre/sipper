@@ -46,11 +46,11 @@ class TestRegisterationClearing < DrivenSipTestCase
                :p_session_record=>"msg-info")    
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
      
         def on_success_res(session)
-           logd("Received response in #{name}")
+           logd("Received response in "+name)
           if session[:regsent]
             if session.iresponse.contact
               session.do_record('contact_found')

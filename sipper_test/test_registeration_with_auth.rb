@@ -40,11 +40,11 @@ class TestRegisterationWithAuth < DrivenSipTestCase
           r = u.create_register_request("sip:sipper.com", "sip:bob@sipper.com", "sip:bob@192.168.1.2")
           r.p_session_record="msg-info"
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.do_record(registration_store.get(:test))
           session.invalidate(true)
           session.flow_completed_for("TestRegisterationWithAuth")

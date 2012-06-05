@@ -28,7 +28,7 @@ b=AS:12600}
     msg = [str, ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
     sdp = SDP::SdpParser.parse(r.contents)
-    assert(SDP::Sdp, sdp.class)
+    assert_equal(SDP::Sdp, sdp.class)
     assert_equal("0", sdp.session_lines[:v])
     assert_equal("user1 53655765 2353687637 IN IP4 127.0.0.1", sdp.session_lines[:o])
     assert_equal("-", sdp.session_lines[:s])
@@ -69,7 +69,7 @@ a=rtpmap:101 telephone-event/8000/1}
     msg = [str, ["AF_INET", 33302, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
     sdp = SDP::SdpParser.parse(r.contents)
-    assert(SDP::Sdp, sdp.class)
+    assert_equal(SDP::Sdp, sdp.class)
     assert_equal("0", sdp.session_lines[:v])
     assert_equal("1234 53655765 2353687637 IN IP4 10.17.131.251", sdp.session_lines[:o])
     assert_equal("SnowShore Sdp", sdp.session_lines[:s])

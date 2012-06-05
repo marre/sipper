@@ -15,7 +15,7 @@ class TestControllerUsingRouteSet < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session.respond_with(200)
         end
         
@@ -47,11 +47,11 @@ class TestControllerUsingRouteSet < DrivenSipTestCase
                :record_route=>"<sip:example1.com;lr>,<sip:example2.com;lr>")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.request_with("ack")
         end
         

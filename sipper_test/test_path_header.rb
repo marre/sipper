@@ -91,7 +91,7 @@ class TestPathHeader1 < DrivenSipTestCase
                :p_session_record=>"msg-info")
           r.supported = 'path'     
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
      
         def on_success_res_for_register(session)

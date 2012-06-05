@@ -21,7 +21,7 @@ class TestSubscribeNotifyServerTimeout < DrivenSipTestCase
         session_timer 1500
 
         def on_subscribe(session)
-          logd("Received Subscribe in #{name}")
+          logd("Received Subscribe in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -51,7 +51,7 @@ class TestSubscribeNotifyServerTimeout < DrivenSipTestCase
         end
 
         def on_subscription_timeout(session, subscription)
-          logd("Received Subscription timeout in #{name}")
+          logd("Received Subscription timeout in "+name)
 
           subscription.state = "terminated"
 
@@ -68,7 +68,7 @@ class TestSubscribeNotifyServerTimeout < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
 
           if session['closeState'] == 1
              session.invalidate
@@ -92,11 +92,11 @@ class TestSubscribeNotifyServerTimeout < DrivenSipTestCase
           u.add_subscription_to_request(r, subscription)
           r.expires = "1"
           u.send(r)
-          logd("Sent a new Subscribe from #{name}")
+          logd("Sent a new Subscribe from "+name)
         end
      
         def on_notify(session)
-          logd("Received notify in #{name}")
+          logd("Received notify in "+name)
 
           subscription = session.get_subscription(session.irequest)
 
@@ -116,11 +116,11 @@ class TestSubscribeNotifyServerTimeout < DrivenSipTestCase
         end
 
         def on_subscription_refresh_timeout(session, subscription)
-          logd("Received refresh timeout. in #{name}")
+          logd("Received refresh timeout. in "+name)
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
         end
       end
     end

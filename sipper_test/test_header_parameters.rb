@@ -41,11 +41,11 @@ class TestHeaderParameters < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.validate_presence_of_headers :test_header
           session.validate_presence_of_header_params :test_header, :mytag
           session.validate_presence_of_header_params :test_header, :novalue

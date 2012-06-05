@@ -21,7 +21,7 @@ class TestPrack < DrivenSipTestCase
         session_timer 500
 
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session[:inviteReq] = session.irequest
           session.respond_with(100)
           session.respond_reliably_with(183, session[:inviteReq])
@@ -56,7 +56,7 @@ class TestPrack < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_trying_res(session)
@@ -72,7 +72,7 @@ class TestPrack < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           response = session.iresponse
 
           if session.iresponse.get_request_method == 'PRACK'

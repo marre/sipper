@@ -44,7 +44,7 @@ class TestInviteReplaceOnTcp < DrivenSipTestCase
         end
 
         def on_cancel(bob_session1)
-           logd("Received cancel request in #{name}")
+           logd("Received cancel request in "+name)
            bob_session1.invalidate
         end
       end

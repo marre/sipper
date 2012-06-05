@@ -63,19 +63,19 @@ class TestCancelWithIstWithoutNist < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
           u.create_and_send_cancel_when_ready
         end
      
         def on_failure_res(session)
-          logd("Received failure response in #{name}")
+          logd("Received failure response in "+name)
           if session.iresponse.get_request_method == "INVITE"
             session.invalidate(true)
           end
         end
         
         def on_success_res(session)
-          logd("Received success response in #{name}")
+          logd("Received success response in "+name)
         end
         
       end

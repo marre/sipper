@@ -14,6 +14,7 @@ class SipTestCase < BaseTestCase
   
   def setup
     super
+	name = ""
     Thread.current[:name] = "TestMainThread"+name
     if @@now_running != self.class.name
       @@now_running = self.class.name  

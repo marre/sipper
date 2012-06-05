@@ -45,13 +45,13 @@ class TestRegistrationController < DrivenSipTestCase
           r.add_contact('<mailto:abc@sipper.com>')
           r.format_as_separate_headers_for_mv(:contact)  
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
      
         def on_success_res(session)
           if !session['2xx'] 
             session['2xx'] =1
-            logd("Received response in #{name}")
+            logd("Received response in "+name)
             puts session.iresponse.contacts.to_s
             if session.iresponse.contacts.to_s.include?("<sip:abc@abc.com>;expires=500<mailto:abc@sipper.com>;expires=400")
               session.do_record('register_success')

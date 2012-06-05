@@ -59,7 +59,7 @@ class TestPublish < DrivenSipTestCase
           r.content_type = "application/pidf+xml"
           r.content = "Published PIDF document\r\n"
           u.send(r)
-          logd("Sent a new Publish from #{name}")
+          logd("Sent a new Publish from "+name)
         end
         
         def on_success_res(session)
@@ -139,7 +139,7 @@ class TestPublish < DrivenSipTestCase
 
         
         def on_subscribe(session)
-          logd("Received Subscribe in #{name}")
+          logd("Received Subscribe in "+name)
           session[:subs_req] = session.irequest
           subscription = session.get_subscription(session.irequest)
           if subscription == nil
@@ -166,7 +166,7 @@ class TestPublish < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           if !session['2xx']
             session['2xx'] =1 
           elsif session['2xx'] ==1
@@ -194,7 +194,7 @@ class TestPublish < DrivenSipTestCase
           u.add_subscription_to_request(r, subscription)
           r.expires = "3600"
           u.send(r)
-          logd("Sent a new Subscribe from #{name}")
+          logd("Sent a new Subscribe from "+name)
         end
      
         def on_notify(session)
@@ -211,7 +211,7 @@ class TestPublish < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
         end
       end
     end

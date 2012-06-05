@@ -40,7 +40,7 @@ class Test2xxRetransmissionWithTxns < DrivenSipTestCase
         
         
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           r = session.create_response(200, "OK")
           session.send(r)
         end

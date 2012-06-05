@@ -93,7 +93,7 @@ class TestServiceRoute1 < DrivenSipTestCase
                :expires=>"400",
                :p_session_record=>"msg-info")
           u.send(r)
-          logd("Sent a new REGISTER from #{name}")
+          logd("Sent a new REGISTER from "+name)
         end
      
         def on_success_res_for_register(session)

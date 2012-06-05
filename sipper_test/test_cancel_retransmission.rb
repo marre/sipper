@@ -39,16 +39,19 @@ class TestCancelRetransmission < DrivenSipTestCase
           tid = nil
           if tid = session['cancel_txn_id']
             if tid == session.irequest.transaction.object_id
-              logd("Received CANCEL in #{name} sending 200 with txn")
+              logd("Received CANCEL in "+name)
+				logd("sending 200 with txn")
               session.respond_with(200) 
             else
               session.do_record("Error")
-              logd("Received CANCEL in #{name} txn is not correct")
+              logd("Received CANCEL in "+name)
+				logd("txn is not correct")
             end
             session.invalidate(true)
           else
             session['cancel_txn_id'] = session.irequest.transaction.object_id
-            logd("Received CANCEL in #{name} saving txn_id")
+            logd("Received CANCEL in "+name)
+				logd("saving txn_id")
           end
         end
         
@@ -73,13 +76,13 @@ class TestCancelRetransmission < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
           u.create_and_send_cancel_when_ready
         end
      
         
         def on_success_res(session)
-          logd("Received success response in #{name}")
+          logd("Received success response in "+name)
           session.invalidate
           session.flow_completed_for("TestCancelRetransmission")
         end

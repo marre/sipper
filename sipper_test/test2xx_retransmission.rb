@@ -21,7 +21,7 @@ class Test2xxRetransmission < DrivenSipTestCase
         session_timer 500
         
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session.local_tag = 6  #todo differentiate automatically on the same container somehow
           r = session.create_response(200, "OK")
           session.send(r)
@@ -45,11 +45,11 @@ class Test2xxRetransmission < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           if session['act']
             session.create_and_send_ack 
             session.invalidate

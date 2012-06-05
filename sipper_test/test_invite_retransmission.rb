@@ -34,13 +34,13 @@ class TestInviteRetransmission < DrivenSipTestCase
         transaction_handlers :Ist=>IstTxnHandler
 
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session.do_record("First_Invite")
           session.schedule_timer_for("sending_200", #{@grty*4})
         end
         
         def on_timer(session, task)
-          logd("Timer invoked in #{name}")
+          logd("Timer invoked in "+name)
           session.respond_with(200)
         end
         
@@ -62,11 +62,11 @@ class TestInviteRetransmission < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_success_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           session.create_and_send_ack    
           session.invalidate(true)  
         end

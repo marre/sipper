@@ -21,7 +21,8 @@ class TestCancelWithout487 < DrivenSipTestCase
         
         def on_invite(session)
           session.respond_with(100)
-          logd("Received INVITE in #{name} not doing anything")
+          logd("Received INVITE in "+name)
+			logd("not doing anything")
         end
         
         def on_cancel(session)
@@ -44,18 +45,18 @@ class TestCancelWithout487 < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
           u.create_and_send_cancel_when_ready
         end
      
         def on_failure_res(session)
-          logd("Received failure response in #{name}")
+          logd("Received failure response in "+name)
           session.invalidate(true)
           session.flow_completed_for("TestCancelWithout487")  
         end
         
         def on_success_res(session)
-          logd("Received success response in #{name}")
+          logd("Received success response in "+name)
         end
         
       end

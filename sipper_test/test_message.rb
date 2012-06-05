@@ -281,7 +281,7 @@ Cseq: 1 INVITE}
     assert_equal(str2, m.vias[1].to_s)
     m.via = str4 = "SIP/2.0/UDP pc55@biloxi.com;branch=z9hG4bK-2353-1-0"
     assert_equal(str4, m.via.to_s)
-    assert(1, m.vias.length)
+    assert_equal(1, m.vias.length)
     m.via = [str, str2]
     assert_equal(str, m.via.to_s)
     assert_equal(str, m.vias[0].to_s)

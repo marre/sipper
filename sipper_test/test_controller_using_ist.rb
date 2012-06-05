@@ -15,7 +15,7 @@ class TestControllerUsingIst < DrivenSipTestCase
         transaction_timers :t1=>#{@grty*2}
         session_timer #{@grty*10}
         def on_invite(session)
-          logd("Received INVITE in #{name}")
+          logd("Received INVITE in "+name)
           session.local_tag = 5  #todo differentiate automatically on the same container somehow
           r = session.create_response(400, "Bad Request")
           session.send(r)
@@ -36,11 +36,11 @@ class TestControllerUsingIst < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from #{name}")
+          logd("Sent a new INVITE from "+name)
         end
      
         def on_failure_res(session)
-          logd("Received response in #{name}")
+          logd("Received response in "+name)
           if session['act']
             session.create_and_send_ack  # we are doing this because no ICT  
             session.invalidate
