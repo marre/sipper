@@ -74,10 +74,10 @@ class TestStrictRouterWithAngled < DrivenSipTestCase
   
   
   def test_rs_controllers
-    self.expected_flow = ["> INVITE", "< 100","< 200", "> ACK", "< SUBSCRIBE", "! <sip:example2.com>", "! <sip:127.0.0.1:5066>", "> 200"]
+    self.expected_flow = ["> INVITE", "< 100","< 200", "> ACK", "< SUBSCRIBE", "! <sip:example2.com>", "! <sip:127.0.0.1:5066>;transport=UDP", "> 200"]
     start_controller
     verify_call_flow(:out)
-    self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK","! <sip:example1.com>", "! <sip:127.0.0.1:5066>", "> SUBSCRIBE","< 200"]
+    self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK","! <sip:example1.com>", "! <sip:127.0.0.1:5066>;transport=UDP", "> SUBSCRIBE","< 200"]
     verify_call_flow(:in)
   end
   
