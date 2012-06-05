@@ -58,7 +58,7 @@ module SIP
     
     def initialize( config={} )
       @ilog = logger
-      if RUBY_PLATFORM =~ /mswin/
+      if (RUBY_PLATFORM =~ /mswin/) || (RUBY_PLATFORM =~ /i386-mingw32/)
         SipperConfigurator[:SipperPlatformRecordingSeparator] = "\r\n"
       elsif
         RUBY_PLATFORM =~ /linux/

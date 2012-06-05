@@ -454,7 +454,7 @@ ENV['SIPPER_HOME'] = 'backward_compat' unless ENV['SIPPER_HOME']
 unless RUBY_PLATFORM =~ /mswin/
   SipperConfigurator[:LogPath] = "/tmp"
 end
-if Gem.available?("SipperPE")
+if Gem::Specification.methods.include?("SipperPE")
   SipperConfigurator[:GobletRelease] = true
 else
   SipperConfigurator[:GobletRelease] = false
