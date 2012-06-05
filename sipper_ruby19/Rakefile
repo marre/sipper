@@ -8,6 +8,7 @@ CLEAN.include("sipper/logs/*._in")
 CLEAN.include("sipper/logs/*._out")
 CLEAN.include("sipper/logs/precall*")
 CLEAN.include("sipper/logs/.Test*")
+CLEAN.include("sipper/logs/*_store")
 
 task :default => [:test]
 
@@ -20,6 +21,15 @@ Rake::TestTask.new(:test) do |t|
      "sipper_test/testmediacontroller.rb"])
   t.verbose = true
 end
+
+Rake::TestTask.new(:debug_some_tests) do |t|
+  t.libs << "sipper_test"
+  t.test_files= 
+   ["sipper_test/test2xx_retransmission.rb", 
+     "sipper_test/test_inline_controller.rb"]
+  t.verbose = true
+end
+
 
 desc "Run generates tests"
 Rake::TestTask.new(:generated_test) do |t|
