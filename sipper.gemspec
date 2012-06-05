@@ -21,5 +21,5 @@ SPEC = Gem::Specification.new do |s|
    s.executables = ["srun", "ssmoke", "sproj", "sgen"]
    s.add_dependency("facets", "= 1.8.54") 
    s.add_dependency("flexmock", "= 0.7.1") 
-   s.add_dependency("log4r", "= 1.0.5")  
+   s.add_dependency("log4r", "= 1.1.10")  
 end  
