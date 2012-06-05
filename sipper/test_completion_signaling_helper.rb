@@ -34,7 +34,7 @@ module SIP
     # todo make use of count_waiters and signal added to the test_running[]
     def self.wait_for_completion_on(signal_data)
       signal_data.lock.synchronize do
-        if signal_data.lock.nitems > 0
+        if signal_data.lock.count{|i| !i.nil?} > 0
           SipLogger['siplog::sip_testcompletionsignalinghelper'].debug "Found queued signal, clearing"
           signal_data.lock.clear
         else
@@ -43,7 +43,7 @@ module SIP
           while k < SipperConfigurator[:WaitSecondsForTestCompletion]
             signal_data.cond.wait(3)
             k += 3
-            if signal_data.lock.nitems > 0
+            if signal_data.lock.count{|i| !i.nil?} > 0
               break
             end
           end
@@ -71,7 +71,7 @@ module SIP
       end
       signal_data.lock.synchronize do 
         signal_data.lock << "signal"
-        if signal_data.cond.count_waiters > 0
+        if signal_data.cond.instance_variable_get(:@cond).instance_variable_get(:@waiters).length > 0 
           SipLogger['siplog::sip_testcompletionsignalinghelper'].debug("Signaling the waiting test driver")
           signal_data.cond.signal
         else

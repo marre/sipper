@@ -284,6 +284,7 @@ module SIP
       end
       
       # now start the http client request dispatcher
+	  sleep 1
       SIP::Locator[:HttpRequestDispatcher].start
       @running = true
       

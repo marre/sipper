@@ -47,7 +47,7 @@ module SIP
       # each callback has to start with a "__"
       def self.mask_callbacks 
         self.instance_methods(false).grep(/^__/).each do |m|
-          mask = ("mask_"+m)
+          mask = ("mask_"+m.to_s)
           alias_method mask, m
           define_method(m.to_sym) do |*args|
             self.send(mask.to_sym, *args)  unless @mask_actions
