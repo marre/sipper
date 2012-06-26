@@ -136,10 +136,14 @@ module Multipart
       str =""
       str << "Content-Type: "<< @type <<"\r\n" if @type
       @headers.each do |h|
-        str << h << "\r\n"
+       str << h << "\r\n" if h != ""
       end  
       str << "\r\n"  
-      str << @content.to_s
+      if @content.respond_to?(:join)
+         str << @content.join("\r\n")
+       else
+         str << @content.to_s
+       end
     end
     
     def add_header_param_at(k,param)
