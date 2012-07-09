@@ -395,9 +395,11 @@ class Message
   
   def sdp=(sdp)
     @sdp = sdp                                 
-    sdp_csv_content = @sdp.format_sdp("\r\n")
-    self.content = sdp_csv_content
-    self.content_type = 'application/sdp'
+    if not self.content_type.to_s =~ /multipart/
+		sdp_csv_content = @sdp.format_sdp("\r\n")
+		self.content = sdp_csv_content
+		self.content_type = 'application/sdp'
+	end
   end
   
   def multipart_content=(multipart_content)

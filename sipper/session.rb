@@ -1244,8 +1244,17 @@ class Session
       msg.sdp = SDP::SdpParser.parse(msg.contents, true)  if msg[:content]
     end    
     if msg[:content_type] && msg.content_type.to_s =~ /multipart/   
+
       msg.multipart_content = Multipart::MultipartParser.parse(msg.contents,msg.content_type)  if msg[:content]
-    end  
+        msg.multipart_content.get_count.times do |i|
+                         if msg.multipart_content.get_bodypart(i).type == "application/sdp"
+
+                                     msg.sdp = SDP::SdpParser.parse(msg.multipart_content.get_bodypart(i).contents,true)
+                          end
+		
+        end
+
+    end
     @call_id = msg.call_id.to_s
     @ilog.debug("Now record the incoming message") if @ilog.debug?
     _do_record_sip("in", msg)
