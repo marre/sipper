@@ -571,16 +571,16 @@ class Session
   end
   
   def gen_hdr_for_load(header,value)
-    if value.include?("<")
-      start_range = (value.slice(value.index("<")+1..value.index(">")-1)).split("-")[0].to_i
-      end_range = (value.slice(value.index("<")+1..value.index(">")-1)).split("-")[1].to_i
+    if value.include?("[")
+      start_range = (value.slice(value.index("[")+1..value.index("]")-1)).split("-")[0].to_i
+      end_range = (value.slice(value.index("[")+1..value.index("]")-1)).split("-")[1].to_i
       curr_val = start_range + @@header_hash[header] 
       if  curr_val < end_range
         @@header_hash[header] = @@header_hash[header] + 1
       else
         @@header_hash[header] = 0
       end  
-      curr_str = value.gsub(/<.*-.*>/,curr_val.to_s)
+      curr_str = value.gsub(/\[.*-.*\]/,curr_val.to_s)
       return curr_str
     else
       return value
@@ -1685,7 +1685,7 @@ class Session
       SessionManager.remove_session self 
       @invalidated = true 
       SIP::TestCompletionSignalingHelper.signal_waiting_test(@signal_test_complete_when_invalidated) if @signal_test_complete_when_invalidated
-    else
+	  else
       if @invalidating
         @ilog.info("This session with key #{self.session_key} is already scheduled for invalidation") if @ilog.info?
         return
