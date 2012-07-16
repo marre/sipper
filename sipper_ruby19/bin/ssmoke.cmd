@@ -1,1 +1,0 @@
-@ruby %SIPPER_HOME%\sipper\bin\run_smoke.rb %*

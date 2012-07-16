@@ -1,1 +1,0 @@
-@ruby %SIPPER_HOME%\sipper\bin\project.rb %*
