@@ -35,19 +35,16 @@ class TestNonInviteRetransmission < DrivenSipTestCase
         def on_info(session)
           if tid = session['nist_txn_id']
             if tid == session.irequest.transaction.object_id
-              logd("Received INFO in "+name)
-				logd("sending 200 with txn " + tid.to_s)
+              logd("Received INFO in #{name} sending 200 with txn " + tid.to_s)
               session.respond_with(200) 
             else
               session.do_record("Error")
-              logd("Received INFO in "+name)
-				logd("txn is not correct " + tid.to_s)
+              logd("Received INFO in #{name} txn is not correct " + tid.to_s)
             end
             session.invalidate(true)
           else
             session['nist_txn_id'] = session.irequest.transaction.object_id
-            logd("Received INFO in "+name)
-				logd("saving txn_id " + session['nist_txn_id'].to_s )
+            logd("Received INFO in #{name} saving txn_id " + session['nist_txn_id'].to_s )
           end
         end
         
@@ -66,12 +63,12 @@ class TestNonInviteRetransmission < DrivenSipTestCase
           r = Request.create_initial("info", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INFO from "+name)
+          logd("Sent a new INFO from #{name}")
         end
     
         
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.invalidate(true)
           session.flow_completed_for("TestNonInviteRetransmission")
         end  

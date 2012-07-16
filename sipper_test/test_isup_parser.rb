@@ -5,11 +5,11 @@ require 'message'
 class TestIsupParser < BaseTestCase
 
  def test_isup
-    str_IAM = %q{01 00 49 00 00 03 02 00 07 04 10 00 33 63 21 43 00 30 11}.lines.to_a
-    str_ACM = %q{06 00 00 00}.lines.to_a
-    str_ANM = %q{09 00}.lines.to_a
-    str_REL = %q{0C 02 00 03 80 AB 80}.lines.to_a
-    str_RLC = %q{10 00}.lines.to_a
+    str_IAM = %q{01 00 49 00 00 03 02 00 07 04 10 00 33 63 21 43 00 30 11}.to_a
+    str_ACM = %q{06 00 00 00}.to_a
+    str_ANM = %q{09 00}.to_a
+    str_REL = %q{0C 02 00 03 80 AB 80}.to_a
+    str_RLC = %q{10 00}.to_a
 
     isup_msg1 = ISUP::IsupParser.parse(str_IAM)
     assert_equal("IAM", isup_msg1.msg_type)

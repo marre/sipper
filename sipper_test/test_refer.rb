@@ -17,7 +17,7 @@ class TestRefer < DrivenSipTestCase
         session_timer 1500
 
         def on_refer(session)
-          logd("Received Refer in "+name)
+          logd("Received Refer in #{name}")
 
           subscription = session.get_subscription(session.irequest)
 
@@ -38,7 +38,7 @@ class TestRefer < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
 
           request = session.iresponse.get_request()
           subscription = session.get_subscription(request)
@@ -73,11 +73,11 @@ class TestRefer < DrivenSipTestCase
           subscription = u.create_subscription("refer")
           u.add_subscription_to_request(r, subscription)
           u.send(r)
-          logd("Sent a new REFER from "+name)
+          logd("Sent a new REFER from #{name}")
         end
      
         def on_notify(session)
-          logd("Received notify in "+name)
+          logd("Received notify in #{name}")
 
           subscription = session.get_subscription(session.irequest)
 
@@ -97,7 +97,7 @@ class TestRefer < DrivenSipTestCase
         end
 
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
         end
       end
     end

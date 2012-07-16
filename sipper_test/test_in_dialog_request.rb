@@ -9,14 +9,14 @@ class TestInDialogRequest < DrivenSipTestCase
     module SipInDialog
       class UasInviteController < SIP::SipTestDriverController
         def on_invite(session)
-          logd("Received INVITE in "+name)
+          logd("Received INVITE in #{name}")
           session.local_tag = 5  #todo differentiate automatically on the same container somehow
           r = session.create_response(200, "OK")
           session.send(r)
         end
         
         def on_ack(session)
-          logd("Received ACK in "+name)
+          logd("Received ACK in #{name}")
           session.invalidate
           session.flow_completed_for("TestInDialogRequest") 
         end
@@ -33,11 +33,11 @@ class TestInDialogRequest < DrivenSipTestCase
           #todo this MUST be fixed, this coudl easily be forgotten 
           u.record_io = yield  if block_given?
           u.send(r)
-          logd("Sent a new request from "+name)
+          logd("Sent a new request from #{name}")
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.send(session.create_subsequent_request("ack"))
           session.invalidate
         end

@@ -42,7 +42,7 @@ class TestValidations < DrivenSipTestCase
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.validate_presence_of_headers :test_header
           session.validate_presence_of_header_params :test_header, :mytag
           session.validate_header_values :test_header=>'hello;mytag=123'

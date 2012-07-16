@@ -112,12 +112,10 @@ module Transport
         fail "Already stopped" unless @running
         @running = false
       #end
-	  sleep 0.5
       @sock.close
       @t_thread.kill
       k = @ip.to_s + ":" + @port.to_s
       @@instance.delete(k)
-	  sleep 0.5
     end
     
    

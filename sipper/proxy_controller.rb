@@ -59,7 +59,7 @@ module SIP
         r.push_via(my_via)
         r.format_as_separate_headers_for_mv(:via)
         if (mf_hdr = r[:max_forwards])
-          mf = Integer(mf_hdr[0].to_s)
+          mf = Integer(mf_hdr.to_s)
           mf -= 1
           r.max_forwards = mf.to_s
         else

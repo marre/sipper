@@ -64,7 +64,7 @@ class TestPickup < DrivenSipTestCase
           bill_sub_session.add_subscription_to_request(r, subscription)
           r.expires = "0"
           bill_sub_session.send(r)
-          logd("Sent a new Subscribe from" +name)
+          logd("Sent a new Subscribe from #{name}")
         end
 
        
@@ -126,7 +126,7 @@ class TestPickup < DrivenSipTestCase
         end
 
         def on_cancel(bob_session1)
-           logd("Received cancel request in " +name)
+           logd("Received cancel request in #{name}")
            # Here we use the To header because the Contact in 180 changes
            # remote target.
            dialog_store.delete(bob_session1.irequest.to.uri.to_s)

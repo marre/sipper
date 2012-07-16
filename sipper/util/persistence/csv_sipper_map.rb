@@ -21,8 +21,8 @@ module SipperUtil
           outfile.close     
         end
         @csv_map = {}
-        #CSV::Reader.parse(File.open(@file, 'rb')) do |row|
-         # @csv_map[row[0]] = row[1] 
+        CSV::Reader.parse(File.open(@file, 'rb')) do |row|
+          @csv_map[row[0]] = row[1] 
         end
       end
       
@@ -60,4 +60,4 @@ module SipperUtil
       
     end
   end
-$end  
+end  

@@ -15,7 +15,7 @@ class TestControllerUsingPreExistingRs1 < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          logd("Received INVITE in "+name)
+          logd("Received INVITE in #{name}")
           session.irequest.routes.each do |r|
             session.do_record(r.to_s)
           end
@@ -45,11 +45,11 @@ class TestControllerUsingPreExistingRs1 < DrivenSipTestCase
           r = u.create_initial_request("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u.send(r)
           SipperConfigurator[:PreExistingRouteSet] = orig
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.request_with("ack")
           session.invalidate(true)
         end

@@ -164,7 +164,7 @@ class TestInviteClientTransaction < SipTestCase
     rt.extend(SIP::Transport::ReliableTransport)  # transport reliable
     ict.txn_send SipMockTester::MockRequest.new("INVITE")
     sleep 2 
-    assert_equal(5, rt.msg.length)  # no retransmission with realiable trans
+    assert(1, rt.msg.length)  # no retransmission with realiable trans
   end
   
   def test_timerB_with_reliable

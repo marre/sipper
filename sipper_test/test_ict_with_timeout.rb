@@ -12,8 +12,7 @@ class TestIctWithTimeout < DrivenSipTestCase
       class UasIctTimeoutController < SIP::SipTestDriverController
       
         def on_invite(session)
-          logd("Received INVITE in "+name)
-			logd("not doing anything")
+          logd("Received INVITE in #{name} not doing anything")
           if session['count']
             session['count'] = session['count']+1
             session.invalidate if session['count']==7
@@ -35,11 +34,11 @@ class TestIctWithTimeout < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
         end
      
         def on_failure_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.invalidate
           session.flow_completed_for("TestIctWithTimeout")
         end

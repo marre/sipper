@@ -19,8 +19,7 @@ class TestCancelWithNist < DrivenSipTestCase
         
         def on_info(session)
           session.respond_with(183)
-          logd("Received INFO in "+name)
-			logd("sent a 183")
+          logd("Received INFO in #{name} sent a 183")
           session['info_request'] = session.irequest
         end
         
@@ -46,14 +45,14 @@ class TestCancelWithNist < DrivenSipTestCase
           r = Request.create_initial("info", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INFO from "+name)
+          logd("Sent a new INFO from #{name}")
           u.create_and_send_cancel_when_ready
         end
      
       
         
         def on_success_res(session)
-          logd("Received success response in "+name)
+          logd("Received success response in #{name}")
           if session.iresponse.get_request_method == "CANCEL"
             session.do_record("200_CANCEL")
           else

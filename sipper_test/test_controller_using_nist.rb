@@ -15,7 +15,7 @@ class TestControllerUsingNist < DrivenSipTestCase
         transaction_timers :t1=>100
         
         def on_info(session)
-          logd("Received INFO in "+name)
+          logd("Received INFO in #{name}")
           session.local_tag = 5  #todo differentiate automatically on the same container somehow
           r = session.create_response(400, "Bad Request")
           session.send(r)
@@ -35,11 +35,11 @@ class TestControllerUsingNist < DrivenSipTestCase
           r = Request.create_initial("info", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INFO from "+name)
+          logd("Sent a new INFO from #{name}")
         end
      
         def on_failure_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.invalidate
           session.flow_completed_for("TestControllerUsingNist")  
         end

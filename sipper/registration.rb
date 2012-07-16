@@ -15,8 +15,8 @@ class Registration
     reg_data = RegistrationData.new(contact.to_s)
     reg_data.contact_uri = contact.uri
         
-    if contact[:expires] then reg_data.expires = contact.expires
-    elsif request[:expires] then reg_data.expires = request.expires.header_value
+    if contact[:expires] : reg_data.expires = contact.expires
+    elsif request[:expires] : reg_data.expires = request.expires.header_value
     else reg_data.expires = "3600"
     end
     
@@ -31,8 +31,8 @@ class Registration
     reg_list.each do |registration|
       if registration.contact_uri == contact.uri
         index = reg_list.index(registration)
-        if contact[:expires] then registration.expires = contact.expires 
-        elsif request[:expires] then registration.expires = request.expires.header_value
+        if contact[:expires] : registration.expires = contact.expires 
+        elsif request[:expires] : registration.expires = request.expires.header_value
         else registration.expires = "3600"
         end
         registration.q = contact[:q] ? contact.q : 0

@@ -121,7 +121,7 @@ class TestHeaderParse < BaseTestCase
   def test_frozen_header
     orig_via = @rq.via.to_s
     @rq.via.freeze
-    assert_raise(RuntimeError){@rq.via.assign("SIP/2.0/TLS 175.19.37.207:6062;branch=z9hG4bK-1-0")}
+    assert_raise(TypeError){@rq.via.assign("SIP/2.0/TLS 175.19.37.207:6062;branch=z9hG4bK-1-0")}
     assert_equal(orig_via, @rq.via.to_s)
     assert_nothing_raised {@rq.via.new_tag="1"}
     assert_equal(orig_via, @rq.via.to_s)

@@ -78,7 +78,7 @@ class TestSdpBody < DrivenSipTestCase
           #modifying version
           r.sdp.set_owner_version("1236599999")          
           session.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
         end
 
         def on_success_res_for_invite(session)

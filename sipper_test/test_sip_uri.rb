@@ -142,7 +142,7 @@ class TestSipUri < BaseTestCase
     uri.assign("sip:nkhan:hello@sipper.com::::::5070", false)
     uri.freeze
     assert_equal("sip:nkhan:hello@sipper.com::::::5070", uri.to_s)
-    assert_raise(RuntimeError) { uri.proto = "sips"}
+    assert_raise(TypeError) { uri.proto = "sips"}
   end
   
   def test_with_user_with_port_freeze
@@ -156,7 +156,7 @@ class TestSipUri < BaseTestCase
     uri.port = "5060"
     assert_equal("sip:nkhan@sipper.com:5060", uri.to_s)
     uri.freeze
-    assert_raise(RuntimeError) { uri.proto = "sips"}
+    assert_raise(TypeError) { uri.proto = "sips"}
     assert_equal("sip:nkhan@sipper.com:5060", uri.to_s)
   end
   

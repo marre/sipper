@@ -9,7 +9,7 @@ class TestInlineController < DrivenSipTestCase
     module TestInlineController_SipInline
       class UasMsgController < SIP::SipTestDriverController
         def on_message(session)
-          logd("Received MESSAGE in "+name)
+          logd("Received MESSAGE in #{name}")
           session.local_tag = 5  #todo differentiate automatically on the same container somehow
           r = session.create_response(200, "OK")
           session.send(r)
@@ -27,16 +27,16 @@ class TestInlineController < DrivenSipTestCase
           #todo this MUST be fixed, this coudl easily be forgotten 
           u.record_io = yield  if block_given?
           u.send(r)
-          logd("Sent a new request from "+name)
+          logd("Sent a new request from #{name}")
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.schedule_timer_for("invalidate_timer", 100) 
         end
         
         def on_timer(session, task)
-          logd("Timer invoked in "+name)
+          logd("Timer invoked in #{name}")
           session.invalidate
           session.flow_completed_for("TestInlineController")
         end

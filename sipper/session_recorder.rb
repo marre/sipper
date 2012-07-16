@@ -46,7 +46,7 @@ class SessionRecorder
   end
   
   def SessionRecorder.create_and_record(io, msg, msg_s, direction, session_setting=nil, emit_console=false)
-    if (msg.respond_to?:p_session_record)
+    if msg[:p_session_record]
       level = msg.p_session_record.to_s
     elsif session_setting
       level = session_setting
@@ -176,7 +176,6 @@ class SessionRecorder
       when StringIO
         io = f   
       end
-	  YAML::ENGINE.yamler = 'syck'
       obj = YAML::load(io)
       if obj.class == SessionRecorder
         return obj

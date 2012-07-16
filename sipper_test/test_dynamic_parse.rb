@@ -14,11 +14,11 @@ Cseq: 1 INVITE}
 
     msg = [str, ["AF_INET", 33303, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
-    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;branch=z9hG4bK-2352-1-0;received=127.0.0.2", r.via.to_s)
+    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;received=127.0.0.2;branch=z9hG4bK-2352-1-0", r.via.to_s)
     
     # Via
     pv = r.via  
-    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;branch=z9hG4bK-2352-1-0;received=127.0.0.2", pv.to_s)
+    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;received=127.0.0.2;branch=z9hG4bK-2352-1-0", pv.to_s)
     assert_equal("SIP/2.0/UDP 127.0.0.1:6061", pv.header_value)
     assert_equal({"branch"=>"z9hG4bK-2352-1-0","received"=>"127.0.0.2"}, pv.header_params)
     assert_equal("Via", pv.name)
@@ -49,7 +49,7 @@ Cseq: 1 INVITE}
 
     msg = [str, ["AF_INET", 33303, "localhost.localdomain", "127.0.0.1"]]
     r = Message.parse msg
-    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;branch=z9hG4bK-2352-1-0;received=127.0.0.2", r.via.to_s)
+    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;received=127.0.0.2;branch=z9hG4bK-2352-1-0", r.via.to_s)
     
     # Via
     pv = r.via
@@ -68,7 +68,7 @@ Cseq: 1 INVITE}
     assert(!pv.default_parse?)
     
     pv = r.vias[1]
-    assert_equal("SIP/2.0/UDP 128.0.0.1:6062;branch=z9hG4bK-2353-1-0;received=127.0.0.3", pv.to_s)
+    assert_equal("SIP/2.0/UDP 128.0.0.1:6062;received=127.0.0.3;branch=z9hG4bK-2353-1-0", pv.to_s)
     assert_equal("SIP/2.0/UDP 128.0.0.1:6062", pv.header_value)
     assert_equal({"branch"=>"z9hG4bK-2353-1-0","received"=>"127.0.0.3"}, pv.header_params)
     assert_equal("Via", pv.name)
@@ -101,7 +101,7 @@ Cseq: 1 INVITE}
     
     # Via
     pv = r.via
-    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;branch=z9hG4bK-2352-1-0;received=127.0.0.2", pv.to_s)
+    assert_equal("SIP/2.0/UDP 127.0.0.1:6061;received=127.0.0.2;branch=z9hG4bK-2352-1-0", pv.to_s)
     assert_equal("SIP/2.0/UDP 127.0.0.1:6061", pv.header_value)
     assert_equal({"branch"=>"z9hG4bK-2352-1-0","received"=>"127.0.0.2"}, pv.header_params)
     assert_equal("Via", pv.name)
@@ -117,7 +117,7 @@ Cseq: 1 INVITE}
     assert(!pv.default_parse?)
     
     pv = r.vias[1]
-    assert_equal("SIP/2.0/UDP 128.0.0.1:6062;branch=z9hG4bK-2353-1-0;received=127.0.0.3", pv.to_s)
+    assert_equal("SIP/2.0/UDP 128.0.0.1:6062;received=127.0.0.3;branch=z9hG4bK-2353-1-0", pv.to_s)
     assert_equal("SIP/2.0/UDP 128.0.0.1:6062", pv.header_value)
     assert_equal({"branch"=>"z9hG4bK-2353-1-0","received"=>"127.0.0.3"}, pv.header_params)
     assert_equal("Via", pv.name)

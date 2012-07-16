@@ -26,7 +26,7 @@ class TestResponse < BaseTestCase
   end
   
   def test_dynamic
-    @r.via = v = "SIP/2.0/UDP 127.0.0.1:6061;branch=z9hG4bK-2352-1-0;received=127.0.0.2"
+    @r.via = v = "SIP/2.0/UDP 127.0.0.1:6061;received=127.0.0.2;branch=z9hG4bK-2352-1-0"
     assert_equal(v, @r.via.to_s)
     pv = @r.via
     assert_equal("127.0.0.1", pv.sent_by_ip)

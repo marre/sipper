@@ -84,7 +84,7 @@ class DrivenSipTestCase < SipTestCase
       recording.each do |msg|
         begin
           match_result = ep.match(msg)
-          assert(match_result)
+          assert(match_result[0])
         rescue Test::Unit::AssertionFailedError => e
           raise Test::Unit::AssertionFailedError.new("Expected= #{match_result[1]}  Actual= #{msg}")  
         end

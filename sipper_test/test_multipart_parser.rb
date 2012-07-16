@@ -63,7 +63,7 @@ t=3458991194 0
     assert_equal("application/sdp", multipart_content.get_bodypart(1).type)
     assert_equal("application/sdp", multipart_content.get_bodypart(2).type)
     
-    assert_equal("[\"hello\"]", multipart_content.get_bodypart(0).contents.to_s)
+    assert_equal("hello", multipart_content.get_bodypart(0).contents.to_s)
     assert_equal(sdp_only_str1, multipart_content.get_bodypart(1).contents.join("\n"))
     assert_equal(sdp_only_str1, multipart_content.get_bodypart(2).contents.join("\n"))
     

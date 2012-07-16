@@ -22,7 +22,7 @@ class Test2xxRetransmissionWithLimit < DrivenSipTestCase
         session_timer 100
         
         def on_invite(session)
-          logd("Received INVITE in "+name)
+          logd("Received INVITE in #{name}")
           session.local_tag = 7  
           r = session.create_response(200, "OK")
           session.send(r)
@@ -46,7 +46,7 @@ class Test2xxRetransmissionWithLimit < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
         end
         
         def on_success_res(session)

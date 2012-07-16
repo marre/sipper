@@ -1,4 +1,4 @@
-$:.unshift File.join(ENV['SIPPER_HOME'],'sipper_test')
+
 require 'driven_sip_test_case'
 
 # UAC runs on 5066
@@ -21,7 +21,7 @@ class TestCallerPreference < DrivenSipTestCase
     SipperConfigurator[:LocalTestPort] = [5066, 5067, 5065]
 
     super
-    unless (RUBY_PLATFORM =~ /mswin/) || (RUBY_PLATFORM =~ /i386-mingw32/)
+    unless RUBY_PLATFORM =~ /mswin/
       system("srun -p #{SipperConfigurator[:LocalTestPort][1]+1}  -rf 3 -c #{File.join(File.dirname(__FILE__), "caller_preference_proxy.rb")} &")    
     end
     
@@ -124,12 +124,12 @@ class TestCallerPreference < DrivenSipTestCase
   
   
   def test_rt1_controllers
-    if ((RUBY_PLATFORM =~ /mswin/) || (RUBY_PLATFORM =~ /i386-mingw32/)) && !ENV['SIPPER_TEST_PROXY_EXTERNAL'] 
+    if RUBY_PLATFORM =~ /mswin/ && !ENV['SIPPER_TEST_PROXY_EXTERNAL'] 
       return  
     end
     self.expected_flow = ["> REGISTER", "< 200"]
     start_named_controller_non_blocking("TestCallerPreference_SipInline::UacCallerPreferenceController")
-    sleep 2
+    sleep 1
     verify_call_flow(:out,0)
 
     self.expected_flow = ["< REGISTER","> 200"]

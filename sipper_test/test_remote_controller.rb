@@ -14,11 +14,11 @@ class TestRemoteController < DrivenSipTestCase
           #todo this MUST be fixed, this coudl easily be forgotten 
           u.record_io = yield  if block_given?
           u.send(r)
-          logd("Sent a new request from "+name)
+          logd("Sent a new request from #{name}")
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.send(session.create_subsequent_request("cleanup"))
           session.invalidate
         end

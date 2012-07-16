@@ -19,8 +19,7 @@ class TestCancelAfter2xx < DrivenSipTestCase
         
         def on_invite(session)
           session.respond_with(200)
-          logd("Received INVITE in "+name)
-			logd("sent a 200")
+          logd("Received INVITE in #{name} sent a 200")
         end
         
         def on_cancel(session)
@@ -45,17 +44,17 @@ class TestCancelAfter2xx < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
           u.create_and_send_cancel_when_ready
         end
      
         def on_failure_res(session)
-          logd("Received failure response in "+name)
+          logd("Received failure response in #{name}")
           session.do_record("FAILURE 408 is not expected here")
         end
         
         def on_success_res(session)
-          logd("Received success response in "+name)
+          logd("Received success response in #{name}")
           if session.iresponse.get_request_method == "CANCEL"
             session.invalidate(true)
             session.flow_completed_for("TestCancelAfter2xx")

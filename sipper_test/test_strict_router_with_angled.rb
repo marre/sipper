@@ -15,7 +15,7 @@ class TestStrictRouterWithAngled < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          logd("Received INVITE in "+name)
+          logd("Received INVITE in #{name}")
           session.respond_with(200)
         end
         
@@ -47,11 +47,11 @@ class TestStrictRouterWithAngled < DrivenSipTestCase
                :record_route=>"<sip:example1.com>,<sip:example2.com>")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
         end
      
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.request_with("ack")
         end
         
@@ -74,10 +74,10 @@ class TestStrictRouterWithAngled < DrivenSipTestCase
   
   
   def test_rs_controllers
-    self.expected_flow = ["> INVITE", "< 100","< 200", "> ACK", "< SUBSCRIBE", "! <sip:example2.com>", "! <sip:127.0.0.1:5066>;transport=UDP", "> 200"]
+    self.expected_flow = ["> INVITE", "< 100","< 200", "> ACK", "< SUBSCRIBE", "! <sip:example2.com>", "! <sip:127.0.0.1:5066>", "> 200"]
     start_controller
     verify_call_flow(:out)
-    self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK","! <sip:example1.com>", "! <sip:127.0.0.1:5066>;transport=UDP", "> SUBSCRIBE","< 200"]
+    self.expected_flow = ["< INVITE", "> 100", "> 200", "< ACK","! <sip:example1.com>", "! <sip:127.0.0.1:5066>", "> SUBSCRIBE","< 200"]
     verify_call_flow(:in)
   end
   

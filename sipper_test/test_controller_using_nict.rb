@@ -20,7 +20,7 @@ class TestControllerUsingNict < DrivenSipTestCase
         end
         
         def _on_info_do_success(session)
-          logd("Received INFO in "+name)
+          logd("Received INFO in #{name}")
           session.local_tag = 8  #todo differentiate automatically on the same container somehow  
           r = session.create_response(200, "OK")
           session.send(r)
@@ -28,7 +28,7 @@ class TestControllerUsingNict < DrivenSipTestCase
         end
         
         def _on_info_do_provisional(session)
-          logd("Received INFO in "+name)
+          logd("Received INFO in #{name}")
           session['act'] = "yes"
           r = session.create_response(100, "Trying")
           session.send(r)
@@ -51,12 +51,12 @@ class TestControllerUsingNict < DrivenSipTestCase
           r.test_header = "1".to_s
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INFO from "+name)
+          logd("Sent a new INFO from #{name}")
         end
     
         
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           # session.session_timer = 200 (alternatively used the directive)
           session.invalidate
           session.flow_completed_for("TestControllerUsingNict")
@@ -74,14 +74,14 @@ class TestControllerUsingNict < DrivenSipTestCase
           r.test_header = "2".to_s
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INFO from "+name)
+          logd("Sent a new INFO from #{name}")
         end
         
         def on_provisional(session)
           logd("Provisional received in #{self}")
         end 
         def on_success_res(session)
-          logd("Received response in "+name)
+          logd("Received response in #{name}")
           session.invalidate
           session.flow_completed_for("TestControllerUsingNict")
         end  

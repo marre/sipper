@@ -15,8 +15,7 @@ class TestCancelWith487 < DrivenSipTestCase
         transaction_usage :use_transactions=>true
         
         def on_invite(session)
-          logd("Received INVITE in "+name)
-			logd("not doing anything")
+          logd("Received INVITE in #{name} not doing anything")
         end
         
         def on_cancel(session)
@@ -36,18 +35,18 @@ class TestCancelWith487 < DrivenSipTestCase
           r = Request.create_initial("invite", "sip:nasir@sipper.com", :p_session_record=>"msg-info")
           u = create_udp_session(SipperConfigurator[:LocalSipperIP], SipperConfigurator[:LocalTestPort])
           u.send(r)
-          logd("Sent a new INVITE from "+name)
+          logd("Sent a new INVITE from #{name}")
           u.create_and_send_cancel_when_ready
         end
      
         def on_failure_res(session)
-          logd("Received failure response in "+name)
+          logd("Received failure response in #{name}")
           session.invalidate
           session.flow_completed_for("TestCancelWith487") 
         end
         
         def on_success_res(session)
-          logd("Received success response in "+name)
+          logd("Received success response in #{name}") 
         end
         
       end
